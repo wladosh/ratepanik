@@ -23,7 +23,7 @@ export function ThemePickScreen() {
     mode === "number_guess"
       ? "Zahlenraten"
       : mode === "pick_correct"
-        ? "Passendes w\u00e4hlen"
+        ? "Passendes wählen"
         : mode ?? "";
 
   return (
@@ -51,17 +51,17 @@ export function ThemePickScreen() {
         </span>
 
         <h2 className="mb-2 text-2xl font-extrabold" style={{ color: "var(--rp-text)" }}>
-          Thema w\u00e4hlen
+          Thema wählen
         </h2>
 
         <div className="mb-6 flex items-center justify-center gap-2">
           <span className="text-2xl">{picker ? game.getAvatar(picker.id) : ""}</span>
           <span className="text-base" style={{ color: "var(--rp-text-secondary)" }}>
             {game.isThemePicker ? (
-              <span className="font-bold" style={{ color: "var(--rp-peach)" }}>Du w\u00e4hlst!</span>
+              <span className="font-bold" style={{ color: "var(--rp-peach)" }}>Du wählst!</span>
             ) : (
               <>
-                <span className="font-bold" style={{ color: "var(--rp-text)" }}>{picker?.display_name}</span> w\u00e4hlt\u2026
+                <span className="font-bold" style={{ color: "var(--rp-text)" }}>{picker?.display_name}</span> wählt…
               </>
             )}
           </span>
@@ -102,7 +102,7 @@ export function ThemePickScreen() {
           >
             <div className="text-4xl animate-bounce-slow mb-3">{"\u{1F914}"}</div>
             <p className="text-base" style={{ color: "var(--rp-text-secondary)" }}>
-              Warte auf {picker?.display_name}\u2026
+              Warte auf {picker?.display_name}…
             </p>
           </div>
         )}

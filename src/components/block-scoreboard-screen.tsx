@@ -14,7 +14,7 @@ export function BlockScoreboardScreen() {
     game.currentBlock?.mode === "number_guess"
       ? "Zahlenraten"
       : game.currentBlock?.mode === "pick_correct"
-        ? "Passendes w\u00e4hlen"
+        ? "Passendes wählen"
         : "";
 
   return (
@@ -135,7 +135,7 @@ export function BlockScoreboardScreen() {
               boxShadow: "0 6px 20px rgba(255, 138, 113, 0.35)",
             }}
           >
-            {isLastBlock ? "Endergebnis anzeigen \u{1F3C6}" : "N\u00e4chster Block \u2192"}
+            {isLastBlock ? "Endergebnis anzeigen \u{1F3C6}" : "Nächster Block →"}
           </button>
         ) : (
           <div
@@ -147,8 +147,8 @@ export function BlockScoreboardScreen() {
           >
             <p className="text-base font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
               {isLastBlock
-                ? "Der Host zeigt gleich das Endergebnis\u2026"
-                : "Der Host startet den n\u00e4chsten Block\u2026"}
+                ? "Der Host zeigt gleich das Endergebnis…"
+                : "Der Host startet den nächsten Block…"}
             </p>
           </div>
         )}

@@ -4,7 +4,7 @@ import { useGame } from "@/lib/game-context";
 
 const MODE_LABELS: Record<string, string> = {
   number_guess: "\u{1F522} Zahlenraten",
-  pick_correct: "\u{1F0CF} Passendes w\u00e4hlen",
+  pick_correct: "\u{1F0CF} Passendes wählen",
 };
 
 export function FinalScreen() {
@@ -30,7 +30,7 @@ export function FinalScreen() {
           Spielende!
         </h1>
         <p className="mb-6 text-base" style={{ color: "var(--rp-text-secondary)" }}>
-          {isTie ? "Gleichstand \u2014 geteilter Sieg!" : `${winner.display_name} gewinnt!`}
+          {isTie ? "Gleichstand — geteilter Sieg!" : `${winner.display_name} gewinnt!`}
         </p>
 
         {/* Winner card */}
@@ -94,7 +94,7 @@ export function FinalScreen() {
           }}
         >
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--rp-text-secondary)" }}>
-            Block-\u00dcbersicht
+            Block-Übersicht
           </h3>
           <div className="grid grid-cols-4 gap-2">
             {game.blocks

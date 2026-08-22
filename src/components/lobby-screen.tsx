@@ -135,7 +135,7 @@ export function LobbyScreen() {
               style={{ background: canStart ? "var(--rp-success)" : "var(--rp-yellow)" }}
             />
             <span className="text-sm font-semibold" style={{ color: "var(--rp-text)" }}>
-              {canStart ? "Host kann starten" : "Warten auf Spieler\u2026"}
+              {canStart ? "Host kann starten" : "Warten auf Spieler…"}
             </span>
           </div>
         </div>
@@ -196,7 +196,7 @@ export function LobbyScreen() {
                   : `${game.players.length} Spieler bereit!`}
             </p>
             <p className="text-xs" style={{ color: "var(--rp-text-secondary)" }}>
-              3\u20138 Spieler pro Runde
+              3–8 Spieler pro Runde
             </p>
           </div>
         </div>
@@ -226,7 +226,7 @@ export function LobbyScreen() {
             }}
           >
             <p className="text-base font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-              Warten auf Host\u2026
+              Warten auf Host…
             </p>
           </div>
         )}
