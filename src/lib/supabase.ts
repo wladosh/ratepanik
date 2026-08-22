@@ -85,3 +85,42 @@ export interface DbMatchScore {
   total_points: number;
   created_at: string;
 }
+
+// ── Phase B: Progression ──────────────────────────────────────────
+
+export interface DbProfile {
+  id: string;
+  username: string;
+  xp: number;
+  level: number;
+  hirncoins: number;
+  avatar_id: string;
+  avatar_onboarding_done: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbAchievement {
+  id: string;
+  title: string;
+  description: string;
+  icon_key: string;
+  trigger: string;
+  active: boolean;
+}
+
+export interface DbUserAchievement {
+  user_id: string;
+  achievement_id: string;
+  unlocked_at: string;
+}
+
+export interface DbMatchReward {
+  id: string;
+  room_id: string;
+  user_id: string;
+  placement: number;
+  xp_awarded: number;
+  hirncoins_awarded: number;
+  created_at: string;
+}
