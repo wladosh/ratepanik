@@ -71,7 +71,7 @@ export function PickCorrectScreen() {
         style={{ background: "var(--rp-bg-hero)" }}
       >
         <div className="text-lg animate-pulse font-medium" style={{ color: "var(--rp-text-secondary)" }}>
-          Karten werden geladen\u2026
+          Karten werden geladen…
         </div>
       </div>
     );
@@ -208,7 +208,7 @@ export function PickCorrectScreen() {
                 <span className="font-semibold" style={{ color: "var(--rp-text)" }}>
                   {activePlayer?.display_name}
                 </span>
-                {" "}ist dran\u2026
+                {" "}ist dran…
               </>
             )}
           </span>

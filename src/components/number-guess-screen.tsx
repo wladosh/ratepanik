@@ -44,7 +44,7 @@ export function NumberGuessScreen() {
         style={{ background: "var(--rp-bg-hero)" }}
       >
         <div className="text-lg animate-pulse font-medium" style={{ color: "var(--rp-text-secondary)" }}>
-          Frage wird geladen\u2026
+          Frage wird geladen…
         </div>
       </div>
     );
@@ -128,7 +128,7 @@ export function NumberGuessScreen() {
               value={guess}
               onChange={(e) => setGuess(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-              placeholder="Deine Sch\u00e4tzung\u2026"
+              placeholder="Deine Schätzung…"
               autoFocus
               className="w-full h-[60px] rounded-[var(--rp-radius-md)] border-2 px-5 text-center text-3xl font-black transition-all focus:outline-none"
               style={{

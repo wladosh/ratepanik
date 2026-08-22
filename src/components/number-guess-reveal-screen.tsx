@@ -120,7 +120,7 @@ export function NumberGuessRevealScreen() {
               boxShadow: "0 6px 20px rgba(255, 138, 113, 0.35)",
             }}
           >
-            {isLastRound ? "Block-Ergebnis anzeigen" : "N\u00e4chste Runde \u2192"}
+            {isLastRound ? "Block-Ergebnis anzeigen" : "Nächste Runde →"}
           </button>
         ) : (
           <div
@@ -131,7 +131,7 @@ export function NumberGuessRevealScreen() {
             }}
           >
             <p className="text-base font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-              {isLastRound ? "Der Host zeigt das Block-Ergebnis\u2026" : "Der Host startet die n\u00e4chste Runde\u2026"}
+              {isLastRound ? "Der Host zeigt das Block-Ergebnis…" : "Der Host startet die nächste Runde…"}
             </p>
           </div>
         )}

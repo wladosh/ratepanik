@@ -135,7 +135,7 @@ export function LobbyScreen() {
               style={{ background: canStart ? "var(--rp-success)" : "var(--rp-yellow)" }}
             />
             <span className="text-sm font-semibold" style={{ color: "var(--rp-text)" }}>
-              {canStart ? "Host kann starten" : "Warten auf Spieler\u2026"}
+              {canStart ? "Host kann starten" : "Warten auf Spieler…"}
             </span>
           </div>
         </div>
@@ -226,7 +226,7 @@ export function LobbyScreen() {
             }}
           >
             <p className="text-base font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-              Warten auf Host\u2026
+              Warten auf Host…
             </p>
           </div>
         )}
