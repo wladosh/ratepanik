@@ -85,18 +85,18 @@ Display name: **Hirncoins**. The `rp_currency_coin_*` files from Tranche 1 remai
 | `rp_hirncoin_24` (24px) | ✓ | ✓ | ✓ |
 | `rp_hirncoin_48` (48px) | ✓ | ✓ | ✓ |
 
-### XP Icon
+### XP Badge
 
 | Base name | 1x | @2x | @3x |
 |-----------|-----|------|------|
-| `rp_icon_xp_32` (32px) | ✓ | ✓ | ✓ |
-| `rp_icon_xp_48` (48px) | ✓ | ✓ | ✓ |
+| `rp_badge_xp_32` (32px) | ✓ | ✓ | ✓ |
+| `rp_badge_xp_48` (48px) | ✓ | ✓ | ✓ |
 
 ### Level-Up Burst (FX)
 
 | Base name | 1x | @2x | @3x |
 |-----------|-----|------|------|
-| `rp_fx_levelup_burst_64` (64px) | ✓ | ✓ | ✓ |
+| `rp_fx_levelup_64` (64px) | ✓ | ✓ | ✓ |
 
 ### Achievement Badges (Phase B)
 
