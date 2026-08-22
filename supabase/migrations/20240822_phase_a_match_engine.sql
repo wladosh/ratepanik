@@ -1,69 +1,57 @@
 -- Migration: Phase A – Match engine schema (mode blocks, themes, prompts, scoring)
 -- Extends the existing rooms/players/answers tables from ratepanik_multiplayer_schema.
 -- This migration is ADDITIVE ONLY — no existing columns or tables are dropped.
+--
+-- Payload shapes by mode:
+--   number_guess : { "answer": number, "unit"?: string, "plausibility_note"?: string }
+--   pick_correct : { "cards": string[8], "correct_indices": number[4] }  (0-based)
+--   find_lie     : { "statements": string[4], "lie_index": number }
+--   order_it     : { "items": string[4|5], "correct_order": number[], "order_axis": string }
 
 -- ============================================================
--- ENUM: Spielmodus (mini-game type) — distinct from Thema!
--- ============================================================
-DO $$ BEGIN
-  CREATE TYPE spielmodus AS ENUM ('number_guess', 'pick_correct');
-EXCEPTION
-  WHEN duplicate_object THEN null;
-END $$;
-
--- ============================================================
--- TABLE: themes (Thema = content category, e.g. Gaming, Geschichte)
--- Schema only — Fragemeister fills content after approval.
+-- TABLE: themes
+-- Approved slugs seeded below. Fragemeister supplies prompt content.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS themes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug text UNIQUE NOT NULL,             -- machine key: 'gaming', 'geschichte'
-  display_name text NOT NULL,            -- German label: 'Gaming', 'Geschichte'
-  description text,
-  icon text,                             -- emoji or icon identifier
-  is_active boolean NOT NULL DEFAULT true,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
+  slug text UNIQUE NOT NULL,
+  name_de text NOT NULL,
+  active boolean NOT NULL DEFAULT true
 );
 
 ALTER TABLE themes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "themes_read_all" ON themes FOR SELECT USING (true);
 
+-- Seed approved themes
+INSERT INTO themes (slug, name_de) VALUES
+  ('gaming', 'Gaming'),
+  ('geschichte', 'Geschichte'),
+  ('wissenschaft-natur', 'Wissenschaft & Natur'),
+  ('sport', 'Sport'),
+  ('musik', 'Musik'),
+  ('film-serie', 'Film & Serie'),
+  ('reise-orte', 'Reise & Orte'),
+  ('alltag-peinlich', 'Alltag & Peinlich')
+ON CONFLICT (slug) DO NOTHING;
+
 -- ============================================================
--- TABLE: prompts (questions/challenges scoped to mode + theme)
--- Schema only — no seed data.
+-- TABLE: prompts
+-- Empty for now — Fragemeister will supply seed JSON.
+-- mode is text (not enum) to allow future modes without migrations.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS prompts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   theme_id uuid NOT NULL REFERENCES themes(id) ON DELETE CASCADE,
-  mode spielmodus NOT NULL,
-  difficulty smallint NOT NULL DEFAULT 1 CHECK (difficulty BETWEEN 1 AND 3),
-
-  -- Shared
-  question_text text NOT NULL,
-
-  -- pick_correct: multiple-choice options
-  options jsonb,                         -- JSONB array of strings
-  correct_option_index smallint,
-
-  -- number_guess: numeric answer + tolerance
-  correct_number numeric,
-  tolerance numeric,
-  unit text,                             -- e.g. 'km', 'Jahre', '%'
-
-  is_active boolean NOT NULL DEFAULT true,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now(),
-
-  CONSTRAINT valid_pick_correct CHECK (
-    mode != 'pick_correct' OR (options IS NOT NULL AND correct_option_index IS NOT NULL)
-  ),
-  CONSTRAINT valid_number_guess CHECK (
-    mode != 'number_guess' OR correct_number IS NOT NULL
-  )
+  mode text NOT NULL CHECK (mode IN ('number_guess', 'pick_correct', 'find_lie', 'order_it')),
+  difficulty text NOT NULL DEFAULT 'mittel' CHECK (difficulty IN ('leicht', 'mittel', 'schwer')),
+  prompt text NOT NULL,
+  hint text,
+  payload jsonb NOT NULL DEFAULT '{}',
+  active boolean NOT NULL DEFAULT true
 );
 
-CREATE INDEX idx_prompts_theme_mode ON prompts(theme_id, mode) WHERE is_active;
+CREATE INDEX idx_prompts_theme_mode ON prompts(theme_id, mode) WHERE active;
+CREATE INDEX idx_prompts_mode_difficulty ON prompts(mode, difficulty) WHERE active;
 
 ALTER TABLE prompts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "prompts_read_all" ON prompts FOR SELECT USING (true);
@@ -75,10 +63,10 @@ CREATE POLICY "prompts_read_all" ON prompts FOR SELECT USING (true);
 CREATE TABLE IF NOT EXISTS match_blocks (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
-  block_index smallint NOT NULL,          -- 0..3 for standard 4-block match
-  mode spielmodus NOT NULL,
+  block_index smallint NOT NULL,
+  mode text NOT NULL,
   theme_id uuid REFERENCES themes(id) ON DELETE SET NULL,
-  prompt_ids uuid[] NOT NULL DEFAULT '{}', -- ordered prompt IDs for this block
+  prompt_ids uuid[] NOT NULL DEFAULT '{}',
   is_complete boolean NOT NULL DEFAULT false,
   started_at timestamptz,
   finished_at timestamptz,
@@ -105,13 +93,14 @@ ALTER TABLE rooms
 COMMENT ON COLUMN rooms.host_user_id IS 'Supabase Auth uid of host (non-guest required to create)';
 
 -- ============================================================
--- Extend answers: support both game modes + scoring
+-- Extend answers: support all game modes + scoring
 -- ============================================================
 ALTER TABLE answers
   ADD COLUMN IF NOT EXISTS block_index smallint,
   ADD COLUMN IF NOT EXISTS prompt_id uuid REFERENCES prompts(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS mode spielmodus,
+  ADD COLUMN IF NOT EXISTS mode text,
   ADD COLUMN IF NOT EXISTS numeric_answer numeric,
+  ADD COLUMN IF NOT EXISTS payload_answer jsonb,
   ADD COLUMN IF NOT EXISTS points_awarded integer NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS time_ms integer;
 
@@ -153,7 +142,7 @@ BEGIN
 END;
 $$;
 
--- number_guess: max 1500, linear decay by distance
+-- number_guess: max 1500, linear decay by distance from correct answer
 CREATE OR REPLACE FUNCTION calculate_number_guess_points(
   player_answer numeric,
   correct_answer numeric,

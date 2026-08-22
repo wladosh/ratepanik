@@ -12,7 +12,7 @@ synchronization model for real-time multiplayer state.
 
 | Term | Meaning |
 |------|---------|
-| **Spielmodus** | Mini-game type: `number_guess`, `pick_correct` (more in Phase B+) |
+| **Spielmodus** | Mini-game type: `number_guess`, `pick_correct` (Phase A); schema allows `find_lie`, `order_it` |
 | **Thema** | Content category (e.g. Gaming, Geschichte) — orthogonal to mode |
 | **Block** | One round-group within a match; a standard match has 4 blocks |
 | **Prompt** | A single question/challenge scoped to a mode + theme |
@@ -125,8 +125,37 @@ rooms
   ├── answers[]           (room_id FK)
   └── match_scores[]      (room_id FK, per-player per-block)
 
-themes
+themes (8 approved slugs seeded)
   └── prompts[]           (theme_id FK)
+```
+
+### Approved Themes
+
+| Slug | Name (DE) |
+|------|-----------|
+| `gaming` | Gaming |
+| `geschichte` | Geschichte |
+| `wissenschaft-natur` | Wissenschaft & Natur |
+| `sport` | Sport |
+| `musik` | Musik |
+| `film-serie` | Film & Serie |
+| `reise-orte` | Reise & Orte |
+| `alltag-peinlich` | Alltag & Peinlich |
+
+### Prompt Payload Shapes
+
+```jsonc
+// number_guess
+{ "answer": 384400, "unit": "km", "plausibility_note": "Erde-Mond Distanz" }
+
+// pick_correct (8 cards shown, 4 correct)
+{ "cards": ["A","B","C","D","E","F","G","H"], "correct_indices": [0,2,5,7] }
+
+// find_lie (4 statements, 1 is false)
+{ "statements": ["...", "...", "...", "..."], "lie_index": 2 }
+
+// order_it (4-5 items to sort)
+{ "items": ["A","B","C","D"], "correct_order": [2,0,3,1], "order_axis": "chronologisch" }
 ```
 
 ---
@@ -160,12 +189,11 @@ The results screen shows total/block scores but **not** the full questions/answe
 **Excluded (Phase B/C):**
 - Progression / Leveling
 - Loot / Rewards
-- Additional game modes beyond `number_guess` and `pick_correct`
-- Content seeding (Fragemeister fills `themes`/`prompts` after owner approval)
+- Content seeding (Fragemeister supplies prompt JSON; themes are seeded)
 
 ---
 
-## Assumptions (PRODUCT.md not found)
+## Assumptions
 
 - No PRODUCT.md exists on any branch; rules followed from the task briefing.
 - Existing `ratepanik_multiplayer_schema` (rooms/players/answers + RLS) is respected.
@@ -173,3 +201,6 @@ The results screen shows total/block scores but **not** the full questions/answe
 - Supabase project has Anonymous Auth enabled (for guest flow).
 - Google OAuth provider configured in Supabase Dashboard → Auth → Providers.
 - 2–4 players per room (enforced at application level, not schema constraint).
+- Theme slugs approved by Wladislaw (8 themes seeded).
+- `mode` column is plain `text` (not enum) to accommodate future modes without schema migration.
+- Prompts table left empty — Fragemeister will supply seed JSON via INSERT/import.
