@@ -44,6 +44,7 @@ function HomeContent() {
     const defaultName =
       user?.user_metadata?.display_name ||
       user?.user_metadata?.full_name ||
+      user?.email?.split("@")[0] ||
       "";
 
     return (
