@@ -81,11 +81,14 @@
   .ps-stage {
     padding: 24px;
     background: linear-gradient(160deg, #E0EAFF 0%, #F5E0F0 50%, #FFF0E0 100%);
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
   }
 
   .ps-frame {
     width: 390px;
-    height: min(844px, calc(100dvh - 48px));
+    height: 844px;
     min-height: auto;
     border-radius: var(--ps-frame-radius);
     border: 4px solid #1A1A2E;
@@ -94,6 +97,9 @@
       0 30px 80px rgba(26, 26, 46, 0.25),
       inset 0 0 0 1px rgba(255, 255, 255, 0.06);
     overflow: hidden;
+    transform-origin: center center;
+    scale: min(1, (100vw - 48px) / 390px, (100vh - 48px) / 844px);
+    scale: min(1, (100vw - 48px) / 390px, (100dvh - 48px) / 844px);
   }
 
   .ps-notch {
