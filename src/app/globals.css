@@ -30,6 +30,124 @@
   --rp-radius-lg: 28px;
   --rp-radius-pill: 999px;
   --rp-shadow-card: 0 10px 30px rgba(42, 42, 74, 0.08);
+
+  /* Phone dimensions — design target */
+  --rp-phone-w: 390px;
+  --rp-phone-h: 844px;
+
+  /* Phone-shell tokens — UX can tweak via CSS vars */
+  --ps-bezel: 12px;
+  --ps-radius-outer: 44px;
+  --ps-radius-inner: 36px;
+  --ps-case-color: rgba(42, 42, 74, 0.92);
+  --ps-case-shadow: 0 24px 80px rgba(42, 42, 74, 0.25);
+  --ps-letterbox-bg: var(--rp-bg-hero, var(--rp-bg));
+}
+
+/* ── Phone Shell ─────────────────────────────────────────
+   < 768px: full-bleed, no bezel, no decorative chrome
+   ≥ 768px: centered device frame with bezel + notch
+   ────────────────────────────────────────────────────── */
+
+/* Wrapper — letterbox background on wide screens */
+.ps-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/* Frame — just a pass-through on mobile */
+.ps-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Screen — holds app content */
+.ps-screen {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Direct children fill and scroll internally */
+.ps-screen > * {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Decorative elements hidden on mobile */
+.ps-notch,
+.ps-home {
+  display: none;
+}
+
+/* ── Desktop: device frame ─────────────────────────── */
+@media (min-width: 768px) {
+  .ps-wrap {
+    align-items: center;
+    justify-content: center;
+    background: var(--ps-letterbox-bg);
+  }
+
+  .ps-frame {
+    flex: none;
+    width: calc(var(--rp-phone-w) + var(--ps-bezel) * 2);
+    height: calc(var(--rp-phone-h) + var(--ps-bezel) * 2);
+    border-radius: var(--ps-radius-outer);
+    background: var(--ps-case-color);
+    box-shadow: var(--ps-case-shadow);
+    padding: var(--ps-bezel);
+    transform-origin: center center;
+    scale: min(
+      1,
+      (100vw - 48px) / (var(--rp-phone-w) + var(--ps-bezel) * 2),
+      (100dvh - 48px) / (var(--rp-phone-h) + var(--ps-bezel) * 2)
+    );
+  }
+
+  .ps-screen {
+    width: var(--rp-phone-w);
+    border-radius: var(--ps-radius-inner);
+    overflow: hidden;
+    background: var(--rp-bg);
+  }
+
+  /* Override dvh-based min-heights so content sizes to the phone frame */
+  .ps-screen .min-h-dvh {
+    min-height: 100% !important;
+  }
+
+  .ps-notch {
+    display: block;
+    position: absolute;
+    top: calc(var(--ps-bezel) + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 34px;
+    border-radius: 20px;
+    background: var(--ps-case-color);
+    z-index: 10;
+  }
+
+  .ps-home {
+    display: block;
+    position: absolute;
+    bottom: calc(var(--ps-bezel) + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 4px;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.25);
+    z-index: 10;
+  }
 }
 
 @keyframes fade-in {
