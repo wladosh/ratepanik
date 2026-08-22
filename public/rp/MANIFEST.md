@@ -74,6 +74,60 @@ Covers: navigation icons, default avatars, currency coin, trophy, rank badges, a
 | `rp_fx_confetti_sheet_512.png` | 512×512 | PNG (RGBA) |
 | `rp_fx_confetti_sheet_512.webp` | 512×512 | WebP (lossy 90) |
 
+## Phase B — Hirncoin, XP Badge, Level-Up Burst
+
+### Hirncoins (Currency)
+
+Display name: **Hirncoins**. The `rp_currency_coin_*` files from Tranche 1 remain valid as alias/fallback.
+
+| Base name | 1x | @2x | @3x |
+|-----------|-----|------|------|
+| `rp_hirncoin_24` (24px) | ✓ | ✓ | ✓ |
+| `rp_hirncoin_48` (48px) | ✓ | ✓ | ✓ |
+
+### XP Badge
+
+| Base name | 1x | @2x | @3x |
+|-----------|-----|------|------|
+| `rp_badge_xp_32` (32px) | ✓ | ✓ | ✓ |
+| `rp_badge_xp_48` (48px) | ✓ | ✓ | ✓ |
+
+### Level-Up Burst (FX)
+
+| Base name | 1x | @2x | @3x |
+|-----------|-----|------|------|
+| `rp_fx_levelup_64` (64px) | ✓ | ✓ | ✓ |
+
+### Achievement Badges (Phase B)
+
+| Base name | 48px | @2x (96) | @3x (144) | 128px | @2x (256) |
+|-----------|------|----------|-----------|-------|-----------|
+| `rp_badge_first_game` | ✓ | ✓ | ✓ (scaled) | ✓ | ✓ |
+| `rp_badge_exact_hit` | ✓ | ✓ | ✓ (scaled) | ✓ | ✓ |
+| `rp_badge_perfect_pick` | ✓ | ✓ | ✓ (scaled) | ✓ | ✓ |
+| `rp_badge_panic_pick` | ✓ | ✓ | ✓ (scaled) | ✓ | ✓ |
+| `rp_badge_clutch` | ✓ | ✓ | ✓ (scaled) | ✓ | ✓ |
+| `rp_badge_first_room` | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+> `rp_badge_first_room` is a copy of the `rp_badge_party_host` asset (alias).
+> `_48@3x` files for `first_game`, `exact_hit`, `perfect_pick`, `panic_pick`, `clutch` were
+> scaled from `_48@2x` (no separate @3x attached).
+
+#### Achievement ID → Asset Mapping
+
+| Achievement ID | Asset base name | Notes |
+|----------------|-----------------|-------|
+| `first_win` | `rp_badge_first_win` | Tranche 1 — unchanged |
+| `first_game` | `rp_badge_first_game` | Phase B — blue gamepad |
+| `first_room` | `rp_badge_first_room` | Phase B — same asset as `party_host` |
+| `exact_hit` | `rp_badge_exact_hit` | Phase B — mint target |
+| `perfect_pick` | `rp_badge_perfect_pick` | Phase B — lavender shield |
+| `panic_pick` | `rp_badge_panic_pick` | Phase B — coral X marks |
+| `clutch` | `rp_badge_clutch` | Phase B — gold lightning |
+| ~~`streak_3`~~ | `rp_badge_streak_3` | Tranche 1 asset remains; achievement ID is NOT `exact_streak_3` |
+
+> Tranche 1 `party_host` and `streak_3` assets remain in place.
+
 ## Notes
 
 - All assets are delivered by the Asset team — do NOT generate or invent replacements.
