@@ -1,16 +1,21 @@
--- Migration: Phase A – Match engine schema (mode blocks, themes, prompts, scoring)
--- Extends the existing rooms/players/answers tables from ratepanik_multiplayer_schema.
--- This migration is ADDITIVE ONLY — no existing columns or tables are dropped.
+-- Migration: Phase A – Match engine schema
+-- Source of truth: docs/PRODUCT.md (§2, §3, §7, §8, §9, §12)
+-- Extends existing rooms/players/answers from ratepanik_multiplayer_schema.
+-- ADDITIVE ONLY — no existing columns/tables dropped.
 --
--- Payload shapes by mode:
---   number_guess : { "answer": number, "unit"?: string, "plausibility_note"?: string }
---   pick_correct : { "cards": string[8], "correct_indices": number[4] }  (0-based)
---   find_lie     : { "statements": string[4], "lie_index": number }
---   order_it     : { "items": string[4|5], "correct_order": number[], "order_axis": string }
+-- ═══════════════════════════════════════════════════════════════
+-- Mode payload shapes (prompts.payload):
+--
+--   number_guess: { "answer": number, "unit"?: string, "plausibility_note"?: string }
+--   pick_correct: { "cards": string[8], "correct_indices": number[4] }  -- 0-based
+--   find_lie:     { "statements": string[4], "lie_index": number }
+--   order_it:     { "items": string[4|5], "correct_order": number[], "order_axis": string }
+--
+-- ═══════════════════════════════════════════════════════════════
 
 -- ============================================================
 -- TABLE: themes
--- Approved slugs seeded below. Fragemeister supplies prompt content.
+-- Product §10: approved starter set.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS themes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,22 +27,24 @@ CREATE TABLE IF NOT EXISTS themes (
 ALTER TABLE themes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "themes_read_all" ON themes FOR SELECT USING (true);
 
--- Seed approved themes
+-- Seed approved themes (§10 + coordinator alignment)
 INSERT INTO themes (slug, name_de) VALUES
-  ('gaming', 'Gaming'),
-  ('geschichte', 'Geschichte'),
+  ('gaming',             'Gaming'),
+  ('geschichte',         'Geschichte'),
   ('wissenschaft-natur', 'Wissenschaft & Natur'),
-  ('sport', 'Sport'),
-  ('musik', 'Musik'),
-  ('film-serie', 'Film & Serie'),
-  ('reise-orte', 'Reise & Orte'),
-  ('alltag-peinlich', 'Alltag & Peinlich')
+  ('sport',              'Sport'),
+  ('musik',              'Musik'),
+  ('film-serie',         'Film & Serie'),
+  ('reise-orte',         'Reise & Orte'),
+  ('alltag-peinlich',    'Alltag & Peinlich')
 ON CONFLICT (slug) DO NOTHING;
 
 -- ============================================================
 -- TABLE: prompts
--- Empty for now — Fragemeister will supply seed JSON.
--- mode is text (not enum) to allow future modes without migrations.
+-- Empty — Fragemeister supplies seed JSON.
+-- mode is text (not enum) to allow future modes without migration.
+-- Phase A active modes: number_guess, pick_correct
+-- Schema also allows: find_lie, order_it
 -- ============================================================
 CREATE TABLE IF NOT EXISTS prompts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -57,16 +64,20 @@ ALTER TABLE prompts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "prompts_read_all" ON prompts FOR SELECT USING (true);
 
 -- ============================================================
--- TABLE: match_blocks (round-groups within a match)
--- Standard match = 4 blocks; each block has one mode + one theme.
+-- TABLE: match_blocks
+-- Product §8: Standard match = 4 blocks, random modes without repeat.
+-- Before quiz-like blocks the host/player picks theme from 2 random options.
 -- ============================================================
 CREATE TABLE IF NOT EXISTS match_blocks (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
-  block_index smallint NOT NULL,
+  block_index smallint NOT NULL,            -- 0..3
   mode text NOT NULL,
   theme_id uuid REFERENCES themes(id) ON DELETE SET NULL,
-  prompt_ids uuid[] NOT NULL DEFAULT '{}',
+  theme_options uuid[2],                    -- the 2 random theme choices offered
+  prompt_ids uuid[] NOT NULL DEFAULT '{}',  -- ordered prompts for this block
+  current_round smallint NOT NULL DEFAULT 0,
+  rounds_total smallint NOT NULL DEFAULT 2, -- §9.1: 2 rounds per block for number_guess
   is_complete boolean NOT NULL DEFAULT false,
   started_at timestamptz,
   finished_at timestamptz,
@@ -83,38 +94,64 @@ CREATE POLICY "match_blocks_insert" ON match_blocks FOR INSERT WITH CHECK (true)
 CREATE POLICY "match_blocks_update" ON match_blocks FOR UPDATE USING (true);
 
 -- ============================================================
--- Extend rooms: match-level tracking + host auth binding
+-- Extend rooms: block tracking + host auth binding + theme vote state
 -- ============================================================
 ALTER TABLE rooms
   ADD COLUMN IF NOT EXISTS current_block_index smallint NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS total_blocks smallint NOT NULL DEFAULT 4,
-  ADD COLUMN IF NOT EXISTS host_user_id uuid;
+  ADD COLUMN IF NOT EXISTS host_user_id uuid,
+  ADD COLUMN IF NOT EXISTS theme_vote_active boolean NOT NULL DEFAULT false;
 
-COMMENT ON COLUMN rooms.host_user_id IS 'Supabase Auth uid of host (non-guest required to create)';
+COMMENT ON COLUMN rooms.host_user_id IS 'Supabase Auth uid (non-guest required to host, §3.2)';
+COMMENT ON COLUMN rooms.theme_vote_active IS 'True when theme selection is in progress before a block';
 
 -- ============================================================
--- Extend answers: support all game modes + scoring
+-- Extend answers: mode-specific data + rank-based scoring
 -- ============================================================
 ALTER TABLE answers
   ADD COLUMN IF NOT EXISTS block_index smallint,
+  ADD COLUMN IF NOT EXISTS round_index smallint,
   ADD COLUMN IF NOT EXISTS prompt_id uuid REFERENCES prompts(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS mode text,
-  ADD COLUMN IF NOT EXISTS numeric_answer numeric,
-  ADD COLUMN IF NOT EXISTS payload_answer jsonb,
+  ADD COLUMN IF NOT EXISTS numeric_answer numeric,        -- number_guess: player's guess
+  ADD COLUMN IF NOT EXISTS payload_answer jsonb,          -- flexible per-mode response
+  ADD COLUMN IF NOT EXISTS distance numeric,              -- number_guess: |guess - correct|
+  ADD COLUMN IF NOT EXISTS rank smallint,                 -- 1=closest, n=furthest (§9.1)
   ADD COLUMN IF NOT EXISTS points_awarded integer NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS time_ms integer;
 
 -- ============================================================
--- TABLE: match_scores (per-player per-block summary)
+-- TABLE: pick_correct_turns
+-- §9.2: Players take turns tapping cards until 4 correct found.
+-- Each row = one card tap within a pick_correct block.
+-- ============================================================
+CREATE TABLE IF NOT EXISTS pick_correct_turns (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
+  block_index smallint NOT NULL,
+  player_id uuid NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+  turn_order smallint NOT NULL,            -- sequential turn number
+  card_index smallint NOT NULL,            -- which card (0..7) was tapped
+  is_correct boolean NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_pct_room_block ON pick_correct_turns(room_id, block_index);
+
+ALTER TABLE pick_correct_turns ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "pct_read" ON pick_correct_turns FOR SELECT USING (true);
+CREATE POLICY "pct_insert" ON pick_correct_turns FOR INSERT WITH CHECK (true);
+
+-- ============================================================
+-- TABLE: match_scores (per-player per-block rank summary)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS match_scores (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   room_id uuid NOT NULL REFERENCES rooms(id) ON DELETE CASCADE,
   player_id uuid NOT NULL REFERENCES players(id) ON DELETE CASCADE,
   block_index smallint NOT NULL,
+  rank smallint,                            -- 1st, 2nd, 3rd, 4th within block
   total_points integer NOT NULL DEFAULT 0,
-  correct_count smallint NOT NULL DEFAULT 0,
-  total_prompts smallint NOT NULL DEFAULT 0,
   created_at timestamptz NOT NULL DEFAULT now(),
 
   CONSTRAINT unique_player_block_score UNIQUE (room_id, player_id, block_index)
@@ -129,36 +166,29 @@ CREATE POLICY "match_scores_update" ON match_scores FOR UPDATE USING (true);
 -- Scoring functions
 -- ============================================================
 
--- pick_correct: base 1000 + time bonus up to 500
-CREATE OR REPLACE FUNCTION calculate_pick_correct_points(
-  is_correct boolean,
-  answer_time_ms integer,
-  time_limit_ms integer DEFAULT 15000
+-- number_guess: points by rank (§9.1 — last place 0, scale to player count)
+-- Default 4 players: 1st=3, 2nd=2, 3rd=1, 4th=0 (multiplied by 100)
+CREATE OR REPLACE FUNCTION calculate_number_guess_rank_points(
+  player_rank smallint,
+  total_players smallint DEFAULT 4
 ) RETURNS integer
 LANGUAGE plpgsql IMMUTABLE AS $$
 BEGIN
-  IF NOT is_correct THEN RETURN 0; END IF;
-  RETURN ROUND(1000 + 500 * GREATEST(0, 1.0 - answer_time_ms::numeric / time_limit_ms));
+  IF player_rank IS NULL OR player_rank < 1 THEN RETURN 0; END IF;
+  IF player_rank > total_players THEN RETURN 0; END IF;
+  RETURN (total_players - player_rank) * 100;
 END;
 $$;
 
--- number_guess: max 1500, linear decay by distance from correct answer
-CREATE OR REPLACE FUNCTION calculate_number_guess_points(
-  player_answer numeric,
-  correct_answer numeric,
-  tolerance numeric DEFAULT 10
+-- pick_correct: points based on how many correct cards a player found
+-- (contribution-based within the cooperative turn sequence)
+CREATE OR REPLACE FUNCTION calculate_pick_correct_points(
+  correct_found smallint,
+  total_correct smallint DEFAULT 4
 ) RETURNS integer
 LANGUAGE plpgsql IMMUTABLE AS $$
-DECLARE
-  distance numeric;
-  max_distance numeric;
-  ratio numeric;
 BEGIN
-  IF tolerance <= 0 THEN tolerance := 1; END IF;
-  distance := ABS(player_answer - correct_answer);
-  max_distance := tolerance * 2;
-  IF distance >= max_distance THEN RETURN 0; END IF;
-  ratio := 1.0 - (distance / max_distance);
-  RETURN ROUND(1500 * ratio);
+  IF total_correct <= 0 THEN RETURN 0; END IF;
+  RETURN ROUND(correct_found::numeric / total_correct * 1000);
 END;
 $$;

@@ -1,135 +1,188 @@
 # Ratepanik — Phase A Architecture
 
+> Source of truth: `docs/PRODUCT.md` (PR #3) — especially §2 Begriffe, §3 Auth,
+> §7 Lobby, §8 Match-Ablauf, §9 Spielmodi, §12 Phase A.
+
 ## Overview
 
-Ratepanik is a real-time party quiz where 2–4 players compete across multiple mini-game
-modes ("Spielmodi"). Phase A covers: authentication, match engine schema, and the
-synchronization model for real-time multiplayer state.
+Ratepanik is a real-time party quiz for 2–4 players competing across 4 mini-game
+mode blocks per match. Phase A covers: authentication, lobby, match engine with
+`number_guess` and `pick_correct` modes, theme selection, rank-based scoring, and
+results (without Q&A spoilers).
 
 ---
 
-## Key Concepts
+## Key Concepts (§2 Begriffe)
 
-| Term | Meaning |
-|------|---------|
-| **Spielmodus** | Mini-game type: `number_guess`, `pick_correct` (Phase A); schema allows `find_lie`, `order_it` |
-| **Thema** | Content category (e.g. Gaming, Geschichte) — orthogonal to mode |
-| **Block** | One round-group within a match; a standard match has 4 blocks |
-| **Prompt** | A single question/challenge scoped to a mode + theme |
-| **Room** | A match instance; has a code, host, players, and blocks |
+| Begriff | Bedeutung |
+|---------|-----------|
+| **Spielmodus** | Mini-game type — HOW a round is played (`number_guess`, `pick_correct`) |
+| **Thema** | Content category — WHAT you're quizzed on (Gaming, Geschichte, …) |
+| **Block** | One mode-segment within a match; standard match = 4 blocks |
+| **Prompt** | A single question/challenge scoped to mode + theme |
+| **Match** | Complete game session: lobby → 4 blocks → results |
+| **Room** | A match instance with code, host, and players |
+
+Do NOT mix: "Wissenschaft" = **Thema**; "Zahlenraten" = **Spielmodus**.
 
 ---
 
-## Authentication Model
+## Authentication (§3)
+
+| Method | Flow |
+|--------|------|
+| Google OAuth | Supabase redirect → `/auth/callback` |
+| Email/Password | Sign-up with email confirmation |
+| Guest (Anonymous) | `signInAnonymously()` — session-only, no persistence |
+
+### Rights (§3.2)
+
+| Action | Guest | Registered |
+|--------|-------|------------|
+| Join match | ✅ | ✅ |
+| **Host** (create lobby) | ❌ | ✅ |
+| Keep XP/Währung/Achievements | ❌ | ✅ |
+
+### Host Gate
+
+`rooms.host_user_id` stores the Supabase Auth uid. Client enforces via `useAuth().canHost`
+(true only when `is_anonymous = false`). DB can additionally enforce via RLS on INSERT.
+
+---
+
+## Lobby (§7)
+
+- Min 2, max 4 players
+- Only registered users can host (create)
+- Host starts when ≥ 2 players joined
+- Match type MVP: **Standard** (4 blocks)
+
+---
+
+## Match Flow (§8)
 
 ```
-┌─────────────────────────────────────────────┐
-│           Supabase Auth                      │
-│                                              │
-│  ┌──────────┐  ┌───────────┐  ┌──────────┐  │
-│  │  Google   │  │  Email/PW │  │ Anonymous │  │
-│  │  OAuth    │  │  (verify) │  │  (Guest)  │  │
-│  └──────────┘  └───────────┘  └──────────┘  │
-└─────────────────────────────────────────────┘
+Lobby → [Block 1] → [Block 2] → [Block 3] → [Block 4] → Results
+         ↑                                                    │
+         └──── each block: theme pick → mode rounds ──────────┘
 ```
 
-- **Google OAuth**: Redirect flow via Supabase, callback at `/auth/callback`.
-- **Email/Password**: Standard sign-up with email confirmation.
-- **Guest (Anonymous)**: `signInAnonymously()` — can join rooms, cannot host.
+1. **4 blocks** = 4 different Spielmodi (random, avoid repeat if possible)
+2. **Before quiz-like blocks**: A player picks a **Thema** from 2 random options
+3. After 4 blocks → **Results screen** (scores/ranking only, NO full Q&A — anti-spoiler)
+4. Post-match: XP + Währung awarded (Phase B)
+5. Tie = shared win
 
-### Host Gate Enforcement
+### Theme Selection Phase
 
-Only users with `is_anonymous = false` may create (host) a room:
+Before blocks that need a theme (quiz-like modes), the game:
+1. Sets `rooms.theme_vote_active = true`
+2. Stores 2 random theme IDs in `match_blocks.theme_options`
+3. Designated player (or host) picks one
+4. Selected theme stored in `match_blocks.theme_id`
+5. `rooms.theme_vote_active = false`, block begins
 
-1. **Client-side**: `useAuth().canHost` controls whether the "Create Room" flow is
-   accessible. Guests/unauthenticated users are redirected to `/auth/login`.
-2. **Database-level**: `rooms.host_user_id` stores the Supabase Auth uid of the host.
-   RLS or application logic verifies `auth.uid()` is non-anonymous before INSERT.
+---
+
+## Spielmodi — Phase A (§9)
+
+### 9.1 Zahlenraten (`number_guess`)
+
+- A numeric question is shown (from `prompts` with mode=`number_guess`)
+- Each player submits a guess (`answers.numeric_answer`)
+- Scoring: **absolute distance** from correct answer → **ranked** (closest=1st)
+- Points by rank: `(total_players - rank) × 100` (last place = 0)
+- **2 rounds per block** (`match_blocks.rounds_total = 2`)
+- Achievement "exakter Treffer" — Phase B (schema has `distance` column ready)
+
+### 9.2 Passendes wählen (`pick_correct`)
+
+- Theme chosen from 2 options before this block starts
+- 8 cards shown (4 correct, 4 wrong) — stored in `prompts.payload.cards` + `correct_indices`
+- Players **take turns** tapping cards (tracked in `pick_correct_turns`)
+- Continue until all 4 correct cards found
+- Points: contribution-based (how many correct cards YOU found)
 
 ---
 
 ## Match State Synchronization
 
-### Authoritative State
+### Single Source of Truth: Database
 
-The **Supabase database** is the single source of truth. Key authoritative fields:
-
-| Table | Field | What it controls |
-|-------|-------|------------------|
-| `rooms` | `status` | Match lifecycle: `lobby` → `playing` → `finished` |
-| `rooms` | `current_block_index` | Which block is active |
-| `rooms` | `current_question_index` | Which prompt within the active block |
-| `match_blocks` | `is_complete`, `started_at` | Block-level progress |
-| `answers` | all columns | Individual player submissions |
-| `players` | `score` | Running total |
-| `match_scores` | per-block totals | Block summary for results screen |
+| Table | Key Fields | Controls |
+|-------|-----------|----------|
+| `rooms` | `status`, `current_block_index`, `current_question_index`, `theme_vote_active` | Match lifecycle + progression |
+| `match_blocks` | `mode`, `theme_id`, `current_round`, `is_complete` | Block state |
+| `answers` | `numeric_answer`, `distance`, `rank`, `points_awarded` | Per-player per-round |
+| `pick_correct_turns` | `card_index`, `is_correct`, `turn_order` | Turn-by-turn card taps |
+| `match_scores` | `rank`, `total_points` | Per-block summary |
 
 ### Realtime Subscriptions
 
-Clients subscribe to **Postgres Changes** via a single Supabase Realtime channel
-per room:
+All clients subscribe via one Supabase Realtime channel per room:
 
 ```
 channel: room-{room_id}
-  ├── postgres_changes: rooms       (filter: id=eq.{room_id})
-  ├── postgres_changes: players     (filter: room_id=eq.{room_id})
-  ├── postgres_changes: answers     (filter: room_id=eq.{room_id})
-  └── postgres_changes: match_blocks (filter: room_id=eq.{room_id})
+  ├── postgres_changes: rooms             (id=eq.{room_id})
+  ├── postgres_changes: players           (room_id=eq.{room_id})
+  ├── postgres_changes: answers           (room_id=eq.{room_id})
+  ├── postgres_changes: match_blocks      (room_id=eq.{room_id})
+  └── postgres_changes: pick_correct_turns (room_id=eq.{room_id})
 ```
 
-All clients react to the same stream → UI stays in sync without polling.
+### Host vs. Clients
 
-### Host vs. Clients — Responsibility Matrix
+| Action | Who | DB write |
+|--------|-----|----------|
+| Create room + generate blocks | Host | INSERT rooms, match_blocks |
+| Start match | Host | UPDATE rooms.status → 'playing' |
+| Offer theme options | Host/Engine | UPDATE match_blocks.theme_options |
+| Select theme | Designated player | UPDATE match_blocks.theme_id |
+| Advance round within block | Host | UPDATE match_blocks.current_round |
+| Advance to next block | Host | UPDATE rooms.current_block_index |
+| End match | Host | UPDATE rooms.status → 'finished' |
+| Submit guess (number_guess) | Each player | INSERT answers |
+| Tap card (pick_correct) | Active player | INSERT pick_correct_turns |
 
-| Action | Who | Mechanism |
-|--------|-----|-----------|
-| Create room + blocks | Host only | INSERT rooms, match_blocks |
-| Start match | Host only | UPDATE rooms.status → 'playing' |
-| Advance prompt within block | Host only | UPDATE rooms.current_question_index |
-| Advance to next block | Host only | UPDATE rooms.current_block_index |
-| End match | Host only | UPDATE rooms.status → 'finished' |
-| Submit answer | Each player | INSERT answers (own player_id) |
-
-The host is the **single writer** for progression fields. Other clients cannot
-advance the game — they only read and react.
+**Host = single writer** for progression. Other clients react to Realtime pushes.
 
 ### Client Phase Derivation
 
-Each client derives its UI screen from the Realtime-pushed DB state:
-
 ```
-room.status == 'lobby'     → LobbyScreen
-room.status == 'playing'   →
-  all players answered?    → RevealScreen (auto-reveal)
-  my answer submitted?     → WaitingScreen
-  otherwise                → QuestionScreen
-room.status == 'finished'  → FinalScreen (results without full Q&A)
+room.status == 'lobby'                  → LobbyScreen
+room.theme_vote_active == true          → ThemePickScreen (2 options)
+room.status == 'playing' + block state  →
+  number_guess: QuestionScreen / RankRevealScreen
+  pick_correct: CardGridScreen (whose turn?)
+room.status == 'finished'               → ResultsScreen (rank only, no Q&A)
 ```
 
 ### Conflict Resolution
 
-- **Duplicate answers**: UNIQUE constraint prevents double-submission per prompt/player.
-- **Race on advance**: Only host writes progression; non-host writes are rejected by RLS.
-- **Stale subscriptions**: On reconnect, clients re-fetch full state (session recovery
-  via `sessionStorage`).
+- Duplicate answers: UNIQUE on `(room_id, player_id, block_index, round_index)`
+- Turn enforcement (pick_correct): app logic checks `turn_order` sequence
+- Only host writes progression → non-host writes rejected
+- Reconnect: full state re-fetch from DB + session recovery
 
 ---
 
-## Schema Relationships
+## Schema Overview
 
 ```
 rooms
-  ├── players[]           (room_id FK)
-  ├── match_blocks[]      (room_id FK, ordered by block_index)
-  │     └── prompts[]     (via prompt_ids uuid[] → prompts.id)
-  ├── answers[]           (room_id FK)
-  └── match_scores[]      (room_id FK, per-player per-block)
+  ├── players[]              (room_id)
+  ├── match_blocks[]         (room_id, block_index 0..3)
+  │     ├── theme_options[]  (2 random theme IDs offered)
+  │     └── prompt_ids[]     (ordered prompts for this block)
+  ├── answers[]              (room_id, per-player per-round)
+  ├── pick_correct_turns[]   (room_id, turn-by-turn card taps)
+  └── match_scores[]         (room_id, per-player per-block)
 
-themes (8 approved slugs seeded)
-  └── prompts[]           (theme_id FK)
+themes (8 seeded rows)
+  └── prompts[]              (theme_id, mode, payload jsonb)
 ```
 
-### Approved Themes
+### Approved Themes (§10)
 
 | Slug | Name (DE) |
 |------|-----------|
@@ -146,61 +199,64 @@ themes (8 approved slugs seeded)
 
 ```jsonc
 // number_guess
-{ "answer": 384400, "unit": "km", "plausibility_note": "Erde-Mond Distanz" }
+{ "answer": 384400, "unit": "km", "plausibility_note": "Erde–Mond Distanz" }
 
-// pick_correct (8 cards shown, 4 correct)
+// pick_correct (8 cards, 4 correct — 0-based indices)
 { "cards": ["A","B","C","D","E","F","G","H"], "correct_indices": [0,2,5,7] }
 
-// find_lie (4 statements, 1 is false)
-{ "statements": ["...", "...", "...", "..."], "lie_index": 2 }
+// find_lie (future)
+{ "statements": ["...","...","...","..."], "lie_index": 2 }
 
-// order_it (4-5 items to sort)
+// order_it (future)
 { "items": ["A","B","C","D"], "correct_order": [2,0,3,1], "order_axis": "chronologisch" }
 ```
 
 ---
 
-## Scoring
+## Scoring (§9)
 
-### `pick_correct` mode
-- Correct answer: 1000 base + up to 500 time bonus (linear decay over time limit)
-- Wrong answer: 0 points
-- Formula: `1000 + 500 × max(0, 1 − answer_time_ms / time_limit_ms)`
+### `number_guess`
+- Absolute distance: `|player_answer - correct_answer|`
+- Players ranked by distance (closest = rank 1)
+- Points: `(total_players - rank) × 100`
+- Last place: 0 points
+- 2 rounds per block → block score = sum of both rounds
 
-### `number_guess` mode
-- Max: 1500 points (exact match)
-- Linear decay: `1500 × (1 − |answer − correct| / (tolerance × 2))`
-- Beyond 2× tolerance from correct: 0 points
+### `pick_correct`
+- Contribution-based: points ∝ how many of the 4 correct cards YOU found
+- Formula: `(correct_found / 4) × 1000`
 
-Per-block scores are aggregated in `match_scores` for the results screen.
-The results screen shows total/block scores but **not** the full questions/answers
-(per product spec).
+### Results Screen (§8)
+- Shows final ranking + per-block scores
+- Does **NOT** show full questions/answers (anti-spoiler for replay)
+- Tie = shared win (geteilter Sieg)
 
 ---
 
-## Phase A Scope Boundaries
+## Phase A Scope (§12)
 
 **Included:**
 - Auth (Google, Email/PW, Guest) + host gate
-- Schema: mode blocks, themes, prompts, scoring
-- Realtime sync model (Postgres Changes)
-- Results screen (scores only, no full Q&A replay)
+- Lobby: 2–4 players, host starts at ≥2
+- Match engine: 4 blocks, modes `number_guess` + `pick_correct`
+- Theme pick from 2 random options before quiz-like blocks
+- Rank-based scoring (no absolute point formulas for number_guess)
+- Results without Q&A spoilers
+- Content schema (themes seeded, prompts empty for Fragemeister)
 
-**Excluded (Phase B/C):**
-- Progression / Leveling
-- Loot / Rewards
-- Content seeding (Fragemeister supplies prompt JSON; themes are seeded)
+**Schema allows but NOT built (Phase B/C):**
+- XP / Level / Währung (columns can be added later)
+- Achievements (e.g. exact-hit badge — `distance` column is ready)
+- Lootboxen / Cosmetics / Avatar
+- Freunde / Social
+- Additional modes (`find_lie`, `order_it` — schema supports them)
 
 ---
 
-## Assumptions
+## Technical Notes
 
-- No PRODUCT.md exists on any branch; rules followed from the task briefing.
-- Existing `ratepanik_multiplayer_schema` (rooms/players/answers + RLS) is respected.
-  This migration only ADDS columns/tables — never drops existing ones.
-- Supabase project has Anonymous Auth enabled (for guest flow).
-- Google OAuth provider configured in Supabase Dashboard → Auth → Providers.
-- 2–4 players per room (enforced at application level, not schema constraint).
-- Theme slugs approved by Wladislaw (8 themes seeded).
-- `mode` column is plain `text` (not enum) to accommodate future modes without schema migration.
-- Prompts table left empty — Fragemeister will supply seed JSON via INSERT/import.
+- `mode` is stored as `text` (not Postgres enum) for forward compatibility
+- `prompts.payload` is `jsonb` — validated at application level per mode
+- Realtime uses Postgres Changes (not Broadcast) for consistency
+- PR #2's `rooms`/`players`/`answers` tables are preserved; this migration only ADDs columns
+- No force-push to main; draft PR only
