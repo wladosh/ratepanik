@@ -2,73 +2,87 @@
 
 import { useGame } from "@/lib/game-context";
 
+const MODE_LABELS: Record<string, string> = {
+  number_guess: "🔢 Zahlenraten",
+  pick_correct: "🃏 Passendes wählen",
+};
+
 export function FinalScreen() {
   const game = useGame();
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
   const winner = sortedPlayers[0];
+  const isTie =
+    sortedPlayers.length >= 2 && sortedPlayers[0].score === sortedPlayers[1].score;
 
   if (!winner) return null;
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8" style={{ background: "var(--rp-bg-hero)" }}>
-      <div className="w-full max-w-sm text-center">
-        {/* Trophy */}
-        <div className="mb-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/rp/rp_trophy_gold_512.png"
-            alt="Trophy"
-            width={72}
-            height={72}
-            className="mx-auto drop-shadow-[0_8px_24px_rgba(255,214,107,0.4)]"
-          />
-        </div>
-
-        <h1 className="mb-1 text-3xl font-extrabold text-[var(--rp-text)]">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-600 px-4 py-8">
+      <div className="w-full max-w-lg text-center">
+        <div className="mb-4 text-7xl sm:text-8xl animate-bounce-slow">🏆</div>
+        <h1 className="mb-2 text-4xl sm:text-5xl font-black text-white drop-shadow-lg">
           Spielende!
         </h1>
-        <p className="mb-6 text-[var(--rp-text-secondary)]">
-          {sortedPlayers[0].score === sortedPlayers[1]?.score
-            ? "Geteilter Sieg!"
-            : `${winner.display_name} gewinnt!`}
+        <p className="mb-8 text-xl text-white/90">
+          {isTie ? "Gleichstand — geteilter Sieg!" : `${winner.display_name} gewinnt!`}
         </p>
 
-        {/* Podium */}
-        <div
-          className="p-5 mb-6"
-          style={{
-            background: "var(--rp-bg-elevated)",
-            borderRadius: "var(--rp-radius-lg)",
-            boxShadow: "var(--rp-shadow-card)",
-          }}
-        >
-          <div className="space-y-3">
-            {sortedPlayers.map((player, i) => (
-              <div
-                key={player.id}
-                className="flex items-center gap-3 rounded-[var(--rp-radius-md)] px-4 py-3 animate-fade-in"
-                style={{
-                  background: i === 0 ? "rgba(255, 214, 107, 0.12)" : "transparent",
-                  animationDelay: `${i * 150}ms`,
-                }}
-              >
-                <span className="w-8 text-center text-lg font-extrabold">
-                  {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
-                </span>
-                <span className="text-2xl">{game.getAvatar(player.id)}</span>
-                <div className="flex-1 text-left">
-                  <p className="font-bold text-[var(--rp-text)]">
-                    {player.display_name}
-                    {player.id === game.myPlayerId && (
-                      <span className="ml-1 text-xs text-[var(--rp-text-secondary)]">(Du)</span>
-                    )}
-                  </p>
-                </div>
-                <span className="text-lg font-extrabold text-[var(--rp-text)] tabular-nums">
-                  {player.score}
-                </span>
+        {/* Winner card */}
+        <div className="mb-8 rounded-3xl bg-white/20 p-8 backdrop-blur-sm ring-2 ring-white/30">
+          <span className="text-6xl">{game.getAvatar(winner.id)}</span>
+          <h2 className="mt-4 text-3xl font-black text-white">
+            {winner.display_name}
+          </h2>
+          <p className="mt-2 text-5xl font-black text-yellow-200">
+            {winner.score}
+          </p>
+          <p className="mt-1 text-sm text-white/70">Punkte</p>
+        </div>
+
+        {/* All rankings (scores only, no Q&A — anti-spoiler §8) */}
+        <div className="mb-6 space-y-2">
+          {sortedPlayers.map((player, i) => (
+            <div
+              key={player.id}
+              className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm animate-fade-in"
+              style={{ animationDelay: `${i * 150}ms` }}
+            >
+              <span className="w-8 text-center text-lg font-black text-white/70">
+                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+              </span>
+              <span className="text-2xl">{game.getAvatar(player.id)}</span>
+              <div className="flex-1 text-left">
+                <p className="font-bold text-white">
+                  {player.display_name}
+                  {player.id === game.myPlayerId && (
+                    <span className="ml-2 text-xs text-white/50">(Du)</span>
+                  )}
+                </p>
               </div>
-            ))}
+              <span className="text-lg font-black text-white tabular-nums">
+                {player.score}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Per-block summary (modes only, no questions) */}
+        <div className="mb-8 rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/60">
+            Block-Übersicht
+          </h3>
+          <div className="grid grid-cols-4 gap-2">
+            {game.blocks
+              .sort((a, b) => a.block_index - b.block_index)
+              .map((block) => (
+                <div
+                  key={block.id}
+                  className="rounded-xl bg-white/10 p-2 text-center"
+                >
+                  <p className="text-xs text-white/50">Block {block.block_index + 1}</p>
+                  <p className="text-sm">{MODE_LABELS[block.mode] ?? block.mode}</p>
+                </div>
+              ))}
           </div>
         </div>
 
@@ -77,28 +91,22 @@ export function FinalScreen() {
           {game.isHost ? (
             <button
               onClick={() => void game.resetGame()}
-              className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97]"
-              style={{
-                background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-                boxShadow: "0 4px 16px rgba(255, 138, 113, 0.35)",
-              }}
+              className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-orange-600 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
             >
-              Nochmal spielen! 🔄
+              Nochmal spielen!
             </button>
           ) : (
-            <div className="text-sm text-[var(--rp-text-secondary)]">
-              Der Host kann eine neue Runde starten
+            <div className="w-full rounded-2xl bg-white/10 px-6 py-3 text-center backdrop-blur-sm">
+              <p className="font-bold text-white/80">
+                Der Host kann eine neue Runde starten
+              </p>
             </div>
           )}
           <button
             onClick={game.goHome}
-            className="w-full h-[48px] rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97] border-2"
-            style={{
-              borderColor: "var(--rp-border)",
-              color: "var(--rp-text-secondary)",
-            }}
+            className="w-full rounded-2xl border-2 border-white/30 px-6 py-3 text-base font-bold text-white transition-all hover:bg-white/10"
           >
-            Raus
+            Neues Spiel
           </button>
         </div>
       </div>

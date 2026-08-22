@@ -3,11 +3,11 @@
 import { useGame } from "@/lib/game-context";
 import { HomeScreen } from "./home-screen";
 import { LobbyScreen } from "./lobby-screen";
-import { ThemeSelectScreen } from "./theme-select-screen";
+import { ThemePickScreen } from "./theme-pick-screen";
 import { NumberGuessScreen } from "./number-guess-screen";
+import { NumberGuessRevealScreen } from "./number-guess-reveal-screen";
 import { PickCorrectScreen } from "./pick-correct-screen";
-import { RevealScreen } from "./reveal-screen";
-import { ScoreboardScreen } from "./scoreboard-screen";
+import { BlockScoreboardScreen } from "./block-scoreboard-screen";
 import { FinalScreen } from "./final-screen";
 
 export function Game() {
@@ -16,7 +16,7 @@ export function Game() {
   return (
     <>
       {game.error && (
-        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-[var(--rp-radius-pill)] bg-[var(--rp-danger)] px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in">
+        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-red-500 px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in">
           {game.error}
         </div>
       )}
@@ -27,17 +27,17 @@ export function Game() {
             return <HomeScreen />;
           case "lobby":
             return <LobbyScreen />;
-          case "theme_select":
-            return <ThemeSelectScreen />;
-          case "question":
-          case "answered":
-            if (game.mode === "number_guess") return <NumberGuessScreen />;
-            if (game.mode === "pick_correct") return <PickCorrectScreen />;
+          case "theme_pick":
+            return <ThemePickScreen />;
+          case "number_guess":
+          case "number_guess_waiting":
             return <NumberGuessScreen />;
-          case "reveal":
-            return <RevealScreen />;
-          case "scoreboard":
-            return <ScoreboardScreen />;
+          case "number_guess_reveal":
+            return <NumberGuessRevealScreen />;
+          case "pick_correct":
+            return <PickCorrectScreen />;
+          case "block_scoreboard":
+            return <BlockScoreboardScreen />;
           case "final":
             return <FinalScreen />;
           default:
