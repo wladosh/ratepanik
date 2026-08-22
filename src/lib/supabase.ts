@@ -22,6 +22,7 @@ export interface DbRoom {
 export interface DbPlayer {
   id: string;
   room_id: string;
+  user_id: string | null;
   display_name: string;
   score: number;
   is_host: boolean;
