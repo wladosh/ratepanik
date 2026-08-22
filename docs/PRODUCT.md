@@ -5,8 +5,8 @@
 > Supabase: Org **Ratepanik**, Projekt **Ratepanik** (`uwbhgveknypqvrwazleq`)  
 > Owner: Wladislaw · Koordination: Stabschef · Umsetzung: Dev · Content: Fragemeister · UI: UX
 
-**Stand:** 2026-08-22  
-**Status:** Vision v1 — freigegeben zum Planen; Kategorien brauchen Wladislaws OK bevor Content massenhaft angelegt wird.
+**Stand:** 2026-08-23  
+**Status:** Phase B GO — Progression-Schema angelegt; UI + Grant-Logik folgen in nächsten PRs.
 
 ---
 
@@ -26,7 +26,7 @@ Ratepanik ist ein **Party-Quiz für 2–4 Freunde** im Browser (später Flutter)
 | **Match** | Eine komplette Partie mit mehreren Spielmodus-Blöcken | 4 Blöcke → Sieger |
 | **Lobby** | Warteraum vor dem Match | Code, Spielerliste, Start |
 | **Avatar / Cosmetic** | Optische Items für den Avatar | Hut, Outfit, Farbe |
-| **Währung** | Ingame-Geld (Name TBD) | Lootbox-Käufe |
+| **Hirncoins** | Ingame-Währung | Lootbox-Käufe |
 | **Achievement / Badge** | Errungenschaft, oft live während des Matches | „Exakter Treffer bei Zahlenraten" |
 
 Nicht vermischen: „Wissenschaft" ist ein **Thema**, „Zahlenraten" ist ein **Spielmodus**.
@@ -45,7 +45,7 @@ Nicht vermischen: „Wissenschaft" ist ein **Thema**, „Zahlenraten" ist ein **
 |--------|------|-------------|
 | Match beitreten | ✅ | ✅ |
 | Lobby **erstellen** (Host) | ❌ | ✅ |
-| XP / Währung / Cosmetics / Achievements behalten | ❌ (nur Session) | ✅ |
+| XP / Hirncoins / Cosmetics / Achievements behalten | ❌ (nur Session) | ✅ |
 | Freunde hinzufügen | ❌ | ✅ |
 | Avatar dauerhaft speichern | ❌ | ✅ |
 
@@ -60,7 +60,7 @@ Nicht vermischen: „Wissenschaft" ist ein **Thema**, „Zahlenraten" ist ein **
 Sichtbar / erreichbar:
 - Level (Start: **1**) + XP-Fortschritt
 - Avatar-Vorschau
-- Währungsstand (Name TBD)
+- Hirncoins-Stand
 - **Spiel erstellen** / **Spiel beitreten**
 - Freunde
 - Lootbox-Shop / Inventar / Cosmetics anziehen
@@ -74,12 +74,11 @@ Sichtbar / erreichbar:
 - Spielen gibt XP; Gewinner mehr als Verlierer; alle registrierten Teilnehmer etwas.
 - **Offen:** Was Level *bringen* soll. Progress ist gewollt — Nutzen später festlegen, XP-Kurve trotzdem früh einbauen.
 
-### 5.2 Währung (Name TBD)
-Vorschläge: **Paniktaler**, **Hirncoins**, **Ratechips**, **Nerven**.
+### 5.2 Hirncoins
 Verdienen: Match-Ende (Sieg > Platz 2 > …). Ausgeben: **Lootboxen**.
 
 ### 5.3 Lootboxen & Cosmetics
-- Kauf mit Ingame-Währung.
+- Kauf mit Hirncoins.
 - Cosmetics Common → Legendary, am Avatar anziehbar.
 - Asset-Agent später; bis dahin Platzhalter ok.
 
@@ -100,7 +99,7 @@ Nur Registrierte hosten. Min 2, max 4. Host startet bei ≥2. Match-Typ MVP: **S
 ---
 
 ## 8. Match-Ablauf (Standard)
-4 Blöcke = 4 Spielmodi. Zufällige Modi ohne Wiederholung wenn möglich. Vor quiz-artigen Blöcken: Spieler wählt Thema aus 2 Zufallsoptionen. Nach 4 Blöcken Ergebnis → XP/Währung → Menü.
+4 Blöcke = 4 Spielmodi. Zufällige Modi ohne Wiederholung wenn möglich. Vor quiz-artigen Blöcken: Spieler wählt Thema aus 2 Zufallsoptionen. Nach 4 Blöcken Ergebnis → XP/Hirncoins → Menü.
 Ergebnis ohne volle Fragen/Antworten (Anti-Spoiler). Default Gleichstand: geteilter Sieg.
 
 ---
@@ -131,13 +130,13 @@ Next.js App Router; Supabase rooms/players/answers + Realtime (PR #2). Auth/Prog
 
 ## 12. MVP-Phasen
 **A Core:** Auth, Host-Regel, Lobby 2–4, Engine Zahlenraten+Passendes wählen, Ergebnis, Themenwahl, Content-Seed.
-**B Progression:** XP/Level, Währung, Achievements live, Avatar starter.
+**B Progression:** XP/Level, Hirncoins, Achievements live, Avatar starter.
 **C Collect/Social:** Lootboxen, Cosmetics, Freunde, mehr Modi.
 
 ---
 
 ## 13. Offene Entscheidungen
-Währungsname; Level-Nutzen; Themen-Freigabe; Punkttabellen; 2 weitere Modi; Gast-Progress mergen?
+Level-Nutzen; Themen-Freigabe; Punkttabellen; 2 weitere Modi; Gast-Progress mergen?
 
 ## 14. Agent-Rollen
 Stabschef, Dev, Fragemeister, UX, Asset später.
