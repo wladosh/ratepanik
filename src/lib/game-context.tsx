@@ -10,6 +10,7 @@ import {
   useMemo,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import {
   supabase,
   type DbRoom,
@@ -114,6 +115,7 @@ function generateRoomCode(): string {
 
 export function GameProvider({ children, joinCode }: { children: ReactNode; joinCode?: string }) {
   const { user } = useAuth();
+  const router = useRouter();
   const [room, setRoom] = useState<DbRoom | null>(null);
   const [players, setPlayers] = useState<DbPlayer[]>([]);
   const [blocks, setBlocks] = useState<DbMatchBlock[]>([]);
@@ -1130,6 +1132,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     setError(null);
     lastStateKeyRef.current = "";
     clearSession();
+
+    if (typeof window !== "undefined" && window.location.search.includes("join=")) {
+      router.replace("/");
+    }
   };
 
   useEffect(() => {
