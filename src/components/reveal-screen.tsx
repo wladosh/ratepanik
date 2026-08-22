@@ -1,6 +1,6 @@
 "use client";
 
-import { useGame, useGameDispatch } from "@/lib/game-context";
+import { useGame } from "@/lib/game-context";
 
 const OPTION_COLORS_BG = [
   "bg-red-500/20 border-red-500/30",
@@ -11,17 +11,16 @@ const OPTION_COLORS_BG = [
 
 export function RevealScreen() {
   const game = useGame();
-  const dispatch = useGameDispatch();
-  const question = game.questions[game.currentQuestionIndex];
-  const hostPlayer = game.players.find((p) => p.id === game.hostId);
-  const hostCorrect = hostPlayer?.currentAnswer === question.correctIndex;
+  const question = game.currentQuestion;
 
-  function handleContinue() {
-    dispatch({ type: "SHOW_SCOREBOARD" });
-  }
+  if (!question) return null;
 
-  const correctCount = game.players.filter(
-    (p) => p.currentAnswer === question.correctIndex
+  const myAnswer = game.answers.find((a) => a.player_id === game.myPlayerId);
+  const myCorrect =
+    myAnswer !== undefined && myAnswer.choice_index === question.correctIndex;
+
+  const correctCount = game.answers.filter(
+    (a) => a.choice_index === question.correctIndex
   ).length;
 
   return (
@@ -30,13 +29,17 @@ export function RevealScreen() {
         {/* Result emoji */}
         <div className="mb-4 text-center">
           <span className="text-6xl sm:text-7xl animate-bounce-slow">
-            {hostCorrect ? "🎉" : "😬"}
+            {myCorrect ? "🎉" : "😬"}
           </span>
         </div>
 
         {/* Result text */}
         <h2 className="mb-2 text-center text-2xl sm:text-3xl font-black text-white">
-          {hostCorrect ? "Richtig!" : "Falsch!"}
+          {myAnswer?.choice_index === -1
+            ? "Zu spät!"
+            : myCorrect
+              ? "Richtig!"
+              : "Falsch!"}
         </h2>
         <p className="mb-8 text-center text-white/70">
           {correctCount} von {game.players.length} Spielern lagen richtig
@@ -46,10 +49,12 @@ export function RevealScreen() {
         <div className="mb-8 space-y-3">
           {question.options.map((option, i) => {
             const isCorrect = i === question.correctIndex;
-            const voterCount = game.players.filter(
-              (p) => p.currentAnswer === i
-            ).length;
-            const voters = game.players.filter((p) => p.currentAnswer === i);
+            const voters = game.players.filter((p) =>
+              game.answers.some(
+                (a) => a.player_id === p.id && a.choice_index === i
+              )
+            );
+            const voterCount = voters.length;
 
             return (
               <div
@@ -76,9 +81,9 @@ export function RevealScreen() {
                       <span
                         key={v.id}
                         className="text-lg"
-                        title={v.name}
+                        title={v.display_name}
                       >
-                        {v.avatar}
+                        {game.getAvatar(v.id)}
                       </span>
                     ))}
                     <span className="text-sm text-white/50">
@@ -92,29 +97,15 @@ export function RevealScreen() {
         </div>
 
         {/* Points earned */}
-        {hostPlayer && (
-          <div className="mb-6 rounded-2xl bg-white/10 p-4 text-center backdrop-blur-sm">
-            <p className="text-sm text-white/60">Deine Punkte diese Runde</p>
-            <p className="text-3xl font-black text-white">
-              +
-              {hostCorrect
-                ? Math.round(
-                    1000 +
-                      500 *
-                        Math.max(
-                          0,
-                          1 -
-                            (hostPlayer.answerTime ?? game.timePerQuestion * 1000) /
-                              (game.timePerQuestion * 1000)
-                        )
-                  )
-                : 0}
-            </p>
-          </div>
-        )}
+        <div className="mb-6 rounded-2xl bg-white/10 p-4 text-center backdrop-blur-sm">
+          <p className="text-sm text-white/60">Deine Punkte diese Runde</p>
+          <p className="text-3xl font-black text-white">
+            +{game.lastRoundPoints}
+          </p>
+        </div>
 
         <button
-          onClick={handleContinue}
+          onClick={game.showScoreboard}
           className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
         >
           Weiter zum Scoreboard →

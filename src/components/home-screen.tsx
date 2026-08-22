@@ -1,25 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { useGameDispatch } from "@/lib/game-context";
+import { useGame } from "@/lib/game-context";
+
+type Mode = "idle" | "create" | "join";
 
 export function HomeScreen() {
-  const dispatch = useGameDispatch();
-  const [hostName, setHostName] = useState("");
-  const [showInput, setShowInput] = useState(false);
+  const game = useGame();
+  const [mode, setMode] = useState<Mode>("idle");
+  const [name, setName] = useState("");
+  const [roomCode, setRoomCode] = useState("");
 
-  function handleCreate() {
-    if (!showInput) {
-      setShowInput(true);
-      return;
-    }
-    const name = hostName.trim();
-    if (!name) return;
-    dispatch({ type: "CREATE_ROOM", hostName: name });
+  async function handleCreate() {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    await game.createRoom(trimmed);
+  }
+
+  async function handleJoin() {
+    const trimmedName = name.trim();
+    const trimmedCode = roomCode.trim();
+    if (!trimmedName || !trimmedCode) return;
+    await game.joinRoom(trimmedCode, trimmedName);
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 px-4 py-8">
       <div className="mb-4 text-6xl sm:text-7xl animate-bounce-slow">🎉</div>
       <h1 className="mb-2 text-5xl sm:text-7xl font-black text-white tracking-tight drop-shadow-lg">
         Ratepanik
@@ -29,35 +35,112 @@ export function HomeScreen() {
       </p>
 
       <div className="w-full max-w-sm space-y-4">
-        {showInput && (
-          <div className="animate-fade-in">
+        {/* --- Create flow --- */}
+        {mode === "create" && (
+          <div className="space-y-3 animate-fade-in">
             <label
               htmlFor="host-name"
-              className="block mb-2 text-sm font-semibold text-white/90"
+              className="block text-sm font-semibold text-white/90"
             >
               Dein Spielername
             </label>
             <input
               id="host-name"
               type="text"
-              value={hostName}
-              onChange={(e) => setHostName(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleCreate()}
               placeholder="z.B. QuizMaster 🎤"
               maxLength={20}
               autoFocus
               className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-4 text-lg text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
             />
+            <button
+              onClick={handleCreate}
+              disabled={!name.trim() || game.loading}
+              className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+            >
+              {game.loading ? "Erstelle Raum..." : "Spiel erstellen 🚀"}
+            </button>
+            <button
+              onClick={() => { setMode("idle"); setName(""); }}
+              className="w-full text-sm text-white/70 hover:text-white transition-colors"
+            >
+              ← Zurück
+            </button>
           </div>
         )}
 
-        <button
-          onClick={handleCreate}
-          disabled={showInput && !hostName.trim()}
-          className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
-        >
-          {showInput ? "Spiel erstellen 🚀" : "Neues Spiel starten"}
-        </button>
+        {/* --- Join flow --- */}
+        {mode === "join" && (
+          <div className="space-y-3 animate-fade-in">
+            <label
+              htmlFor="room-code"
+              className="block text-sm font-semibold text-white/90"
+            >
+              Raumcode eingeben
+            </label>
+            <input
+              id="room-code"
+              type="text"
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+              placeholder="z.B. ABC123"
+              maxLength={6}
+              autoFocus
+              className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-4 text-center text-2xl font-black tracking-[0.3em] text-white placeholder:text-white/50 placeholder:text-lg placeholder:font-normal placeholder:tracking-normal backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
+            />
+            <label
+              htmlFor="join-name"
+              className="block text-sm font-semibold text-white/90"
+            >
+              Dein Spielername
+            </label>
+            <input
+              id="join-name"
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleJoin()}
+              placeholder="z.B. RätselRitter 🛡️"
+              maxLength={20}
+              className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-4 text-lg text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
+            />
+            <button
+              onClick={handleJoin}
+              disabled={
+                !name.trim() || roomCode.trim().length < 4 || game.loading
+              }
+              className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+            >
+              {game.loading ? "Trete bei..." : "Beitreten 🎯"}
+            </button>
+            <button
+              onClick={() => { setMode("idle"); setName(""); setRoomCode(""); }}
+              className="w-full text-sm text-white/70 hover:text-white transition-colors"
+            >
+              ← Zurück
+            </button>
+          </div>
+        )}
+
+        {/* --- Default: two buttons --- */}
+        {mode === "idle" && (
+          <div className="space-y-4 animate-fade-in">
+            <button
+              onClick={() => setMode("create")}
+              className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
+            >
+              Neues Spiel starten
+            </button>
+            <button
+              onClick={() => setMode("join")}
+              className="w-full rounded-2xl border-2 border-white/30 bg-white/10 px-6 py-4 text-lg font-bold text-white shadow-xl backdrop-blur-sm transition-all hover:bg-white/20 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Raum beitreten
+            </button>
+          </div>
+        )}
 
         <div className="relative py-4">
           <div className="absolute inset-0 flex items-center">
@@ -65,7 +148,7 @@ export function HomeScreen() {
           </div>
           <div className="relative flex justify-center">
             <span className="bg-transparent px-4 text-sm text-white/70">
-              Prototype v1
+              Multiplayer v2
             </span>
           </div>
         </div>

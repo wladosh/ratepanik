@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useGame, useGameDispatch } from "@/lib/game-context";
+import { useGame } from "@/lib/game-context";
 
 const OPTION_COLORS = [
   "from-red-500 to-rose-600",
@@ -14,34 +14,28 @@ const OPTION_ICONS = ["▲", "◆", "●", "■"];
 
 export function QuestionScreen() {
   const game = useGame();
-  const dispatch = useGameDispatch();
-  const question = game.questions[game.currentQuestionIndex];
-  const hostPlayer = game.players.find((p) => p.id === game.hostId);
-  const hasAnswered = hostPlayer?.currentAnswer !== null;
+  const question = game.currentQuestion;
+  const myAnswer = game.answers.find((a) => a.player_id === game.myPlayerId);
+  const hasAnswered = !!myAnswer;
 
   const [timeLeft, setTimeLeft] = useState(game.timePerQuestion);
   const [isExpired, setIsExpired] = useState(false);
   const startTimeRef = useRef<number>(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const submittedRef = useRef(false);
 
   const handleTimeout = useCallback(() => {
     setIsExpired(true);
-    game.players.forEach((player) => {
-      if (player.currentAnswer === null) {
-        dispatch({
-          type: "SUBMIT_ANSWER",
-          playerId: player.id,
-          answerIndex: -1,
-          timeMs: game.timePerQuestion * 1000,
-        });
-      }
-    });
-    setTimeout(() => {
-      dispatch({ type: "REVEAL_ANSWER" });
-    }, 500);
-  }, [dispatch, game.players, game.timePerQuestion]);
+    if (!submittedRef.current) {
+      submittedRef.current = true;
+      void game.submitAnswer(-1, game.timePerQuestion * 1000);
+    }
+  }, [game]);
 
   useEffect(() => {
+    submittedRef.current = !!myAnswer;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset on question change
+    setIsExpired(false);
     const now = performance.now();
     startTimeRef.current = now;
 
@@ -56,53 +50,24 @@ export function QuestionScreen() {
     }, 100);
 
     timerRef.current = timer;
-
-    return () => {
-      clearInterval(timer);
-    };
+    return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game.currentQuestionIndex]);
 
   function handleAnswer(optionIndex: number) {
-    if (hasAnswered || isExpired) return;
-    // eslint-disable-next-line react-hooks/purity
+    if (hasAnswered || isExpired || submittedRef.current) return;
+    submittedRef.current = true;
+
+    // eslint-disable-next-line react-hooks/purity -- event handler, not render
     const timeMs = performance.now() - startTimeRef.current;
-
-    dispatch({
-      type: "SUBMIT_ANSWER",
-      playerId: game.hostId,
-      answerIndex: optionIndex,
-      timeMs,
-    });
-
-    game.players.forEach((player) => {
-      if (player.id !== game.hostId && player.currentAnswer === null) {
-        const botDelay = 2000 + Math.random() * (game.timePerQuestion * 1000 - 3000);
-        const botCorrectChance = 0.5 + Math.random() * 0.3;
-        const isCorrect = Math.random() < botCorrectChance;
-        const botAnswer = isCorrect
-          ? question.correctIndex
-          : [0, 1, 2, 3].filter((i) => i !== question.correctIndex)[
-              Math.floor(Math.random() * 3)
-            ];
-
-        dispatch({
-          type: "SUBMIT_ANSWER",
-          playerId: player.id,
-          answerIndex: botAnswer,
-          timeMs: botDelay,
-        });
-      }
-    });
-
-    setTimeout(() => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      dispatch({ type: "REVEAL_ANSWER" });
-    }, 800);
+    void game.submitAnswer(optionIndex, timeMs);
   }
+
+  if (!question) return null;
 
   const progress = timeLeft / game.timePerQuestion;
   const isUrgent = timeLeft <= 5;
+  const answeredCount = game.answers.length;
 
   return (
     <div className="flex min-h-dvh flex-col bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800">
@@ -110,7 +75,9 @@ export function QuestionScreen() {
       <div className="relative h-2 w-full bg-white/10">
         <div
           className={`h-full transition-all duration-100 ease-linear ${
-            isUrgent ? "bg-red-500" : "bg-gradient-to-r from-green-400 to-emerald-500"
+            isUrgent
+              ? "bg-red-500"
+              : "bg-gradient-to-r from-green-400 to-emerald-500"
           }`}
           style={{ width: `${progress * 100}%` }}
         />
@@ -131,9 +98,7 @@ export function QuestionScreen() {
         <div className="mb-6 text-center">
           <span
             className={`text-5xl sm:text-6xl font-black tabular-nums ${
-              isUrgent
-                ? "text-red-400 animate-pulse"
-                : "text-white"
+              isUrgent ? "text-red-400 animate-pulse" : "text-white"
             }`}
           >
             {Math.ceil(timeLeft)}
@@ -159,7 +124,7 @@ export function QuestionScreen() {
                   ? "opacity-60"
                   : "hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
               } ${
-                hasAnswered && hostPlayer?.currentAnswer === i
+                hasAnswered && myAnswer?.choice_index === i
                   ? "ring-4 ring-white opacity-100"
                   : ""
               }`}
@@ -175,6 +140,34 @@ export function QuestionScreen() {
             </button>
           ))}
         </div>
+
+        {/* Answered indicator */}
+        {hasAnswered && (
+          <div className="mt-6 rounded-2xl bg-white/10 p-4 text-center backdrop-blur-sm animate-fade-in">
+            <p className="text-xl font-bold text-white">Geantwortet! ✓</p>
+            <p className="mt-1 text-sm text-white/60">
+              {answeredCount} von {game.players.length} haben geantwortet
+            </p>
+            <div className="mt-3 flex justify-center gap-1">
+              {game.players.map((p) => {
+                const answered = game.answers.some(
+                  (a) => a.player_id === p.id
+                );
+                return (
+                  <span
+                    key={p.id}
+                    className={`text-xl transition-opacity ${
+                      answered ? "opacity-100" : "opacity-30"
+                    }`}
+                    title={p.display_name}
+                  >
+                    {game.getAvatar(p.id)}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
