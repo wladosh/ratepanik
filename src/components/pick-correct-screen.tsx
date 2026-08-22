@@ -4,16 +4,26 @@ import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
 import type { PickCorrectPayload } from "@/lib/content";
 
-const CARD_COLORS = [
-  "from-rose-500 to-pink-600",
-  "from-blue-500 to-indigo-600",
-  "from-emerald-500 to-teal-600",
-  "from-amber-500 to-orange-600",
-  "from-violet-500 to-purple-600",
-  "from-cyan-500 to-sky-600",
-  "from-lime-500 to-green-600",
-  "from-fuchsia-500 to-pink-600",
+const ANSWER_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
+
+const ANSWER_STYLES = [
+  { border: "var(--rp-purple-soft)", bg: "rgba(139, 124, 255, 0.06)", label: "var(--rp-purple)" },
+  { border: "var(--rp-peach)",       bg: "rgba(255, 138, 113, 0.06)", label: "var(--rp-peach)" },
+  { border: "var(--rp-mint)",        bg: "rgba(111, 207, 178, 0.06)", label: "var(--rp-mint)" },
+  { border: "var(--rp-sky)",         bg: "rgba(126, 182, 255, 0.06)", label: "var(--rp-sky)" },
+  { border: "var(--rp-yellow)",      bg: "rgba(255, 214, 107, 0.06)", label: "var(--rp-yellow)" },
+  { border: "var(--rp-pink)",        bg: "rgba(255, 122, 182, 0.06)", label: "var(--rp-pink)" },
+  { border: "var(--rp-purple)",      bg: "rgba(139, 124, 255, 0.06)", label: "var(--rp-purple)" },
+  { border: "var(--rp-peach-deep)",  bg: "rgba(245, 107, 82, 0.06)",  label: "var(--rp-peach-deep)" },
 ];
+
+function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor">
+      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+    </svg>
+  );
+}
 
 export function PickCorrectScreen() {
   const game = useGame();
@@ -44,112 +54,166 @@ export function PickCorrectScreen() {
   }, [game.turns]);
 
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
+  const totalBlocks = game.room?.total_blocks ?? 4;
 
   if (!prompt || !payload) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800">
-        <div className="text-white/60 text-lg animate-pulse">Karten werden geladen...</div>
+      <div
+        className="flex flex-1 items-center justify-center"
+        style={{ background: "var(--rp-bg-hero)" }}
+      >
+        <div className="text-lg animate-pulse font-medium" style={{ color: "var(--rp-text-secondary)" }}>
+          Karten werden geladen\u2026
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 px-4 py-6">
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
-        {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
-          <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white/80 backdrop-blur-sm">
-            🃏 Passendes wählen
+    <div
+      className="flex flex-1 flex-col"
+      style={{
+        background: "var(--rp-bg-hero)",
+        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
+      }}
+    >
+      <div className="flex-1 flex flex-col px-4 pb-5">
+        {/* Header: Frage pill + Block pill */}
+        <div className="flex items-center justify-between mt-2 mb-4">
+          <span
+            className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
+            style={{
+              background: "var(--rp-bg-elevated)",
+              color: "var(--rp-text-secondary)",
+              boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
+            }}
+          >
+            Frage <span style={{ color: "var(--rp-peach)" }}>{blockNum}</span>/{totalBlocks}
           </span>
-          <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white/80 backdrop-blur-sm">
-            Block {blockNum} · {correctFound}/4 gefunden
+
+          {/* Turn indicator pill */}
+          <span
+            className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
+            style={{
+              background: "var(--rp-bg-elevated)",
+              color: "var(--rp-text-secondary)",
+              boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
+            }}
+          >
+            {correctFound}/4
           </span>
         </div>
 
-        {/* Question */}
-        <div className="mb-4 rounded-2xl bg-white/10 p-4 backdrop-blur-sm text-center">
-          <h2 className="text-lg sm:text-xl font-bold text-white">{prompt.prompt}</h2>
+        {/* Question card */}
+        <div
+          className="p-5 mb-4"
+          style={{
+            background: "var(--rp-bg-elevated)",
+            borderRadius: "var(--rp-radius-lg)",
+            boxShadow: "var(--rp-shadow-card)",
+          }}
+        >
+          <h2
+            className="text-xl font-bold leading-snug"
+            style={{ color: "var(--rp-text)" }}
+          >
+            {prompt.prompt}
+          </h2>
         </div>
 
-        {/* Turn indicator */}
-        <div className="mb-4 rounded-2xl bg-white/10 p-3 backdrop-blur-sm text-center">
-          <div className="flex items-center justify-center gap-2">
-            <span className="text-2xl">{activePlayer ? game.getAvatar(activePlayer.id) : ""}</span>
-            <span className="text-base font-bold text-white">
-              {game.isMyTurn ? (
-                <span className="text-yellow-300">Du bist dran!</span>
-              ) : (
-                <>{activePlayer?.display_name} ist dran...</>
-              )}
-            </span>
-          </div>
-          <div className="mt-2 flex justify-center gap-1.5">
-            {sortedPlayers.map((p, i) => (
-              <span
-                key={p.id}
-                className={`text-lg transition-all ${
-                  i === game.activePlayerIndex
-                    ? "scale-125 opacity-100"
-                    : "opacity-40"
-                }`}
-                title={p.display_name}
-              >
-                {game.getAvatar(p.id)}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Card grid */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+        {/* Answer buttons */}
+        <div className="space-y-2.5 mb-4 flex-1">
           {payload.cards.map((card, i) => {
             const tapped = tappedIndices.has(i);
             const result = turnResults.get(i);
-            const tapper = result ? game.players.find((p) => p.id === result.player_id) : null;
+            const style = ANSWER_STYLES[i % ANSWER_STYLES.length];
+            const isCorrect = result?.is_correct;
+            const isRevealed = tapped;
+
+            let borderColor = style.border;
+            let bgColor = style.bg;
+            let opacity = "1";
+
+            if (isRevealed) {
+              if (isCorrect) {
+                borderColor = "var(--rp-success)";
+                bgColor = "rgba(61, 204, 138, 0.1)";
+              } else {
+                borderColor = "var(--rp-danger)";
+                bgColor = "rgba(255, 92, 122, 0.06)";
+                opacity = "0.6";
+              }
+            }
 
             return (
               <button
                 key={i}
                 onClick={() => void game.tapCard(i)}
                 disabled={tapped || !game.isMyTurn}
-                className={`relative rounded-2xl p-4 text-center transition-all min-h-[80px] flex flex-col items-center justify-center ${
-                  tapped
-                    ? result?.is_correct
-                      ? "bg-green-500/30 border-2 border-green-400/50 scale-95"
-                      : "bg-red-500/20 border-2 border-red-400/30 opacity-50 scale-95"
-                    : game.isMyTurn
-                      ? `bg-gradient-to-br ${CARD_COLORS[i]} shadow-lg hover:scale-[1.05] hover:shadow-xl active:scale-[0.95] cursor-pointer`
-                      : `bg-gradient-to-br ${CARD_COLORS[i]} shadow-lg opacity-70 cursor-not-allowed`
-                }`}
+                className="w-full flex items-center gap-3 px-4 min-h-[56px] py-3 text-left transition-all active:scale-[0.98] disabled:active:scale-100"
+                style={{
+                  background: bgColor,
+                  borderRadius: "var(--rp-radius-md)",
+                  border: `2px solid ${borderColor}`,
+                  opacity,
+                }}
               >
-                {tapped && (
-                  <span className="absolute top-1 right-1 text-lg">
-                    {result?.is_correct ? "✅" : "❌"}
-                  </span>
-                )}
-                <span className={`text-sm sm:text-base font-bold ${tapped ? "text-white/70" : "text-white"}`}>
+                {/* Letter badge */}
+                <span
+                  className="w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold shrink-0"
+                  style={{
+                    background: isRevealed
+                      ? isCorrect ? "var(--rp-success)" : "var(--rp-danger)"
+                      : "var(--rp-bg-elevated)",
+                    color: isRevealed ? "white" : style.label,
+                    boxShadow: isRevealed ? "none" : "0 2px 6px rgba(42, 42, 74, 0.08)",
+                  }}
+                >
+                  {isRevealed
+                    ? isCorrect ? "\u2713" : "\u2717"
+                    : ANSWER_LABELS[i]}
+                </span>
+                <span
+                  className="flex-1 text-[15px] font-semibold leading-snug"
+                  style={{ color: "var(--rp-text)" }}
+                >
                   {card}
                 </span>
-                {tapped && tapper && (
-                  <span className="mt-1 text-xs text-white/50">
-                    {game.getAvatar(tapper.id)}
-                  </span>
-                )}
               </button>
             );
           })}
         </div>
 
-        {/* Progress */}
-        <div className="mt-4 flex justify-center gap-1">
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className={`h-2 w-8 rounded-full transition-all ${
-                i < correctFound ? "bg-green-400" : "bg-white/20"
-              }`}
-            />
-          ))}
+        {/* Turn / waiting indicator */}
+        <div className="flex items-center justify-center gap-2 py-2">
+          <PeopleIcon className="w-5 h-5" style={{ color: "var(--rp-purple-soft)" }} />
+          <span className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+            {game.isMyTurn ? (
+              <span className="font-semibold" style={{ color: "var(--rp-peach)" }}>
+                Du bist dran!
+              </span>
+            ) : (
+              <>
+                <span className="font-semibold" style={{ color: "var(--rp-text)" }}>
+                  {activePlayer?.display_name}
+                </span>
+                {" "}ist dran\u2026
+              </>
+            )}
+          </span>
+          <div className="flex gap-1 ml-1">
+            {[0, 1, 2].map((d) => (
+              <span
+                key={d}
+                className="w-1.5 h-1.5 rounded-full"
+                style={{
+                  background: "var(--rp-text-secondary)",
+                  opacity: 0.4,
+                  animation: `fade-in 0.6s ease-in-out ${d * 0.2}s infinite alternate`,
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
