@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
 export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key"
 );
 
 export interface DbRoom {
@@ -11,6 +11,10 @@ export interface DbRoom {
   status: "lobby" | "playing" | "finished";
   current_question_index: number;
   question_ids: number[];
+  current_block_index: number;
+  total_blocks: number;
+  host_user_id: string | null;
+  theme_vote_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -33,4 +37,50 @@ export interface DbAnswer {
   choice_index: number;
   is_correct: boolean | null;
   answered_at: string;
+  block_index: number | null;
+  round_index: number | null;
+  prompt_id: string | null;
+  mode: string | null;
+  numeric_answer: number | null;
+  distance: number | null;
+  rank: number | null;
+  points_awarded: number;
+  time_ms: number | null;
+}
+
+export interface DbMatchBlock {
+  id: string;
+  room_id: string;
+  block_index: number;
+  mode: "number_guess" | "pick_correct";
+  theme_id: string | null;
+  theme_options: string[] | null;
+  prompt_ids: string[];
+  current_round: number;
+  rounds_total: number;
+  is_complete: boolean;
+  started_at: string | null;
+  finished_at: string | null;
+  created_at: string;
+}
+
+export interface DbPickCorrectTurn {
+  id: string;
+  room_id: string;
+  block_index: number;
+  player_id: string;
+  turn_order: number;
+  card_index: number;
+  is_correct: boolean;
+  created_at: string;
+}
+
+export interface DbMatchScore {
+  id: string;
+  room_id: string;
+  player_id: string;
+  block_index: number;
+  rank: number | null;
+  total_points: number;
+  created_at: string;
 }

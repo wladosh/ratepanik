@@ -1,167 +1,117 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useGame } from "@/lib/game-context";
+import type { NumberGuessPayload } from "@/lib/content";
 
 export function NumberGuessScreen() {
   const game = useGame();
-  const prompt = game.currentPrompt;
-  const hasAnswered = game.answers.some((a) => a.player_id === game.myPlayerId);
-
   const [guess, setGuess] = useState("");
-  const [timeLeft, setTimeLeft] = useState(game.timePerQuestion);
-  const startTimeRef = useRef<number>(0);
-  const submittedRef = useRef(false);
+  const [submitted, setSubmitted] = useState(false);
+  const lastPromptRef = useRef<string | null>(null);
+
+  const prompt = game.currentPrompt;
+  const payload = prompt?.payload as NumberGuessPayload | undefined;
+  const hasAnswered = game.phase === "number_guess_waiting";
 
   useEffect(() => {
-    submittedRef.current = hasAnswered;
-    startTimeRef.current = performance.now();
+    if (prompt?.id && prompt.id !== lastPromptRef.current) {
+      lastPromptRef.current = prompt.id;
+      setGuess("");
+      setSubmitted(false);
+    }
+  }, [prompt?.id]);
+  const answeredCount = game.roundAnswers.length;
+  const blockNum = (game.room?.current_block_index ?? 0) + 1;
+  const roundNum = (game.currentBlock?.current_round ?? 0) + 1;
+  const roundsTotal = game.currentBlock?.rounds_total ?? 2;
 
-    const timer = setInterval(() => {
-      const elapsed = (performance.now() - startTimeRef.current) / 1000;
-      const remaining = Math.max(0, game.timePerQuestion - elapsed);
-      setTimeLeft(remaining);
-      if (remaining <= 0) {
-        clearInterval(timer);
-        if (!submittedRef.current) {
-          submittedRef.current = true;
-          void game.submitNumberGuess(0, game.timePerQuestion * 1000);
-        }
-      }
-    }, 100);
+  const handleSubmit = useCallback(async () => {
+    const num = parseFloat(guess);
+    if (isNaN(num) || submitted) return;
+    setSubmitted(true);
+    await game.submitNumberGuess(num);
+  }, [guess, submitted, game]);
 
-    return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game.currentBlockIndex, game.currentRoundInBlock]);
-
-  function handleSubmit() {
-    if (hasAnswered || submittedRef.current || !guess.trim()) return;
-    submittedRef.current = true;
-    const timeMs = performance.now() - startTimeRef.current;
-    const numericGuess = parseFloat(guess.replace(",", "."));
-    if (isNaN(numericGuess)) return;
-    void game.submitNumberGuess(numericGuess, timeMs);
+  if (!prompt) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800">
+        <div className="text-white/60 text-lg animate-pulse">Frage wird geladen...</div>
+      </div>
+    );
   }
 
-  if (!prompt) return null;
-
-  const payload = prompt.payload as { answer: number; unit?: string };
-  const progress = timeLeft / game.timePerQuestion;
-  const isUrgent = timeLeft <= 5;
-
   return (
-    <div className="flex min-h-dvh flex-col" style={{ background: "var(--rp-bg-hero)" }}>
-      {/* Timer bar */}
-      <div className="relative h-2 w-full bg-[var(--rp-border)]">
-        <div
-          className="h-full transition-all duration-100 ease-linear"
-          style={{
-            width: `${progress * 100}%`,
-            background: isUrgent ? "var(--rp-danger)" : "var(--rp-mint)",
-          }}
-        />
-      </div>
-
-      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 py-6">
+    <div className="flex min-h-dvh flex-col bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 px-4 py-6">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
-          <span
-            className="rounded-[var(--rp-radius-pill)] px-4 py-1.5 text-xs font-bold"
-            style={{ background: "var(--rp-purple-soft)", color: "var(--rp-purple)" }}
-          >
-            Zahlenraten
+          <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white/80 backdrop-blur-sm">
+            🔢 Zahlenraten
           </span>
-          <span className="text-sm font-semibold text-[var(--rp-text-secondary)]">
-            Block {game.currentBlockIndex + 1} · Runde {game.currentRoundInBlock + 1}
-          </span>
-        </div>
-
-        {/* Timer display */}
-        <div className="mb-4 text-center">
-          <span
-            className="text-4xl font-extrabold tabular-nums"
-            style={{ color: isUrgent ? "var(--rp-danger)" : "var(--rp-text)" }}
-          >
-            {Math.ceil(timeLeft)}
+          <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white/80 backdrop-blur-sm">
+            Block {blockNum} · Runde {roundNum}/{roundsTotal}
           </span>
         </div>
 
         {/* Question */}
-        <div
-          className="mb-6 p-6"
-          style={{
-            background: "var(--rp-bg-elevated)",
-            borderRadius: "var(--rp-radius-lg)",
-            boxShadow: "var(--rp-shadow-card)",
-          }}
-        >
-          <p className="text-center text-lg font-bold text-[var(--rp-text)] leading-relaxed">
+        <div className="mb-6 rounded-3xl bg-white/10 p-6 sm:p-8 backdrop-blur-sm">
+          <h2 className="text-center text-xl sm:text-2xl font-bold text-white leading-relaxed">
             {prompt.prompt}
-          </p>
+          </h2>
+          {payload?.unit && (
+            <p className="mt-2 text-center text-sm text-white/50">
+              Antwort in: {payload.unit}
+            </p>
+          )}
           {prompt.hint && (
-            <p className="mt-2 text-center text-sm text-[var(--rp-text-secondary)]">
-              💡 {prompt.hint}
+            <p className="mt-2 text-center text-sm text-white/40 italic">
+              Hinweis: {prompt.hint}
             </p>
           )}
         </div>
 
         {/* Input */}
-        {!hasAnswered ? (
-          <div className="space-y-4">
-            <div className="relative">
-              <input
-                type="number"
-                inputMode="numeric"
-                value={guess}
-                onChange={(e) => setGuess(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                placeholder="Deine Schätzung"
-                autoFocus
-                className="w-full h-[56px] rounded-[var(--rp-radius-md)] border-2 px-5 text-xl font-bold text-center text-[var(--rp-text)] placeholder:text-gray-300 focus:outline-none transition-all"
-                style={{
-                  borderColor: "var(--rp-border)",
-                  background: "var(--rp-bg-elevated)",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "var(--rp-border)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              />
-              {payload.unit && (
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm font-medium text-[var(--rp-text-secondary)]">
-                  {payload.unit}
-                </span>
-              )}
-            </div>
+        {!hasAnswered && !submitted ? (
+          <div className="mb-6 space-y-4">
+            <input
+              type="number"
+              inputMode="decimal"
+              value={guess}
+              onChange={(e) => setGuess(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+              placeholder="Deine Schätzung..."
+              autoFocus
+              className="w-full rounded-2xl border-2 border-white/20 bg-white/10 px-6 py-5 text-center text-3xl font-black text-white placeholder:text-white/30 backdrop-blur-sm focus:border-white/50 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all"
+            />
             <button
               onClick={handleSubmit}
-              disabled={!guess.trim()}
-              className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40"
-              style={{
-                background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-                boxShadow: guess.trim() ? "0 4px 16px rgba(255, 138, 113, 0.35)" : "none",
-              }}
+              disabled={!guess || isNaN(parseFloat(guess))}
+              className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-indigo-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
             >
-              Abgeben
+              Antwort abgeben
             </button>
           </div>
         ) : (
-          <div
-            className="p-6 text-center"
-            style={{
-              background: "var(--rp-bg-elevated)",
-              borderRadius: "var(--rp-radius-lg)",
-              boxShadow: "var(--rp-shadow-card)",
-            }}
-          >
-            <p className="text-xl font-bold text-[var(--rp-text)]">Abgegeben! ✓</p>
-            <p className="mt-2 text-sm text-[var(--rp-text-secondary)]">
-              {game.answers.length} von {game.players.length} haben geantwortet
+          <div className="mb-6 rounded-2xl bg-white/10 p-6 text-center backdrop-blur-sm animate-fade-in">
+            <p className="text-xl font-bold text-white">Abgegeben!</p>
+            <p className="mt-2 text-sm text-white/60">
+              {answeredCount} von {game.players.length} haben geantwortet
             </p>
+            <div className="mt-4 flex justify-center gap-1.5">
+              {game.players.map((p) => {
+                const answered = game.roundAnswers.some((a) => a.player_id === p.id);
+                return (
+                  <span
+                    key={p.id}
+                    className={`text-xl transition-opacity ${answered ? "opacity-100" : "opacity-30"}`}
+                    title={p.display_name}
+                  >
+                    {game.getAvatar(p.id)}
+                  </span>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 type Mode = "idle" | "create" | "join";
 
@@ -11,15 +11,22 @@ export function HomeScreen() {
   const game = useGame();
   const { user, isAuthenticated, canHost, isGuest, signOut, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>("idle");
-  const [name, setName] = useState("");
-  const [roomCode, setRoomCode] = useState("");
+  const searchParams = useSearchParams();
 
   const displayName =
     user?.user_metadata?.display_name ||
     user?.user_metadata?.full_name ||
     user?.email?.split("@")[0] ||
     "";
+
+  const initialJoinCode = useMemo(() => {
+    const joinCode = searchParams.get("join");
+    return joinCode && joinCode.length === 6 ? joinCode.toUpperCase() : "";
+  }, [searchParams]);
+
+  const [mode, setMode] = useState<Mode>(initialJoinCode ? "join" : "idle");
+  const [name, setName] = useState(initialJoinCode ? displayName || "Gast" : "");
+  const [roomCode, setRoomCode] = useState(initialJoinCode);
 
   function handleStartCreate() {
     if (!canHost) {
@@ -32,8 +39,8 @@ export function HomeScreen() {
 
   async function handleCreate() {
     const trimmed = name.trim();
-    if (!trimmed) return;
-    await game.createRoom(trimmed);
+    if (!trimmed || !user?.id) return;
+    await game.createRoom(trimmed, user.id);
   }
 
   function handleStartJoin() {
@@ -99,7 +106,7 @@ export function HomeScreen() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-              placeholder="z.B. QuizMaster 🎤"
+              placeholder="z.B. QuizMaster"
               maxLength={20}
               autoFocus
               className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-4 text-lg text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
@@ -109,13 +116,13 @@ export function HomeScreen() {
               disabled={!name.trim() || game.loading}
               className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
             >
-              {game.loading ? "Erstelle Raum..." : "Spiel erstellen 🚀"}
+              {game.loading ? "Erstelle Raum..." : "Spiel erstellen"}
             </button>
             <button
               onClick={() => { setMode("idle"); setName(""); }}
               className="w-full text-sm text-white/70 hover:text-white transition-colors"
             >
-              ← Zurück
+              Zurück
             </button>
           </div>
         )}
@@ -150,7 +157,7 @@ export function HomeScreen() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleJoin()}
-              placeholder="z.B. RätselRitter 🛡️"
+              placeholder="z.B. Rätselfuchs"
               maxLength={20}
               className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-4 text-lg text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
             />
@@ -159,13 +166,13 @@ export function HomeScreen() {
               disabled={!name.trim() || roomCode.trim().length < 4 || game.loading}
               className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
             >
-              {game.loading ? "Trete bei..." : "Beitreten 🎯"}
+              {game.loading ? "Trete bei..." : "Beitreten"}
             </button>
             <button
               onClick={() => { setMode("idle"); setName(""); setRoomCode(""); }}
               className="w-full text-sm text-white/70 hover:text-white transition-colors"
             >
-              ← Zurück
+              Zurück
             </button>
           </div>
         )}

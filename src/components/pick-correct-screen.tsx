@@ -1,155 +1,156 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
+import type { PickCorrectPayload } from "@/lib/content";
+
+const CARD_COLORS = [
+  "from-rose-500 to-pink-600",
+  "from-blue-500 to-indigo-600",
+  "from-emerald-500 to-teal-600",
+  "from-amber-500 to-orange-600",
+  "from-violet-500 to-purple-600",
+  "from-cyan-500 to-sky-600",
+  "from-lime-500 to-green-600",
+  "from-fuchsia-500 to-pink-600",
+];
 
 export function PickCorrectScreen() {
   const game = useGame();
   const prompt = game.currentPrompt;
-  const hasAnswered = game.answers.some((a) => a.player_id === game.myPlayerId);
+  const payload = prompt?.payload as PickCorrectPayload | undefined;
 
-  const [selectedCards, setSelectedCards] = useState<number[]>([]);
-  const [timeLeft, setTimeLeft] = useState(game.timePerQuestion);
-  const startTimeRef = useRef<number>(0);
-  const submittedRef = useRef(false);
+  const sortedPlayers = useMemo(
+    () =>
+      [...game.players].sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      ),
+    [game.players]
+  );
 
-  useEffect(() => {
-    submittedRef.current = hasAnswered;
-    startTimeRef.current = performance.now();
+  const activePlayer = sortedPlayers[game.activePlayerIndex];
+  const correctFound = game.turns.filter((t) => t.is_correct).length;
+  const tappedIndices = useMemo(
+    () => new Set(game.turns.map((t) => t.card_index)),
+    [game.turns]
+  );
 
-    const timer = setInterval(() => {
-      const elapsed = (performance.now() - startTimeRef.current) / 1000;
-      const remaining = Math.max(0, game.timePerQuestion - elapsed);
-      setTimeLeft(remaining);
-      if (remaining <= 0) {
-        clearInterval(timer);
-        if (!submittedRef.current) {
-          submittedRef.current = true;
-          void game.submitPickCorrectCard(-1);
-        }
-      }
-    }, 100);
+  const turnResults = useMemo(() => {
+    const map = new Map<number, { is_correct: boolean; player_id: string }>();
+    for (const t of game.turns) {
+      map.set(t.card_index, { is_correct: t.is_correct, player_id: t.player_id });
+    }
+    return map;
+  }, [game.turns]);
 
-    return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game.currentBlockIndex, game.currentRoundInBlock]);
+  const blockNum = (game.room?.current_block_index ?? 0) + 1;
 
-  function handleCardTap(cardIndex: number) {
-    if (hasAnswered || submittedRef.current || selectedCards.includes(cardIndex)) return;
-
-    const newSelected = [...selectedCards, cardIndex];
-    setSelectedCards(newSelected);
-
-    submittedRef.current = true;
-    void game.submitPickCorrectCard(cardIndex);
+  if (!prompt || !payload) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800">
+        <div className="text-white/60 text-lg animate-pulse">Karten werden geladen...</div>
+      </div>
+    );
   }
 
-  if (!prompt) return null;
-
-  const payload = prompt.payload as { cards: string[]; correct_indices: number[] };
-  const progress = timeLeft / game.timePerQuestion;
-  const isUrgent = timeLeft <= 5;
-
   return (
-    <div className="flex min-h-dvh flex-col" style={{ background: "var(--rp-bg-hero)" }}>
-      {/* Timer bar */}
-      <div className="relative h-2 w-full bg-[var(--rp-border)]">
-        <div
-          className="h-full transition-all duration-100 ease-linear"
-          style={{
-            width: `${progress * 100}%`,
-            background: isUrgent ? "var(--rp-danger)" : "var(--rp-sky)",
-          }}
-        />
-      </div>
-
-      <div className="mx-auto flex w-full max-w-lg flex-1 flex-col px-4 py-6">
+    <div className="flex min-h-dvh flex-col bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 px-4 py-6">
+      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
-          <span
-            className="rounded-[var(--rp-radius-pill)] px-4 py-1.5 text-xs font-bold"
-            style={{ background: "rgba(126, 182, 255, 0.2)", color: "var(--rp-sky)" }}
-          >
-            Passendes wählen
+          <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white/80 backdrop-blur-sm">
+            🃏 Passendes wählen
           </span>
-          <span className="text-sm font-semibold text-[var(--rp-text-secondary)]">
-            Block {game.currentBlockIndex + 1} · Runde {game.currentRoundInBlock + 1}
-          </span>
-        </div>
-
-        {/* Timer */}
-        <div className="mb-3 text-center">
-          <span
-            className="text-3xl font-extrabold tabular-nums"
-            style={{ color: isUrgent ? "var(--rp-danger)" : "var(--rp-text)" }}
-          >
-            {Math.ceil(timeLeft)}
+          <span className="rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-white/80 backdrop-blur-sm">
+            Block {blockNum} · {correctFound}/4 gefunden
           </span>
         </div>
 
         {/* Question */}
-        <div
-          className="mb-5 p-5"
-          style={{
-            background: "var(--rp-bg-elevated)",
-            borderRadius: "var(--rp-radius-lg)",
-            boxShadow: "var(--rp-shadow-card)",
-          }}
-        >
-          <p className="text-center text-base font-bold text-[var(--rp-text)]">
-            {prompt.prompt}
-          </p>
-          {prompt.hint && (
-            <p className="mt-1 text-center text-xs text-[var(--rp-text-secondary)]">
-              💡 {prompt.hint}
-            </p>
-          )}
-          <p className="mt-2 text-center text-xs text-[var(--rp-text-secondary)]">
-            Wähle 1 Karte — 4 von 8 sind richtig!
-          </p>
+        <div className="mb-4 rounded-2xl bg-white/10 p-4 backdrop-blur-sm text-center">
+          <h2 className="text-lg sm:text-xl font-bold text-white">{prompt.prompt}</h2>
         </div>
 
-        {/* 8 Cards Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Turn indicator */}
+        <div className="mb-4 rounded-2xl bg-white/10 p-3 backdrop-blur-sm text-center">
+          <div className="flex items-center justify-center gap-2">
+            <span className="text-2xl">{activePlayer ? game.getAvatar(activePlayer.id) : ""}</span>
+            <span className="text-base font-bold text-white">
+              {game.isMyTurn ? (
+                <span className="text-yellow-300">Du bist dran!</span>
+              ) : (
+                <>{activePlayer?.display_name} ist dran...</>
+              )}
+            </span>
+          </div>
+          <div className="mt-2 flex justify-center gap-1.5">
+            {sortedPlayers.map((p, i) => (
+              <span
+                key={p.id}
+                className={`text-lg transition-all ${
+                  i === game.activePlayerIndex
+                    ? "scale-125 opacity-100"
+                    : "opacity-40"
+                }`}
+                title={p.display_name}
+              >
+                {game.getAvatar(p.id)}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Card grid */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
           {payload.cards.map((card, i) => {
-            const isSelected = selectedCards.includes(i);
-            const isDisabled = hasAnswered;
+            const tapped = tappedIndices.has(i);
+            const result = turnResults.get(i);
+            const tapper = result ? game.players.find((p) => p.id === result.player_id) : null;
 
             return (
               <button
                 key={i}
-                onClick={() => handleCardTap(i)}
-                disabled={isDisabled || isSelected}
-                className="relative rounded-[var(--rp-radius-md)] p-4 text-center text-sm font-bold transition-all active:scale-[0.95]"
-                style={{
-                  background: isSelected
-                    ? "var(--rp-purple-soft)"
-                    : "var(--rp-bg-elevated)",
-                  boxShadow: isSelected ? "none" : "var(--rp-shadow-card)",
-                  color: isSelected ? "var(--rp-purple)" : "var(--rp-text)",
-                  opacity: isDisabled && !isSelected ? 0.5 : 1,
-                }}
+                onClick={() => void game.tapCard(i)}
+                disabled={tapped || !game.isMyTurn}
+                className={`relative rounded-2xl p-4 text-center transition-all min-h-[80px] flex flex-col items-center justify-center ${
+                  tapped
+                    ? result?.is_correct
+                      ? "bg-green-500/30 border-2 border-green-400/50 scale-95"
+                      : "bg-red-500/20 border-2 border-red-400/30 opacity-50 scale-95"
+                    : game.isMyTurn
+                      ? `bg-gradient-to-br ${CARD_COLORS[i]} shadow-lg hover:scale-[1.05] hover:shadow-xl active:scale-[0.95] cursor-pointer`
+                      : `bg-gradient-to-br ${CARD_COLORS[i]} shadow-lg opacity-70 cursor-not-allowed`
+                }`}
               >
-                {card}
-                {isSelected && (
-                  <span className="absolute top-1 right-2 text-xs">✓</span>
+                {tapped && (
+                  <span className="absolute top-1 right-1 text-lg">
+                    {result?.is_correct ? "✅" : "❌"}
+                  </span>
+                )}
+                <span className={`text-sm sm:text-base font-bold ${tapped ? "text-white/70" : "text-white"}`}>
+                  {card}
+                </span>
+                {tapped && tapper && (
+                  <span className="mt-1 text-xs text-white/50">
+                    {game.getAvatar(tapper.id)}
+                  </span>
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* Status */}
-        {hasAnswered && (
-          <div className="mt-4 text-center">
-            <p className="text-sm font-semibold text-[var(--rp-text)]">
-              Gewählt! Warte auf andere Spieler...
-            </p>
-            <p className="mt-1 text-xs text-[var(--rp-text-secondary)]">
-              {game.answers.length} von {game.players.length} haben gewählt
-            </p>
-          </div>
-        )}
+        {/* Progress */}
+        <div className="mt-4 flex justify-center gap-1">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className={`h-2 w-8 rounded-full transition-all ${
+                i < correctFound ? "bg-green-400" : "bg-white/20"
+              }`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
