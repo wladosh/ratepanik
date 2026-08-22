@@ -94,7 +94,7 @@ export default function SignupPage() {
         msg.includes("429")
       ) {
         setError(
-          "Zu viele Anmelde-Mails gerade. Bitte ~1 Stunde warten, Google nutzen, oder später nochmal."
+          "Zu viele Anmelde-Mails gerade. Bitte etwa 1 Stunde warten, Google nutzen, oder später nochmal."
         );
       } else {
         setError(signupError.message);

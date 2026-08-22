@@ -31,7 +31,7 @@ export default function LoginPage() {
         msg.includes("429")
       ) {
         setError(
-          "Zu viele Anmelde-Versuche gerade. Bitte ~1 Stunde warten oder später nochmal."
+          "Zu viele Anmelde-Versuche gerade. Bitte etwa 1 Stunde warten oder später nochmal."
         );
       } else {
         setError(error.message);
