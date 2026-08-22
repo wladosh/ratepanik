@@ -125,6 +125,18 @@
 
   .ps-screen {
     border-radius: calc(var(--ps-frame-radius) - 8px);
+    scrollbar-width: thin;
+    scrollbar-color: var(--rp-purple-soft) transparent;
+  }
+  .ps-screen::-webkit-scrollbar {
+    width: 5px;
+  }
+  .ps-screen::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .ps-screen::-webkit-scrollbar-thumb {
+    background: var(--rp-purple-soft);
+    border-radius: var(--rp-radius-pill);
   }
 
   /* Inside phone frame, game screens fill the frame instead of the viewport */
