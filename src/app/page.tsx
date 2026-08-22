@@ -6,33 +6,53 @@ import { Suspense } from "react";
 import { LandingScreen } from "@/components/landing-screen";
 import { GameProvider } from "@/lib/game-context";
 import { Game } from "@/components/game";
+import { PhoneShell } from "@/components/phone-shell";
 
 function HomeContent() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, isGuest, loading } = useAuth();
   const searchParams = useSearchParams();
   const joinCode = searchParams.get("join") ?? undefined;
 
   if (loading) {
     return (
-      <div
-        className="flex min-h-dvh items-center justify-center"
-        style={{ background: "var(--rp-bg-hero)" }}
-      >
-        <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
-          Laden...
+      <PhoneShell>
+        <div
+          className="flex flex-1 items-center justify-center"
+          style={{ background: "var(--rp-bg-hero)" }}
+        >
+          <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
+            Laden...
+          </div>
         </div>
-      </div>
+      </PhoneShell>
     );
   }
 
-  if (!isAuthenticated) {
-    return <LandingScreen />;
+  // Anonymous guests joining via ?join= go straight into the game
+  if (joinCode && isAuthenticated) {
+    return (
+      <PhoneShell>
+        <GameProvider joinCode={joinCode}>
+          <Game />
+        </GameProvider>
+      </PhoneShell>
+    );
+  }
+
+  if (!isAuthenticated || (isGuest && !joinCode)) {
+    return (
+      <PhoneShell>
+        <LandingScreen />
+      </PhoneShell>
+    );
   }
 
   return (
-    <GameProvider joinCode={joinCode}>
-      <Game />
-    </GameProvider>
+    <PhoneShell>
+      <GameProvider joinCode={joinCode}>
+        <Game />
+      </GameProvider>
+    </PhoneShell>
   );
 }
 
@@ -40,14 +60,16 @@ export default function Home() {
   return (
     <Suspense
       fallback={
-        <div
-          className="flex min-h-dvh items-center justify-center"
-          style={{ background: "var(--rp-bg-hero)" }}
-        >
-          <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
-            Laden...
+        <PhoneShell>
+          <div
+            className="flex flex-1 items-center justify-center"
+            style={{ background: "var(--rp-bg-hero)" }}
+          >
+            <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
+              Laden...
+            </div>
           </div>
-        </div>
+        </PhoneShell>
       }
     >
       <HomeContent />
