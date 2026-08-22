@@ -93,7 +93,7 @@ export function LobbyScreen() {
       <div className="relative z-10 flex-1 flex flex-col px-5 pb-6">
         {/* Back button */}
         <button
-          onClick={game.goHome}
+          onClick={() => void game.leaveRoom()}
           className="self-start mt-2 mb-2 text-sm font-medium transition-colors"
           style={{ color: "var(--rp-text-secondary)" }}
         >
