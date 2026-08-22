@@ -106,7 +106,7 @@ function generateRoomCode(): string {
   return code;
 }
 
-export function GameProvider({ children }: { children: ReactNode }) {
+export function GameProvider({ children, joinCode }: { children: ReactNode; joinCode?: string }) {
   const [room, setRoom] = useState<DbRoom | null>(null);
   const [players, setPlayers] = useState<DbPlayer[]>([]);
   const [blocks, setBlocks] = useState<DbMatchBlock[]>([]);
@@ -613,6 +613,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Auto-join from ?join=CODE query param (landing guest flow)
+  const joinCodeUsedRef = useRef(false);
+  useEffect(() => {
+    if (!joinCode || joinCodeUsedRef.current || room) return;
+    joinCodeUsedRef.current = true;
+    void joinRoom(joinCode, "Gast");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [joinCode, room]);
+
   const startGame = async () => {
     if (!room || !isHost) return;
 
@@ -687,10 +696,20 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     // Fetch prompts for this theme + mode
     const count = currentBlock.mode === "number_guess" ? 2 : 1;
-    const fetchedPrompts = await fetchPromptsForBlock(themeId, currentBlock.mode, count);
+    let fetchedPrompts = await fetchPromptsForBlock(themeId, currentBlock.mode, count);
+
+    // Fallback: if no prompts for selected theme+mode, try other themes
+    if (fetchedPrompts.length === 0) {
+      const allThemes = await fetchRandomThemeOptions(8);
+      for (const fallbackTheme of allThemes) {
+        if (fallbackTheme.id === themeId) continue;
+        fetchedPrompts = await fetchPromptsForBlock(fallbackTheme.id, currentBlock.mode, count);
+        if (fetchedPrompts.length > 0) break;
+      }
+    }
 
     if (fetchedPrompts.length === 0) {
-      setError("Keine Fragen für dieses Thema gefunden.");
+      setError("Keine Fragen verfügbar. Bitte Fragemeister kontaktieren.");
       return;
     }
 
