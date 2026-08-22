@@ -2,9 +2,9 @@
 
 > Ratepanik shared assets — UX-approved **Peinlich-Pastell** visual style.
 
-## Tranche 1 — Home subset
+## Tranche 1 — Full
 
-Covers: navigation icons, default avatars, currency coin, trophy.
+Covers: navigation icons, default avatars, currency coin, trophy, rank badges, achievement badges, loot boxes, confetti.
 
 ### Navigation Icons (SVG masters + PNG rasters)
 
@@ -37,13 +37,48 @@ Covers: navigation icons, default avatars, currency coin, trophy.
 
 ### Trophy
 
-| File | Size |
-|------|------|
-| `rp_trophy_gold_512.png` | 512×512 (actual 1024×1024) |
+| File | Size | Usage |
+|------|------|-------|
+| `rp_trophy_gold_512.png` | 512×512 (actual 1024×1024) | Landing page hero |
+
+### Rank Badges
+
+| Base name | 32px | @2x (64) | @3x (96) | 128px | @2x (256) |
+|-----------|------|----------|----------|-------|-----------|
+| `rp_badge_rank_1` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `rp_badge_rank_2` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `rp_badge_rank_3` | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+### Achievement Badges
+
+| Base name | 48px | @2x (96) | @3x (144) | 128px | @2x (256) |
+|-----------|------|----------|-----------|-------|-----------|
+| `rp_badge_first_win` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `rp_badge_streak_3` | ✓ | ✓ | ✓ | ✓ | ✓ |
+| `rp_badge_party_host` | ✓ | ✓ | ✓ | ✓ | ✓ |
+
+### Loot Boxes
+
+| Base name | 96px | 128px | @2x (256) | 256px |
+|-----------|------|-------|-----------|-------|
+| `rp_loot_box_common` | ✓ | ✓ | ✓ | ✓ |
+| `rp_loot_box_uncommon` | ✓ | ✓ | ✓ | ✓ |
+| `rp_loot_box_rare` | ✓ | ✓ | ✓ | ✓ |
+| `rp_loot_box_epic` | ✓ | ✓ | ✓ | ✓ |
+| `rp_loot_box_legendary` | ✓ | ✓ | ✓ | ✓ |
+
+### FX
+
+| File | Size | Format |
+|------|------|--------|
+| `rp_fx_confetti_sheet_512.png` | 512×512 | PNG (RGBA) |
+| `rp_fx_confetti_sheet_512.webp` | 512×512 | WebP (lossy 90) |
 
 ## Notes
 
 - All assets are delivered by the Asset team — do NOT generate or invent replacements.
-- Style: Peinlich-Pastell — soft 3D pastels, rounded forms, dark-indigo (#3D2B6B) nav fills.
+- Style: Peinlich-Pastell — soft 3D pastels, rounded forms, dark-indigo (#3D2B6B) nav fills, warm highlights.
+- Rank badges: gold (#1), silver/white (#2), bronze/copper (#3) rounded-rect tiles.
+- Loot box rarity: common (cream), uncommon (green), rare (blue), epic (purple), legendary (gold).
 - Images served via Next.js `public/` directory at path `/rp/<filename>`.
-- More files (ranks/achievements/loot/confetti) may follow in a subsequent tranche on this branch/PR.
+- `_128@2x` and `_256` are identical 256px renders (convenience aliases).
