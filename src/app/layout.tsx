@@ -1,10 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
+import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -18,7 +20,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#7c3aed",
+  themeColor: "#8B7CFF",
 };
 
 export default function RootLayout({
@@ -27,9 +29,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de" className={`${inter.variable} antialiased`}>
-      <body className="min-h-dvh font-sans bg-purple-900 text-white overflow-x-hidden">
-        {children}
+    <html lang="de" className={`${jakarta.variable} antialiased`}>
+      <body className="min-h-dvh font-sans bg-[var(--rp-bg)] text-[var(--rp-text)] overflow-x-hidden">
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
