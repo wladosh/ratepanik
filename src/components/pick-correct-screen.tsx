@@ -2,6 +2,8 @@
 
 import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
+import { TimerPill } from "./timer-pill";
+import { WaitingFooter } from "./waiting-footer";
 import type { PickCorrectPayload } from "@/lib/content";
 
 const ANSWER_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -40,6 +42,12 @@ export function PickCorrectScreen() {
 
   const activePlayer = sortedPlayers[game.activePlayerIndex];
   const correctFound = game.turns.filter((t) => t.is_correct).length;
+
+  const tappedPlayerCount = useMemo(
+    () => new Set(game.turns.map((t) => t.player_id)).size,
+    [game.turns]
+  );
+
   const tappedIndices = useMemo(
     () => new Set(game.turns.map((t) => t.card_index)),
     [game.turns]
@@ -91,17 +99,20 @@ export function PickCorrectScreen() {
             Frage <span style={{ color: "var(--rp-peach)" }}>{blockNum}</span>/{totalBlocks}
           </span>
 
-          {/* Turn indicator pill */}
-          <span
-            className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
-            style={{
-              background: "var(--rp-bg-elevated)",
-              color: "var(--rp-text-secondary)",
-              boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
-            }}
-          >
-            {correctFound}/4
-          </span>
+          <div className="flex items-center gap-2">
+            <TimerPill timerSeconds={game.currentBlock?.timer_seconds} startedAt={game.currentBlock?.started_at} />
+            {/* Correct-found pill */}
+            <span
+              className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
+              style={{
+                background: "var(--rp-bg-elevated)",
+                color: "var(--rp-text-secondary)",
+                boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
+              }}
+            >
+              {correctFound}/4
+            </span>
+          </div>
         </div>
 
         {/* Question card */}
@@ -216,6 +227,9 @@ export function PickCorrectScreen() {
           </div>
         </div>
       </div>
+
+      {/* Waiting footer */}
+      <WaitingFooter answered={tappedPlayerCount} total={game.players.length} />
     </div>
   );
 }

@@ -148,6 +148,15 @@
   }
 }
 
+@keyframes timer-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(255, 92, 122, 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 92, 122, 0.15);
+  }
+}
+
 @keyframes slide-up {
   from {
     opacity: 0;
