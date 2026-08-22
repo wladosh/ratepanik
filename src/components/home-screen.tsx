@@ -2,19 +2,47 @@
 
 import { useState } from "react";
 import { useGame } from "@/lib/game-context";
+import { useAuth } from "@/lib/auth-context";
+import { useRouter } from "next/navigation";
 
 type Mode = "idle" | "create" | "join";
 
 export function HomeScreen() {
   const game = useGame();
+  const { user, isAuthenticated, canHost, isGuest, signOut, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [mode, setMode] = useState<Mode>("idle");
   const [name, setName] = useState("");
   const [roomCode, setRoomCode] = useState("");
+
+  const displayName =
+    user?.user_metadata?.display_name ||
+    user?.user_metadata?.full_name ||
+    user?.email?.split("@")[0] ||
+    "";
+
+  function handleStartCreate() {
+    if (!canHost) {
+      router.push("/auth/login");
+      return;
+    }
+    setMode("create");
+    setName(displayName);
+  }
 
   async function handleCreate() {
     const trimmed = name.trim();
     if (!trimmed) return;
     await game.createRoom(trimmed);
+  }
+
+  function handleStartJoin() {
+    if (!isAuthenticated) {
+      router.push("/auth/login");
+      return;
+    }
+    setMode("join");
+    setName(displayName);
   }
 
   async function handleJoin() {
@@ -24,18 +52,39 @@ export function HomeScreen() {
     await game.joinRoom(trimmedCode, trimmedName);
   }
 
+  if (authLoading) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
+        <div className="text-2xl text-white/80 animate-pulse">Laden...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 px-4 py-8">
       <div className="mb-4 text-6xl sm:text-7xl animate-bounce-slow">🎉</div>
       <h1 className="mb-2 text-5xl sm:text-7xl font-black text-white tracking-tight drop-shadow-lg">
         Ratepanik
       </h1>
-      <p className="mb-10 text-lg sm:text-xl text-white/90 font-medium text-center max-w-md">
+      <p className="mb-6 text-lg sm:text-xl text-white/90 font-medium text-center max-w-md">
         Das Party-Quiz, bei dem jede Sekunde zählt!
       </p>
 
+      {isAuthenticated && (
+        <div className="mb-6 flex items-center gap-3 rounded-2xl bg-white/10 backdrop-blur-sm px-4 py-2 border border-white/20">
+          <span className="text-sm text-white/80">
+            {isGuest ? "👻 Gast" : `👤 ${displayName}`}
+          </span>
+          <button
+            onClick={signOut}
+            className="text-xs text-white/60 underline hover:text-white/90 transition-colors"
+          >
+            Abmelden
+          </button>
+        </div>
+      )}
+
       <div className="w-full max-w-sm space-y-4">
-        {/* --- Create flow --- */}
         {mode === "create" && (
           <div className="space-y-3 animate-fade-in">
             <label
@@ -71,7 +120,6 @@ export function HomeScreen() {
           </div>
         )}
 
-        {/* --- Join flow --- */}
         {mode === "join" && (
           <div className="space-y-3 animate-fade-in">
             <label
@@ -108,9 +156,7 @@ export function HomeScreen() {
             />
             <button
               onClick={handleJoin}
-              disabled={
-                !name.trim() || roomCode.trim().length < 4 || game.loading
-              }
+              disabled={!name.trim() || roomCode.trim().length < 4 || game.loading}
               className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
             >
               {game.loading ? "Trete bei..." : "Beitreten 🎯"}
@@ -124,20 +170,43 @@ export function HomeScreen() {
           </div>
         )}
 
-        {/* --- Default: two buttons --- */}
         {mode === "idle" && (
           <div className="space-y-4 animate-fade-in">
             <button
-              onClick={() => setMode("create")}
+              onClick={handleStartCreate}
               className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
             >
               Neues Spiel starten
             </button>
+
+            {!canHost && isAuthenticated && (
+              <p className="text-center text-xs text-white/60">
+                Nur registrierte Nutzer können Spiele hosten.{" "}
+                <button
+                  onClick={() => router.push("/auth/signup")}
+                  className="underline hover:text-white/90"
+                >
+                  Konto erstellen
+                </button>
+              </p>
+            )}
+
             <button
-              onClick={() => setMode("join")}
+              onClick={handleStartJoin}
               className="w-full rounded-2xl border-2 border-white/30 bg-white/10 px-6 py-4 text-lg font-bold text-white shadow-xl backdrop-blur-sm transition-all hover:bg-white/20 hover:scale-[1.02] active:scale-[0.98]"
             >
               Raum beitreten
+            </button>
+          </div>
+        )}
+
+        {!isAuthenticated && mode === "idle" && (
+          <div className="pt-2 text-center">
+            <button
+              onClick={() => router.push("/auth/login")}
+              className="text-sm text-white/80 underline hover:text-white transition-colors"
+            >
+              Anmelden / Registrieren
             </button>
           </div>
         )}
@@ -148,7 +217,7 @@ export function HomeScreen() {
           </div>
           <div className="relative flex justify-center">
             <span className="bg-transparent px-4 text-sm text-white/70">
-              Multiplayer v2
+              Phase A
             </span>
           </div>
         </div>
