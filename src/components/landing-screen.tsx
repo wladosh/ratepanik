@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export function LandingScreen() {
   const { isAuthenticated } = useAuth();
@@ -53,39 +54,15 @@ export function LandingScreen() {
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
         {/* Trophy */}
-        <div className="mb-4 relative">
-          <div
-            className="w-20 h-20 flex items-center justify-center rounded-2xl"
-            style={{
-              background: "linear-gradient(135deg, var(--rp-yellow) 0%, #FFB347 100%)",
-              boxShadow: "0 8px 24px rgba(255, 214, 107, 0.4)",
-            }}
-          >
-            <svg viewBox="0 0 48 48" className="w-12 h-12" fill="none">
-              <path
-                d="M14 8h20v4c0 5.523-4.477 10-10 10S14 17.523 14 12V8z"
-                fill="#FFD66B"
-                stroke="#E6A800"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M10 10h4v4c0 2-1 4-3 4s-3-2-2.5-4L10 10z"
-                fill="#FFE9A0"
-                stroke="#E6A800"
-                strokeWidth="1"
-              />
-              <path
-                d="M38 10h-4v4c0 2 1 4 3 4s3-2 2.5-4L38 10z"
-                fill="#FFE9A0"
-                stroke="#E6A800"
-                strokeWidth="1"
-              />
-              <rect x="21" y="22" width="6" height="6" rx="1" fill="#E6A800" />
-              <rect x="17" y="28" width="14" height="4" rx="2" fill="#FFD66B" stroke="#E6A800" strokeWidth="1" />
-              <circle cx="24" cy="14" r="3" fill="#FFF3D6" stroke="#E6A800" strokeWidth="1" />
-              <path d="M24 12l.7 1.5 1.6.2-1.15 1.1.27 1.6L24 15.7l-1.42.7.27-1.6-1.15-1.1 1.6-.2L24 12z" fill="#E6A800" />
-            </svg>
-          </div>
+        <div className="mb-4">
+          <Image
+            src="/rp/rp_trophy_gold_512.png"
+            alt="Ratepanik Trophy"
+            width={96}
+            height={96}
+            className="drop-shadow-lg"
+            priority
+          />
         </div>
 
         {/* Logo */}
