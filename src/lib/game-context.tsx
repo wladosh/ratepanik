@@ -103,7 +103,7 @@ function shuffleArray<T>(arr: T[]): T[] {
   return a;
 }
 
-export function GameProvider({ children }: { children: ReactNode }) {
+export function GameProvider({ children, joinCode }: { children: ReactNode; joinCode?: string }) {
   const [room, setRoom] = useState<DbRoom | null>(null);
   const [players, setPlayers] = useState<DbPlayer[]>([]);
   const [allAnswers, setAllAnswers] = useState<DbAnswer[]>([]);
@@ -264,6 +264,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-join from ?join=CODE query param (landing flow)
+  const joinCodeUsedRef = useRef(false);
+  useEffect(() => {
+    if (!joinCode || joinCodeUsedRef.current || room) return;
+    joinCodeUsedRef.current = true;
+    const displayName = "Gast";
+    void joinRoom(joinCode, displayName);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [joinCode, room]);
 
   // Sync phase from room status changes
   useEffect(() => {
@@ -430,10 +440,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!theme) return;
 
     // Fetch prompts for this block's mode + selected theme
-    const prompts = await fetchPromptsForBlock(themeId, currentBlock.mode, ROUNDS_PER_BLOCK);
+    let prompts = await fetchPromptsForBlock(themeId, currentBlock.mode, ROUNDS_PER_BLOCK);
+
+    // Fallback: if no prompts for this theme+mode, try any theme with this mode
+    if (prompts.length === 0) {
+      for (const fallbackTheme of shuffleArray(allThemes)) {
+        if (fallbackTheme.id === themeId) continue;
+        prompts = await fetchPromptsForBlock(fallbackTheme.id, currentBlock.mode, ROUNDS_PER_BLOCK);
+        if (prompts.length > 0) break;
+      }
+    }
 
     if (prompts.length === 0) {
-      setError("Keine Fragen für dieses Thema verfügbar. Versuche ein anderes.");
+      setError("Keine Fragen verfügbar. Bitte Fragemeister kontaktieren.");
       return;
     }
 
