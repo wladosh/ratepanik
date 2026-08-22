@@ -135,6 +135,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const lastStateKeyRef = useRef("");
   const pickCompleteRef = useRef<string | null>(null);
   const subscribeRef = useRef<((roomId: string) => void) | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const leftIntentionallyRef = useRef(false);
 
   // --- derived state ---
 
@@ -252,7 +254,44 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   // --- realtime subscription ---
 
+  const refetchRoomState = useCallback(async (roomId: string) => {
+    const [
+      { data: roomData },
+      { data: playersData },
+      { data: answersData },
+      { data: blocksData },
+      { data: turnsData },
+    ] = await Promise.all([
+      supabase.from("rooms").select().eq("id", roomId).single(),
+      supabase.from("players").select().eq("room_id", roomId),
+      supabase.from("answers").select().eq("room_id", roomId),
+      supabase.from("match_blocks").select().eq("room_id", roomId),
+      supabase.from("pick_correct_turns").select().eq("room_id", roomId),
+    ]);
+    if (roomData) setRoom(roomData);
+    if (playersData) setPlayers(playersData);
+    if (answersData) setAllAnswers(answersData);
+    if (blocksData) setBlocks(blocksData);
+    if (turnsData) setTurns(turnsData);
+  }, []);
+
+  const scheduleReconnect = useCallback((roomId: string, delayMs: number) => {
+    if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+    reconnectTimerRef.current = setTimeout(() => {
+      reconnectTimerRef.current = null;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      subscribeRef.current?.(roomId);
+    }, delayMs);
+  }, []);
+
   const subscribeToRoom = useCallback((roomId: string) => {
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
     }
@@ -265,6 +304,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         (payload) => {
           if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
             setRoom(payload.new as DbRoom);
+          } else if (payload.eventType === "DELETE") {
+            setError("Das Match ist vorbei.");
+            clearSession();
+            setRoom(null);
           }
         }
       )
@@ -343,20 +386,21 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         }
       )
       .subscribe((status, err) => {
-        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        if (status === "SUBSCRIBED") {
+          void refetchRoomState(roomId);
+        } else if (
+          status === "CHANNEL_ERROR" ||
+          status === "TIMED_OUT" ||
+          status === "CLOSED"
+        ) {
           console.warn("Realtime subscription issue:", status, err);
           setError("Verbindung weg. Einen Moment…");
-          setTimeout(() => {
-            if (channelRef.current) {
-              supabase.removeChannel(channelRef.current);
-            }
-            subscribeRef.current?.(roomId);
-          }, 2000);
+          scheduleReconnect(roomId, 2000);
         }
       });
 
     channelRef.current = channel;
-  }, []);
+  }, [refetchRoomState, scheduleReconnect]);
 
   useEffect(() => {
     subscribeRef.current = subscribeToRoom;
@@ -772,11 +816,16 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
   };
 
-  // Auto-join from ?join=CODE query param (landing guest flow)
-  const joinCodeUsedRef = useRef(false);
+  // Auto-join from ?join=CODE query param (landing guest flow).
+  // Fires when joinCode is set but room is null and session restore is
+  // done. Skipped after explicit Leave (leftIntentionallyRef).
+  // Tracks last attempted code to prevent infinite retry loops.
+  const lastJoinAttemptRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!joinCode || joinCodeUsedRef.current || room) return;
-    joinCodeUsedRef.current = true;
+    if (!joinCode || room || loading || restoring) return;
+    if (leftIntentionallyRef.current) return;
+    if (lastJoinAttemptRef.current === joinCode) return;
+    lastJoinAttemptRef.current = joinCode;
     const autoName =
       user?.user_metadata?.display_name ||
       user?.user_metadata?.full_name ||
@@ -784,7 +833,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       generateGuestName();
     void joinRoom(joinCode, autoName);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [joinCode, room]);
+  }, [joinCode, room, loading, restoring]);
 
   const startGame = async () => {
     if (!room || !isHost) return;
@@ -1092,6 +1141,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   };
 
   const goHome = () => {
+    leftIntentionallyRef.current = true;
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
@@ -1111,6 +1165,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   useEffect(() => {
     return () => {
+      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
