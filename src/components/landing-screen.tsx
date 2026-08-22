@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
 export function LandingScreen() {
   const { isAuthenticated } = useAuth();
@@ -55,13 +54,13 @@ export function LandingScreen() {
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
         {/* Trophy — freestanding on gradient */}
         <div className="mb-4">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/rp/rp_trophy_gold_512.png"
             alt="Ratepanik Trophy"
             width={88}
             height={88}
             className="drop-shadow-[0_8px_24px_rgba(255,214,107,0.4)]"
-            priority
           />
         </div>
 
