@@ -1,11 +1,35 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-jakarta);
 
   --animate-fade-in: fade-in 0.4s ease-out both;
   --animate-bounce-slow: bounce-slow 2s ease-in-out infinite;
   --animate-slide-up: slide-up 0.3s ease-out both;
+}
+
+:root {
+  --rp-bg: #FFF8F5;
+  --rp-bg-elevated: #FFFFFF;
+  --rp-bg-hero: linear-gradient(160deg, #E8F4FF 0%, #FFE8F3 45%, #FFF3D6 100%);
+  --rp-purple: #8B7CFF;
+  --rp-purple-soft: #C9C0FF;
+  --rp-peach: #FF8A71;
+  --rp-peach-deep: #F56B52;
+  --rp-pink: #FF7AB6;
+  --rp-mint: #6FCFB2;
+  --rp-sky: #7EB6FF;
+  --rp-yellow: #FFD66B;
+  --rp-text: #2A2A4A;
+  --rp-text-secondary: #6B6B8A;
+  --rp-success: #3DCC8A;
+  --rp-danger: #FF5C7A;
+  --rp-border: rgba(42, 42, 74, 0.08);
+  --rp-focus-ring: #8B7CFF;
+  --rp-radius-md: 20px;
+  --rp-radius-lg: 28px;
+  --rp-radius-pill: 999px;
+  --rp-shadow-card: 0 10px 30px rgba(42, 42, 74, 0.08);
 }
 
 @keyframes fade-in {
