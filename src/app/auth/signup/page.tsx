@@ -87,7 +87,18 @@ export default function SignupPage() {
     });
 
     if (signupError) {
-      setError(signupError.message);
+      const msg = signupError.message.toLowerCase();
+      if (
+        msg.includes("rate limit") ||
+        msg.includes("over_email_send_rate_limit") ||
+        msg.includes("429")
+      ) {
+        setError(
+          "Zu viele Anmelde-Mails gerade. Bitte ~1 Stunde warten, Google nutzen, oder später nochmal."
+        );
+      } else {
+        setError(signupError.message);
+      }
       setLoading(false);
       return;
     }

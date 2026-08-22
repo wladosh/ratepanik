@@ -24,7 +24,18 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      const msg = error.message.toLowerCase();
+      if (
+        msg.includes("rate limit") ||
+        msg.includes("over_email_send_rate_limit") ||
+        msg.includes("429")
+      ) {
+        setError(
+          "Zu viele Anmelde-Versuche gerade. Bitte ~1 Stunde warten oder später nochmal."
+        );
+      } else {
+        setError(error.message);
+      }
       setLoading(false);
       return;
     }
