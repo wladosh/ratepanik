@@ -7,83 +7,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 type Mode = "idle" | "create" | "join";
 
-function CoinIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="none">
-      <circle cx="12" cy="12" r="10" fill="#FFD66B" stroke="#E6B84D" strokeWidth="1.5" />
-      <text x="12" y="16" textAnchor="middle" fontSize="12" fontWeight="bold" fill="#8B6914">$</text>
-    </svg>
-  );
-}
-
 function GearIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
-  );
-}
-
-function NavHomeIcon({ active }: { active?: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6" fill={active ? "var(--rp-peach)" : "none"} stroke={active ? "var(--rp-peach)" : "currentColor"} strokeWidth="1.8">
-      <path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9.5z" />
-      <path d="M9 21V12h6v9" fill={active ? "#fff" : "none"} stroke={active ? "#fff" : "currentColor"} />
-    </svg>
-  );
-}
-
-function NavQuizIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="12" cy="12" r="9" />
-      <path d="M9 9a3 3 0 0 1 5.83 1c0 2-3 2.5-3 4.5" strokeLinecap="round" />
-      <circle cx="12" cy="17.5" r="0.5" fill="currentColor" />
-    </svg>
-  );
-}
-
-function NavPlayIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <circle cx="12" cy="12" r="9" />
-      <polygon points="10,8 17,12 10,16" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
-
-function NavRanglisteIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M6 9H2v12h4V9z M14 4h-4v17h4V4z M22 14h-4v7h4v-7z" fill="none" />
-      <circle cx="12" cy="2" r="1.5" fill="var(--rp-yellow)" stroke="var(--rp-yellow)" />
-    </svg>
-  );
-}
-
-function NavProfilIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21v-1a6 6 0 0 1 12 0v1" />
-    </svg>
-  );
-}
-
-function AvatarPlaceholder() {
-  return (
-    <div
-      className="w-12 h-12 rounded-full flex items-center justify-center shrink-0"
-      style={{
-        background: "linear-gradient(135deg, var(--rp-purple-soft) 0%, var(--rp-pink) 100%)",
-      }}
-    >
-      <svg viewBox="0 0 24 24" className="w-7 h-7" fill="white">
-        <circle cx="12" cy="8" r="4" />
-        <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
-      </svg>
-    </div>
   );
 }
 
@@ -223,7 +152,14 @@ export function HomeScreen() {
       <div className="flex-1 overflow-y-auto px-4 pb-20">
         {/* ── Header ──────────────────────────────── */}
         <header className="flex items-center gap-3 py-4">
-          <AvatarPlaceholder />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/rp/rp_avatar_default_01_128@2x.png"
+            alt={displayName}
+            width={48}
+            height={48}
+            className="w-12 h-12 rounded-full object-cover shrink-0"
+          />
           <div className="flex-1 min-w-0">
             <h2 className="text-lg font-bold text-[var(--rp-text)] truncate">{displayName}</h2>
             <p className="text-xs text-[var(--rp-text-secondary)]">
@@ -235,7 +171,14 @@ export function HomeScreen() {
               className="flex items-center gap-1.5 h-8 px-3 rounded-full"
               style={{ background: "rgba(255, 214, 107, 0.2)", border: "1px solid rgba(255, 214, 107, 0.4)" }}
             >
-              <CoinIcon className="w-4 h-4" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/rp/rp_currency_coin_24@2x.png"
+                alt="Coins"
+                width={16}
+                height={16}
+                className="w-4 h-4"
+              />
               <span className="text-sm font-bold text-[var(--rp-text)]">0</span>
             </div>
             <button
@@ -356,7 +299,6 @@ export function HomeScreen() {
               {game.loading ? "..." : "Beitreten"}
             </button>
           </div>
-          {/* Hidden full input overlaying the digit boxes for actual typing */}
           <input
             type="text"
             value={roomCode}
@@ -512,23 +454,28 @@ export function HomeScreen() {
         }}
       >
         <button className="flex flex-col items-center gap-0.5 py-1 px-2">
-          <NavHomeIcon active />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/rp/rp_nav_home_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
           <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>Home</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
-          <NavQuizIcon />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/rp/rp_nav_quiz_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
           <span className="text-[10px] font-medium">Quiz</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
-          <NavPlayIcon />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/rp/rp_nav_play_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
           <span className="text-[10px] font-medium">Play</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
-          <NavRanglisteIcon />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/rp/rp_nav_rank_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
           <span className="text-[10px] font-medium">Rangliste</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
-          <NavProfilIcon />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/rp/rp_nav_profile_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
           <span className="text-[10px] font-medium">Profil</span>
         </button>
       </nav>
