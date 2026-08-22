@@ -196,7 +196,7 @@ export function LobbyScreen() {
                   : `${game.players.length} Spieler bereit!`}
             </p>
             <p className="text-xs" style={{ color: "var(--rp-text-secondary)" }}>
-              3–8 Spieler pro Runde
+              2–4 Spieler pro Runde
             </p>
           </div>
         </div>
