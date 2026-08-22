@@ -4,122 +4,64 @@ import { useGame } from "@/lib/game-context";
 
 export function ScoreboardScreen() {
   const game = useGame();
-
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
-  const isLastQuestion =
-    game.currentQuestionIndex >= game.questions.length - 1;
-
-  async function handleNext() {
-    await game.nextQuestion();
-  }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 px-4 py-8">
-      <div className="w-full max-w-lg">
-        <h2 className="mb-2 text-center text-3xl sm:text-4xl font-black text-white">
-          Zwischenstand
-        </h2>
-        <p className="mb-8 text-center text-white/80">
-          Nach Frage {game.currentQuestionIndex + 1} von{" "}
-          {game.questions.length}
-        </p>
+    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8" style={{ background: "var(--rp-bg-hero)" }}>
+      <div className="w-full max-w-sm">
+        <div className="mb-6 text-center">
+          <h2 className="text-2xl font-extrabold text-[var(--rp-text)]">Zwischenstand</h2>
+          <p className="mt-1 text-sm text-[var(--rp-text-secondary)]">
+            Block {game.currentBlockIndex + 1} von {game.totalBlocks}
+          </p>
+        </div>
 
-        {/* Podium for top 3 */}
-        {sortedPlayers.length >= 3 && (
-          <div className="mb-6 flex items-end justify-center gap-2 sm:gap-4">
-            {/* 2nd place */}
-            <div className="flex flex-col items-center">
-              <span className="text-3xl mb-1">
-                {game.getAvatar(sortedPlayers[1].id)}
-              </span>
-              <div className="w-20 sm:w-24 rounded-t-2xl bg-white/20 px-2 py-4 text-center backdrop-blur-sm h-24">
-                <p className="text-xs text-white/70 truncate">
-                  {sortedPlayers[1].display_name}
-                </p>
-                <p className="text-lg font-black text-white">
-                  {sortedPlayers[1].score}
-                </p>
-                <p className="text-2xl">🥈</p>
+        <div
+          className="p-4 mb-6"
+          style={{
+            background: "var(--rp-bg-elevated)",
+            borderRadius: "var(--rp-radius-lg)",
+            boxShadow: "var(--rp-shadow-card)",
+          }}
+        >
+          <div className="space-y-2">
+            {sortedPlayers.map((player, i) => (
+              <div
+                key={player.id}
+                className="flex items-center gap-3 rounded-[var(--rp-radius-md)] px-4 py-3"
+                style={{
+                  background: i === 0 ? "rgba(255, 214, 107, 0.1)" : "transparent",
+                }}
+              >
+                <span className="w-6 text-center text-sm font-extrabold">
+                  {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+                </span>
+                <span className="text-xl">{game.getAvatar(player.id)}</span>
+                <span className="flex-1 font-bold text-[var(--rp-text)]">
+                  {player.display_name}
+                </span>
+                <span className="text-base font-extrabold text-[var(--rp-text)] tabular-nums">
+                  {player.score}
+                </span>
               </div>
-            </div>
-            {/* 1st place */}
-            <div className="flex flex-col items-center">
-              <span className="text-4xl mb-1">
-                {game.getAvatar(sortedPlayers[0].id)}
-              </span>
-              <div className="w-24 sm:w-28 rounded-t-2xl bg-white/30 px-2 py-4 text-center backdrop-blur-sm h-32 ring-2 ring-yellow-300/50">
-                <p className="text-xs text-white/80 truncate font-semibold">
-                  {sortedPlayers[0].display_name}
-                </p>
-                <p className="text-2xl font-black text-white">
-                  {sortedPlayers[0].score}
-                </p>
-                <p className="text-3xl">🥇</p>
-              </div>
-            </div>
-            {/* 3rd place */}
-            <div className="flex flex-col items-center">
-              <span className="text-3xl mb-1">
-                {game.getAvatar(sortedPlayers[2].id)}
-              </span>
-              <div className="w-20 sm:w-24 rounded-t-2xl bg-white/15 px-2 py-4 text-center backdrop-blur-sm h-20">
-                <p className="text-xs text-white/60 truncate">
-                  {sortedPlayers[2].display_name}
-                </p>
-                <p className="text-lg font-black text-white">
-                  {sortedPlayers[2].score}
-                </p>
-                <p className="text-2xl">🥉</p>
-              </div>
-            </div>
+            ))}
           </div>
-        )}
-
-        {/* Full ranking */}
-        <div className="mb-8 space-y-2">
-          {sortedPlayers.map((player, i) => (
-            <div
-              key={player.id}
-              className={`flex items-center gap-3 rounded-2xl px-4 py-3 transition-all animate-fade-in ${
-                i === 0
-                  ? "bg-yellow-400/20 border border-yellow-400/30"
-                  : "bg-white/10"
-              }`}
-              style={{ animationDelay: `${i * 100}ms` }}
-            >
-              <span className="w-8 text-center text-lg font-black text-white/60">
-                {i + 1}.
-              </span>
-              <span className="text-2xl">
-                {game.getAvatar(player.id)}
-              </span>
-              <span className="flex-1 font-bold text-white">
-                {player.display_name}
-                {player.id === game.myPlayerId && (
-                  <span className="ml-2 text-xs text-white/50">(Du)</span>
-                )}
-              </span>
-              <span className="text-lg font-black text-white tabular-nums">
-                {player.score}
-              </span>
-            </div>
-          ))}
         </div>
 
         {game.isHost ? (
           <button
-            onClick={handleNext}
-            className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
+            onClick={() => void game.nextRound()}
+            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97]"
+            style={{
+              background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+              boxShadow: "0 4px 16px rgba(255, 138, 113, 0.35)",
+            }}
           >
-            {isLastQuestion ? "Ergebnis anzeigen 🏆" : "Nächste Frage →"}
+            Nächster Block →
           </button>
         ) : (
-          <div className="w-full rounded-2xl bg-white/10 px-6 py-4 text-center backdrop-blur-sm">
-            <p className="text-lg font-bold text-white/80">
-              {isLastQuestion
-                ? "Der Host zeigt gleich das Ergebnis..."
-                : "Der Host wählt die nächste Frage... ⏳"}
-            </p>
+          <div className="text-center text-sm text-[var(--rp-text-secondary)]">
+            Warte auf den Host...
           </div>
         )}
       </div>
