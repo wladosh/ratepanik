@@ -37,7 +37,7 @@ function HomeContent() {
   }
 
   if (!isAuthenticated || (isGuest && !joinCode)) {
-    return <LandingScreen />;
+    return <LandingScreen initialCode={joinCode} />;
   }
 
   if (needsUsername) {

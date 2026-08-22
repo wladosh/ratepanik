@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
+import { generateGuestName } from "@/lib/guest-name";
 
 function GearIcon({ className }: { className?: string }) {
   return (
@@ -28,8 +29,10 @@ export function HomeScreen() {
     "Spieler";
 
   const initialJoinCode = useMemo(() => {
-    const joinCode = searchParams.get("join");
-    return joinCode && joinCode.length === 6 ? joinCode.toUpperCase() : "";
+    const raw = searchParams.get("join");
+    if (!raw) return "";
+    const sanitized = raw.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6);
+    return sanitized.length === 6 ? sanitized : "";
   }, [searchParams]);
 
   const [roomCode, setRoomCode] = useState(initialJoinCode);
@@ -51,7 +54,7 @@ export function HomeScreen() {
       return;
     }
     setJoinError(null);
-    const playerName = displayName || "Gast";
+    const playerName = displayName || generateGuestName();
     await game.joinRoom(trimmedCode, playerName);
   }
 

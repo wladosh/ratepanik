@@ -1,15 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 
-export function LandingScreen() {
+export function LandingScreen({ initialCode }: { initialCode?: string }) {
   const { isAuthenticated } = useAuth();
   const router = useRouter();
-  const [code, setCode] = useState("");
+  const sanitized = initialCode
+    ? initialCode.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6)
+    : "";
+  const [code, setCode] = useState(sanitized);
+  const joinBtnRef = useRef<HTMLButtonElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (code.length === 6) joinBtnRef.current?.focus();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleJoin() {
     const trimmed = code.trim();
@@ -144,6 +152,7 @@ export function LandingScreen() {
           )}
 
           <button
+            ref={joinBtnRef}
             onClick={handleJoin}
             disabled={loading || code.length !== 6}
             className="mt-4 w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100 disabled:shadow-none"
