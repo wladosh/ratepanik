@@ -30,6 +30,7 @@ import {
   calculatePickCorrectPoints,
 } from "./game-store";
 import { useAuth } from "./auth-context";
+import { generateGuestName } from "./guest-name";
 
 export type GamePhase =
   | "home"
@@ -624,7 +625,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       user?.user_metadata?.display_name ||
       user?.user_metadata?.full_name ||
       user?.email?.split("@")[0] ||
-      "Gast";
+      generateGuestName();
     void joinRoom(joinCode, autoName);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [joinCode, room]);
