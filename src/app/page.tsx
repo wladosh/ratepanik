@@ -4,12 +4,15 @@ import { useAuth } from "@/lib/auth-context";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { LandingScreen } from "@/components/landing-screen";
+import { SetUsernameScreen } from "@/components/set-username-screen";
 import { GameProvider } from "@/lib/game-context";
 import { Game } from "@/components/game";
 import { PhoneShell } from "@/components/phone-shell";
+import { useProfile } from "@/lib/use-profile";
 
 function HomeContent() {
-  const { isAuthenticated, isGuest, loading } = useAuth();
+  const { user, isAuthenticated, isGuest, loading, needsUsername, refetchProfile } = useAuth();
+  const { claimUsername, checkUsername } = useProfile(user);
   const searchParams = useSearchParams();
   const joinCode = searchParams.get("join") ?? undefined;
 
@@ -43,6 +46,25 @@ function HomeContent() {
     return (
       <PhoneShell>
         <LandingScreen />
+      </PhoneShell>
+    );
+  }
+
+  // Show username setup for authenticated non-guest users without a profile
+  if (needsUsername) {
+    const defaultName =
+      user?.user_metadata?.display_name ||
+      user?.user_metadata?.full_name ||
+      "";
+
+    return (
+      <PhoneShell>
+        <SetUsernameScreen
+          onClaimed={refetchProfile}
+          claimUsername={claimUsername}
+          checkUsername={checkUsername}
+          defaultName={defaultName}
+        />
       </PhoneShell>
     );
   }

@@ -5,19 +5,24 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
   type ReactNode,
 } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
+import type { Profile } from "@/lib/use-profile";
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
   isGuest: boolean;
   isAuthenticated: boolean;
-  /** True when user is logged in with a non-anonymous provider (can host rooms) */
   canHost: boolean;
+  profile: Profile | null;
+  profileLoading: boolean;
+  needsUsername: boolean;
   signOut: () => Promise<void>;
+  refetchProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -31,36 +36,84 @@ export function useAuth(): AuthContextValue {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
   const supabase = createBrowserSupabase();
 
+  const fetchProfile = useCallback(
+    async (uid?: string) => {
+      const userId = uid ?? user?.id;
+      if (!userId) {
+        setProfile(null);
+        setProfileLoading(false);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, username, created_at, updated_at")
+        .eq("id", userId)
+        .single();
+
+      setProfile((data as Profile) ?? null);
+      setProfileLoading(false);
+    },
+    [user?.id, supabase]
+  );
+
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
+    supabase.auth.getUser().then(({ data: { user: u } }) => {
+      setUser(u);
       setLoading(false);
+      if (u && !u.is_anonymous) {
+        fetchProfile(u.id);
+      } else {
+        setProfileLoading(false);
+      }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const u = session?.user ?? null;
+      setUser(u);
       setLoading(false);
+      if (u && !u.is_anonymous) {
+        fetchProfile(u.id);
+      } else {
+        setProfile(null);
+        setProfileLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase]);
+  }, [supabase, fetchProfile]);
 
   const isGuest = user?.is_anonymous === true;
   const isAuthenticated = !!user;
   const canHost = isAuthenticated && !isGuest;
+  const needsUsername = !profileLoading && !!user && !isGuest && !profile;
 
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
+    setProfile(null);
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, loading, isGuest, isAuthenticated, canHost, signOut }}
+      value={{
+        user,
+        loading,
+        isGuest,
+        isAuthenticated,
+        canHost,
+        profile,
+        profileLoading,
+        needsUsername,
+        signOut,
+        refetchProfile: fetchProfile,
+      }}
     >
       {children}
     </AuthContext.Provider>

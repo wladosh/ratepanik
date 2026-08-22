@@ -16,11 +16,12 @@ function GearIcon({ className }: { className?: string }) {
 
 export function HomeScreen() {
   const game = useGame();
-  const { user, canHost, isGuest, signOut, loading: authLoading } = useAuth();
+  const { user, canHost, isGuest, signOut, loading: authLoading, profile } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const displayName =
+    profile?.username ||
     user?.user_metadata?.display_name ||
     user?.user_metadata?.full_name ||
     user?.email?.split("@")[0] ||
