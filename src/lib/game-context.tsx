@@ -623,7 +623,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
           playerData = inserted;
         }
       } else {
-        // No auth uid (should be rare with anon sign-in) — original path
+        // Context user not yet loaded — resolve directly from Supabase Auth
+        // so anon-auth guests still get user_id set on their player row.
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        const fallbackUid = freshUser?.id ?? null;
+
         const { data: existingPlayers } = await supabase
           .from("players")
           .select()
@@ -639,6 +643,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
           .from("players")
           .insert({
             room_id: roomData.id,
+            user_id: fallbackUid,
             display_name: displayName,
             is_host: false,
           })
