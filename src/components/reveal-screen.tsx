@@ -2,114 +2,93 @@
 
 import { useGame } from "@/lib/game-context";
 
-const OPTION_COLORS_BG = [
-  "bg-red-500/20 border-red-500/30",
-  "bg-blue-500/20 border-blue-500/30",
-  "bg-emerald-500/20 border-emerald-500/30",
-  "bg-amber-500/20 border-amber-500/30",
-];
-
 export function RevealScreen() {
   const game = useGame();
-  const question = game.currentQuestion;
 
-  if (!question) return null;
-
-  const myAnswer = game.answers.find((a) => a.player_id === game.myPlayerId);
-  const myCorrect =
-    myAnswer !== undefined && myAnswer.choice_index === question.correctIndex;
-
-  const correctCount = game.answers.filter(
-    (a) => a.choice_index === question.correctIndex
-  ).length;
+  const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-purple-900 to-indigo-800 px-4 py-8">
-      <div className="w-full max-w-lg">
-        {/* Result emoji */}
-        <div className="mb-4 text-center">
-          <span className="text-6xl sm:text-7xl animate-bounce-slow">
-            {myCorrect ? "🎉" : "😬"}
-          </span>
+    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8" style={{ background: "var(--rp-bg-hero)" }}>
+      <div className="w-full max-w-sm">
+        {/* Header */}
+        <div className="mb-6 text-center">
+          <div className="mb-2 text-sm font-semibold text-[var(--rp-text-secondary)] uppercase tracking-wider">
+            Block {game.currentBlockIndex + 1} · Runde {game.currentRoundInBlock + 1}
+          </div>
+          <h2 className="text-2xl font-extrabold text-[var(--rp-text)]">
+            Ergebnis
+          </h2>
+          {game.currentBlock?.themeName && (
+            <p className="mt-1 text-sm text-[var(--rp-text-secondary)]">
+              {game.currentBlock.themeName} — {game.mode === "number_guess" ? "Zahlenraten" : "Passendes wählen"}
+            </p>
+          )}
         </div>
 
-        {/* Result text */}
-        <h2 className="mb-2 text-center text-2xl sm:text-3xl font-black text-white">
-          {myAnswer?.choice_index === -1
-            ? "Zu spät!"
-            : myCorrect
-              ? "Richtig!"
-              : "Falsch!"}
-        </h2>
-        <p className="mb-8 text-center text-white/70">
-          {correctCount} von {game.players.length} Spielern lagen richtig
-        </p>
+        {/* Points earned this round */}
+        {game.lastRoundPoints > 0 && (
+          <div className="mb-4 text-center animate-fade-in">
+            <span className="text-3xl font-extrabold" style={{ color: "var(--rp-success)" }}>
+              +{game.lastRoundPoints}
+            </span>
+            <span className="ml-2 text-sm text-[var(--rp-text-secondary)]">Punkte</span>
+          </div>
+        )}
 
-        {/* Answer breakdown */}
-        <div className="mb-8 space-y-3">
-          {question.options.map((option, i) => {
-            const isCorrect = i === question.correctIndex;
-            const voters = game.players.filter((p) =>
-              game.answers.some(
-                (a) => a.player_id === p.id && a.choice_index === i
-              )
-            );
-            const voterCount = voters.length;
-
-            return (
-              <div
-                key={i}
-                className={`relative overflow-hidden rounded-2xl border-2 p-4 transition-all ${
-                  isCorrect
-                    ? "border-green-400 bg-green-500/20 ring-2 ring-green-400/30"
-                    : OPTION_COLORS_BG[i]
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {isCorrect && <span className="text-xl">✅</span>}
-                    <span
-                      className={`font-bold ${
-                        isCorrect ? "text-green-300" : "text-white/80"
-                      }`}
-                    >
-                      {option}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {voters.map((v) => (
-                      <span
-                        key={v.id}
-                        className="text-lg"
-                        title={v.display_name}
-                      >
-                        {game.getAvatar(v.id)}
-                      </span>
-                    ))}
-                    <span className="text-sm text-white/50">
-                      ({voterCount})
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Points earned */}
-        <div className="mb-6 rounded-2xl bg-white/10 p-4 text-center backdrop-blur-sm">
-          <p className="text-sm text-white/60">Deine Punkte diese Runde</p>
-          <p className="text-3xl font-black text-white">
-            +{game.lastRoundPoints}
-          </p>
-        </div>
-
-        <button
-          onClick={game.showScoreboard}
-          className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
+        {/* Standings */}
+        <div
+          className="p-4 mb-6"
+          style={{
+            background: "var(--rp-bg-elevated)",
+            borderRadius: "var(--rp-radius-lg)",
+            boxShadow: "var(--rp-shadow-card)",
+          }}
         >
-          Weiter zum Scoreboard →
-        </button>
+          <div className="space-y-2">
+            {sortedPlayers.map((player, i) => (
+              <div
+                key={player.id}
+                className="flex items-center gap-3 rounded-[var(--rp-radius-md)] px-4 py-3 animate-fade-in"
+                style={{
+                  background: player.id === game.myPlayerId ? "rgba(139, 124, 255, 0.08)" : "transparent",
+                  animationDelay: `${i * 100}ms`,
+                }}
+              >
+                <span className="w-6 text-center text-sm font-extrabold text-[var(--rp-text-secondary)]">
+                  {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+                </span>
+                <span className="text-xl">{game.getAvatar(player.id)}</span>
+                <span className="flex-1 font-bold text-[var(--rp-text)]">
+                  {player.display_name}
+                  {player.id === game.myPlayerId && (
+                    <span className="ml-1 text-xs text-[var(--rp-text-secondary)]">(Du)</span>
+                  )}
+                </span>
+                <span className="text-base font-extrabold text-[var(--rp-text)] tabular-nums">
+                  {player.score}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Action */}
+        {game.isHost ? (
+          <button
+            onClick={() => void game.nextRound()}
+            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97]"
+            style={{
+              background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+              boxShadow: "0 4px 16px rgba(255, 138, 113, 0.35)",
+            }}
+          >
+            Weiter →
+          </button>
+        ) : (
+          <div className="text-center text-sm text-[var(--rp-text-secondary)]">
+            Der Host geht weiter...
+          </div>
+        )}
       </div>
     </div>
   );

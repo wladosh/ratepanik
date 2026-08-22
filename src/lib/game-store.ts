@@ -1,5 +1,5 @@
-const POINTS_BASE = 1000;
-const POINTS_TIME_BONUS = 500;
+// Legacy scoring — kept for backwards compatibility with any remaining references.
+// Phase A uses rank-based scoring calculated in game-context.tsx.
 
 export function calculatePoints(
   isCorrect: boolean,
@@ -8,5 +8,5 @@ export function calculatePoints(
 ): number {
   if (!isCorrect) return 0;
   const timeRatio = Math.max(0, 1 - answerTimeMs / (timeLimit * 1000));
-  return Math.round(POINTS_BASE + POINTS_TIME_BONUS * timeRatio);
+  return Math.round(1000 + 500 * timeRatio);
 }
