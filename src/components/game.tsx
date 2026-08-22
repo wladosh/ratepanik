@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useGame, type GamePhase } from "@/lib/game-context";
+import { useAchievementUnlockWatcher } from "@/lib/use-achievement-unlock";
 import { HomeScreen } from "./home-screen";
 import { LobbyScreen } from "./lobby-screen";
 import { ThemePickScreen } from "./theme-pick-screen";
@@ -83,6 +84,8 @@ function LeaveMatchDialog({
 export function Game() {
   const game = useGame();
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+  useAchievementUnlockWatcher(game.phase);
 
   const isMatchPhase = MATCH_PHASES.includes(game.phase);
 

@@ -39,3 +39,46 @@ export function avatarSrc(avatarId: string, size: 128 | 256 | 512 = 256): string
 }
 
 export const AVATAR_POOL = AVATAR_IDS.map((id) => avatarSrc(id));
+
+// ── Achievement Badges ───────────────────────────────────────────────
+export const BADGE_FIRST_WIN_48 = "/rp/rp_badge_first_win_48@2x.png";
+export const BADGE_FIRST_WIN_128 = "/rp/rp_badge_first_win_128@2x.png";
+
+export const BADGE_FIRST_ROOM_48 = "/rp/rp_badge_first_room_48@2x.png";
+export const BADGE_FIRST_ROOM_128 = "/rp/rp_badge_first_room_128@2x.png";
+
+export const BADGE_PARTY_HOST_48 = "/rp/rp_badge_party_host_48@2x.png";
+export const BADGE_PARTY_HOST_128 = "/rp/rp_badge_party_host_128@2x.png";
+
+export const BADGE_STREAK_3_48 = "/rp/rp_badge_streak_3_48@2x.png";
+export const BADGE_STREAK_3_128 = "/rp/rp_badge_streak_3_128@2x.png";
+
+export type AchievementId = "first_win" | "first_room" | "streak_3";
+
+export interface AchievementMeta {
+  id: AchievementId;
+  name_de: string;
+  badge48: string;
+  badge128: string;
+}
+
+export const ACHIEVEMENTS: Record<AchievementId, AchievementMeta> = {
+  first_win: {
+    id: "first_win",
+    name_de: "Erster Sieg",
+    badge48: BADGE_FIRST_WIN_48,
+    badge128: BADGE_FIRST_WIN_128,
+  },
+  first_room: {
+    id: "first_room",
+    name_de: "Gastgeber",
+    badge48: BADGE_PARTY_HOST_48,
+    badge128: BADGE_PARTY_HOST_128,
+  },
+  streak_3: {
+    id: "streak_3",
+    name_de: "3-Tage-Streak",
+    badge48: BADGE_STREAK_3_48,
+    badge128: BADGE_STREAK_3_128,
+  },
+};

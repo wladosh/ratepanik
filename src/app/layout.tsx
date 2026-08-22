@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
+import { AchievementToastProvider } from "@/lib/achievement-toast-context";
 import { PhoneShell } from "@/components/phone-shell";
 import "./globals.css";
 
@@ -33,7 +34,9 @@ export default function RootLayout({
     <html lang="de" className={`${jakarta.variable} antialiased`}>
       <body className="min-h-dvh font-sans bg-[var(--rp-bg)] text-[var(--rp-text)] overflow-x-hidden">
         <AuthProvider>
-          <PhoneShell>{children}</PhoneShell>
+          <AchievementToastProvider>
+            <PhoneShell>{children}</PhoneShell>
+          </AchievementToastProvider>
         </AuthProvider>
       </body>
     </html>
