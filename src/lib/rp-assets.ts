@@ -21,6 +21,12 @@ export const XP_BADGE_48 = "/rp/rp_badge_xp_48.png";
 export const LEVELUP_FX_64 = "/rp/rp_fx_levelup_64.png";
 export const LEVELUP_FX_128 = "/rp/rp_fx_levelup_64@2x.png";
 
+// ── Trophy ──────────────────────────────────────────────────────────
+export const TROPHY_GOLD_512 = "/rp/rp_trophy_gold_512.png";
+
+// ── Confetti FX ─────────────────────────────────────────────────────
+export const CONFETTI_SHEET_512 = "/rp/rp_fx_confetti_sheet_512.webp";
+
 // ── Avatars ─────────────────────────────────────────────────────────
 const AVATAR_IDS = ["default_01", "default_02", "default_03", "default_04", "default_05", "default_06"] as const;
 export type AvatarId = (typeof AVATAR_IDS)[number];
