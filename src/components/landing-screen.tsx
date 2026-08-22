@@ -37,8 +37,11 @@ export function LandingScreen() {
 
   return (
     <div
-      className="flex min-h-dvh flex-col items-center justify-center px-4 py-8"
-      style={{ background: "var(--rp-bg-hero)" }}
+      className="flex flex-1 flex-col items-center justify-center px-4 py-8"
+      style={{
+        background: "var(--rp-bg-hero)",
+        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
+      }}
     >
       {/* Confetti decoration dots */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">

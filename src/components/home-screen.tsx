@@ -7,9 +7,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 type Mode = "idle" | "create" | "join";
 
+function GearIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  );
+}
+
 export function HomeScreen() {
   const game = useGame();
-  const { user, isAuthenticated, canHost, isGuest, signOut, loading: authLoading } = useAuth();
+  const { user, canHost, isGuest, signOut, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -17,7 +26,7 @@ export function HomeScreen() {
     user?.user_metadata?.display_name ||
     user?.user_metadata?.full_name ||
     user?.email?.split("@")[0] ||
-    "";
+    "Spieler";
 
   const initialJoinCode = useMemo(() => {
     const joinCode = searchParams.get("join");
@@ -27,6 +36,7 @@ export function HomeScreen() {
   const [mode, setMode] = useState<Mode>(initialJoinCode ? "join" : "idle");
   const [name, setName] = useState(initialJoinCode ? displayName || "Gast" : "");
   const [roomCode, setRoomCode] = useState(initialJoinCode);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   function handleStartCreate() {
     if (!canHost) {
@@ -43,192 +53,432 @@ export function HomeScreen() {
     await game.createRoom(trimmed, user.id);
   }
 
-  function handleStartJoin() {
-    if (!isAuthenticated) {
-      router.push("/auth/login");
+  async function handleJoin() {
+    const trimmedCode = roomCode.trim();
+    if (trimmedCode.length !== 6) {
+      setJoinError("Code muss genau 6 Zeichen haben.");
       return;
     }
-    setMode("join");
-    setName(displayName);
+    setJoinError(null);
+    const playerName = displayName || "Gast";
+    await game.joinRoom(trimmedCode, playerName);
   }
 
-  async function handleJoin() {
-    const trimmedName = name.trim();
-    const trimmedCode = roomCode.trim();
-    if (!trimmedName || !trimmedCode) return;
-    await game.joinRoom(trimmedCode, trimmedName);
+  function handleToast() {
+    // Phase B placeholder
   }
 
   if (authLoading) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
-        <div className="text-2xl text-white/80 animate-pulse">Laden...</div>
+      <div
+        className="flex flex-1 items-center justify-center"
+        style={{ background: "var(--rp-bg-hero)" }}
+      >
+        <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
+          Laden...
+        </div>
+      </div>
+    );
+  }
+
+  if (mode === "create") {
+    return (
+      <div
+        className="flex flex-1 flex-col items-center justify-center px-5"
+        style={{
+          background: "var(--rp-bg-hero)",
+          paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
+        }}
+      >
+        <div className="w-full max-w-sm space-y-4 animate-fade-in">
+          <h2 className="text-2xl font-extrabold text-[var(--rp-text)] text-center">
+            Raum erstellen
+          </h2>
+          <label htmlFor="host-name" className="block text-sm font-semibold text-[var(--rp-text-secondary)]">
+            Dein Spielername
+          </label>
+          <input
+            id="host-name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+            placeholder="z.B. QuizMaster"
+            maxLength={20}
+            autoFocus
+            className="w-full h-[52px] rounded-2xl border-2 px-5 text-lg font-bold text-[var(--rp-text)] placeholder:text-gray-300 transition-all focus:outline-none"
+            style={{
+              borderColor: "var(--rp-border)",
+              background: "var(--rp-bg-elevated)",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-border)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          />
+          <button
+            onClick={handleCreate}
+            disabled={!name.trim() || game.loading}
+            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40"
+            style={{
+              background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+            }}
+          >
+            {game.loading ? "Erstelle Raum..." : "Spiel erstellen"}
+          </button>
+          <button
+            onClick={() => { setMode("idle"); setName(""); }}
+            className="w-full text-sm text-[var(--rp-text-secondary)] hover:text-[var(--rp-text)] transition-colors"
+          >
+            Abbrechen
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 px-4 py-8">
-      <div className="mb-4 text-6xl sm:text-7xl animate-bounce-slow">🎉</div>
-      <h1 className="mb-2 text-5xl sm:text-7xl font-black text-white tracking-tight drop-shadow-lg">
-        Ratepanik
-      </h1>
-      <p className="mb-6 text-lg sm:text-xl text-white/90 font-medium text-center max-w-md">
-        Das Party-Quiz, bei dem jede Sekunde zählt!
-      </p>
-
-      {isAuthenticated && (
-        <div className="mb-6 flex items-center gap-3 rounded-2xl bg-white/10 backdrop-blur-sm px-4 py-2 border border-white/20">
-          <span className="text-sm text-white/80">
-            {isGuest ? "👻 Gast" : `👤 ${displayName}`}
-          </span>
-          <button
-            onClick={signOut}
-            className="text-xs text-white/60 underline hover:text-white/90 transition-colors"
-          >
-            Abmelden
-          </button>
-        </div>
-      )}
-
-      <div className="w-full max-w-sm space-y-4">
-        {mode === "create" && (
-          <div className="space-y-3 animate-fade-in">
-            <label
-              htmlFor="host-name"
-              className="block text-sm font-semibold text-white/90"
+    <div
+      className="rp-home-root flex flex-1 flex-col"
+      style={{
+        background: "var(--rp-bg-hero)",
+        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
+      }}
+    >
+      <div className="flex-1 overflow-y-auto px-4 pb-20">
+        {/* ── Header ──────────────────────────────── */}
+        <header className="flex items-center gap-3 py-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/rp/rp_avatar_default_01_128@2x.png"
+            alt={displayName}
+            width={48}
+            height={48}
+            className="w-12 h-12 rounded-full object-cover shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-bold text-[var(--rp-text)] truncate">{displayName}</h2>
+            <p className="text-xs text-[var(--rp-text-secondary)]">
+              {isGuest ? "Gast" : "Party-Spieler"}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div
+              className="flex items-center gap-1.5 h-8 px-3 rounded-full"
+              style={{ background: "rgba(255, 214, 107, 0.2)", border: "1px solid rgba(255, 214, 107, 0.4)" }}
             >
-              Dein Spielername
-            </label>
-            <input
-              id="host-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-              placeholder="z.B. QuizMaster"
-              maxLength={20}
-              autoFocus
-              className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-4 text-lg text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
-            />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/rp/rp_currency_coin_24@2x.png"
+                alt="Coins"
+                width={16}
+                height={16}
+                className="w-4 h-4"
+              />
+              <span className="text-sm font-bold text-[var(--rp-text)]">0</span>
+            </div>
             <button
-              onClick={handleCreate}
-              disabled={!name.trim() || game.loading}
-              className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+              onClick={signOut}
+              className="w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:bg-black/5"
+              aria-label="Einstellungen"
             >
-              {game.loading ? "Erstelle Raum..." : "Spiel erstellen"}
-            </button>
-            <button
-              onClick={() => { setMode("idle"); setName(""); }}
-              className="w-full text-sm text-white/70 hover:text-white transition-colors"
-            >
-              Zurück
+              <GearIcon className="w-5 h-5 text-[var(--rp-text-secondary)]" />
             </button>
           </div>
-        )}
+        </header>
 
-        {mode === "join" && (
-          <div className="space-y-3 animate-fade-in">
-            <label
-              htmlFor="room-code"
-              className="block text-sm font-semibold text-white/90"
-            >
-              Raumcode eingeben
-            </label>
-            <input
-              id="room-code"
-              type="text"
-              value={roomCode}
-              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-              placeholder="z.B. ABC123"
-              maxLength={6}
-              autoFocus
-              className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-4 text-center text-2xl font-black tracking-[0.3em] text-white placeholder:text-white/50 placeholder:text-lg placeholder:font-normal placeholder:tracking-normal backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
+        {/* ── Hero card ───────────────────────────── */}
+        <div
+          className="relative overflow-hidden p-5 mb-4"
+          style={{
+            background: "linear-gradient(135deg, #D8CCFF 0%, #C9C0FF 40%, #B8D4FF 100%)",
+            borderRadius: "var(--rp-radius-lg)",
+          }}
+        >
+          <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+            <div className="absolute top-3 left-[15%] w-1.5 h-1.5 rounded-full bg-white/50" />
+            <div className="absolute top-6 right-[20%] w-2 h-2 rounded-full bg-[var(--rp-pink)] opacity-40" />
+            <div className="absolute bottom-4 left-[10%] w-1 h-3 rounded-full bg-[var(--rp-yellow)] opacity-40 rotate-45" />
+            <div className="absolute top-8 left-[40%] w-1.5 h-1.5 rounded-full bg-[var(--rp-mint)] opacity-50" />
+            <div className="absolute bottom-6 right-[15%] w-1 h-3 rounded-full bg-white/40 -rotate-12" />
+          </div>
+          <div className="relative flex items-center gap-4">
+            <div className="flex-1">
+              <h3 className="text-xl font-extrabold text-[var(--rp-text)] leading-tight mb-1">
+                Werde<br />Ratepanik-Champion
+              </h3>
+              <p className="text-xs text-[var(--rp-text-secondary)] leading-snug">
+                Gewinne Runden, sammle Punkte<br />und hol dir den Champion-Pokal!
+              </p>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/rp/rp_trophy_gold_512.png"
+              alt="Trophy"
+              width={96}
+              height={96}
+              className="shrink-0 drop-shadow-[0_6px_20px_rgba(255,214,107,0.5)]"
             />
-            <label
-              htmlFor="join-name"
-              className="block text-sm font-semibold text-white/90"
-            >
-              Dein Spielername
-            </label>
-            <input
-              id="join-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleJoin()}
-              placeholder="z.B. Rätselfuchs"
-              maxLength={20}
-              className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-4 text-lg text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
-            />
+          </div>
+        </div>
+
+        {/* ── Raum erstellen ──────────────────────── */}
+        <button
+          onClick={handleStartCreate}
+          className="w-full flex items-center gap-4 p-4 mb-3 transition-all active:scale-[0.98]"
+          style={{
+            background: "linear-gradient(135deg, #FFECD2 0%, #FFE0CC 100%)",
+            borderRadius: "var(--rp-radius-md)",
+            boxShadow: "var(--rp-shadow-card)",
+          }}
+        >
+          <div
+            className="w-11 h-11 flex items-center justify-center rounded-xl shrink-0"
+            style={{ background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)" }}
+          >
+            <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white">
+              <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </div>
+          <div className="flex-1 text-left">
+            <h3 className="text-base font-bold text-[var(--rp-text)]">Raum erstellen</h3>
+            <p className="text-xs text-[var(--rp-text-secondary)]">
+              Erstelle deinen eigenen<br />Quiz-Raum und lade Freunde ein!
+            </p>
+          </div>
+          <svg viewBox="0 0 24 24" className="w-5 h-5 text-[var(--rp-text-secondary)] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        {/* ── Beitreten card ──────────────────────── */}
+        <div
+          className="w-full p-4 mb-4"
+          style={{
+            background: "var(--rp-bg-elevated)",
+            borderRadius: "var(--rp-radius-md)",
+            boxShadow: "var(--rp-shadow-card)",
+          }}
+        >
+          <h3 className="text-base font-bold text-[var(--rp-text)] mb-0.5">Beitreten</h3>
+          <p className="text-xs text-[var(--rp-text-secondary)] mb-3">
+            Tritt einem Spiel mit einem Code bei
+          </p>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 flex gap-1.5">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <input
+                  key={i}
+                  type="text"
+                  inputMode="text"
+                  maxLength={1}
+                  value={roomCode[i] ?? ""}
+                  readOnly
+                  tabIndex={-1}
+                  className="w-full aspect-square max-w-[42px] rounded-xl border-2 text-center text-lg font-bold text-[var(--rp-text)] bg-[#F5F3FF]"
+                  style={{ borderColor: "var(--rp-border)" }}
+                  aria-label={`Code Stelle ${i + 1}`}
+                />
+              ))}
+            </div>
             <button
               onClick={handleJoin}
-              disabled={!name.trim() || roomCode.trim().length < 4 || game.loading}
-              className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100"
+              disabled={roomCode.trim().length !== 6 || game.loading}
+              className="h-10 px-5 rounded-full text-sm font-bold transition-all active:scale-[0.97] disabled:opacity-40 shrink-0"
+              style={{
+                background: roomCode.trim().length === 6
+                  ? "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)"
+                  : "var(--rp-peach)",
+                color: "white",
+              }}
             >
-              {game.loading ? "Trete bei..." : "Beitreten"}
-            </button>
-            <button
-              onClick={() => { setMode("idle"); setName(""); setRoomCode(""); }}
-              className="w-full text-sm text-white/70 hover:text-white transition-colors"
-            >
-              Zurück
-            </button>
-          </div>
-        )}
-
-        {mode === "idle" && (
-          <div className="space-y-4 animate-fade-in">
-            <button
-              onClick={handleStartCreate}
-              className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-purple-700 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
-            >
-              Neues Spiel starten
-            </button>
-
-            {!canHost && isAuthenticated && (
-              <p className="text-center text-xs text-white/60">
-                Nur registrierte Nutzer können Spiele hosten.{" "}
-                <button
-                  onClick={() => router.push("/auth/signup")}
-                  className="underline hover:text-white/90"
-                >
-                  Konto erstellen
-                </button>
-              </p>
-            )}
-
-            <button
-              onClick={handleStartJoin}
-              className="w-full rounded-2xl border-2 border-white/30 bg-white/10 px-6 py-4 text-lg font-bold text-white shadow-xl backdrop-blur-sm transition-all hover:bg-white/20 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Raum beitreten
+              {game.loading ? "..." : "Beitreten"}
             </button>
           </div>
-        )}
+          <input
+            type="text"
+            value={roomCode}
+            onChange={(e) => {
+              setRoomCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6));
+              setJoinError(null);
+            }}
+            onKeyDown={(e) => e.key === "Enter" && handleJoin()}
+            placeholder="Code eingeben"
+            maxLength={6}
+            className="w-full h-10 mt-2 rounded-xl border-2 px-4 text-sm font-medium text-[var(--rp-text)] placeholder:text-gray-300 transition-all focus:outline-none"
+            style={{
+              borderColor: joinError ? "var(--rp-danger)" : "var(--rp-border)",
+              background: "#FAFAFA",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = joinError ? "var(--rp-danger)" : "var(--rp-border)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+          />
+          {joinError && (
+            <p className="mt-1 text-xs text-[var(--rp-danger)] font-medium">{joinError}</p>
+          )}
+        </div>
 
-        {!isAuthenticated && mode === "idle" && (
-          <div className="pt-2 text-center">
-            <button
-              onClick={() => router.push("/auth/login")}
-              className="text-sm text-white/80 underline hover:text-white transition-colors"
-            >
-              Anmelden / Registrieren
-            </button>
-          </div>
-        )}
+        {/* ── 2×2 feature grid ────────────────────── */}
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <button
+            onClick={handleToast}
+            className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
+            style={{
+              background: "linear-gradient(135deg, #D6ECFF 0%, #C8E0FF 100%)",
+              borderRadius: "var(--rp-radius-md)",
+            }}
+          >
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(126, 182, 255, 0.3)" }}>
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-sky)">
+                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <span className="text-sm font-bold text-[var(--rp-text)]">Freunde</span>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Sieh, wer online ist<br />und lade ein</p>
+            </div>
+            <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
 
-        <div className="relative py-4">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/30" />
+          <button
+            onClick={handleToast}
+            className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
+            style={{
+              background: "linear-gradient(135deg, #EDE6FF 0%, #DDD4FF 100%)",
+              borderRadius: "var(--rp-radius-md)",
+            }}
+          >
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(139, 124, 255, 0.2)" }}>
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-purple)">
+                <path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <span className="text-sm font-bold text-[var(--rp-text)]">Stats</span>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Deine Punkte<br />im Überblick</p>
+            </div>
+            <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <button
+            onClick={handleToast}
+            className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
+            style={{
+              background: "linear-gradient(135deg, #FFF5D6 0%, #FFEDB8 100%)",
+              borderRadius: "var(--rp-radius-md)",
+            }}
+          >
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(255, 214, 107, 0.3)" }}>
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-yellow)">
+                <path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.8 5.6 21.2 8 14 2 9.2h7.6z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <span className="text-sm font-bold text-[var(--rp-text)]">Achievements</span>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Deine Erfolge<br />und Abzeichen</p>
+            </div>
+            <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <button
+            onClick={handleToast}
+            className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
+            style={{
+              background: "linear-gradient(135deg, #D6FFF0 0%, #C0F5E0 100%)",
+              borderRadius: "var(--rp-radius-md)",
+            }}
+          >
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(111, 207, 178, 0.25)" }}>
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-mint)">
+                <path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 11c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0-13c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2z" />
+              </svg>
+            </div>
+            <div className="text-left">
+              <span className="text-sm font-bold text-[var(--rp-text)]">Shop</span>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Coole Items<br />entdecken</p>
+            </div>
+            <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* ── Streak card ─────────────────────────── */}
+        <div
+          className="flex items-center gap-3 p-4 mb-4"
+          style={{
+            background: "var(--rp-bg-elevated)",
+            borderRadius: "var(--rp-radius-md)",
+            boxShadow: "var(--rp-shadow-card)",
+          }}
+        >
+          <span className="text-2xl" role="img" aria-label="Feuer">🔥</span>
+          <div className="flex-1">
+            <h4 className="text-sm font-bold text-[var(--rp-text)]">Streak</h4>
+            <p className="text-[10px] text-[var(--rp-text-secondary)]">
+              Spiele an 3 Tagen in Folge, um deine Streak zu starten!
+            </p>
           </div>
-          <div className="relative flex justify-center">
-            <span className="bg-transparent px-4 text-sm text-white/70">
-              Phase A
-            </span>
-          </div>
+          <span
+            className="w-9 h-9 flex items-center justify-center rounded-full text-base font-bold"
+            style={{ background: "#FFF0F0", color: "var(--rp-danger)" }}
+          >
+            0
+          </span>
         </div>
       </div>
+
+      {/* ── Bottom nav ────────────────────────────── */}
+      <nav
+        className="shrink-0 flex items-center justify-around border-t px-2 py-2"
+        style={{
+          background: "var(--rp-bg-elevated)",
+          borderColor: "var(--rp-border)",
+          paddingBottom: "max(env(safe-area-inset-bottom, 0px), 8px)",
+        }}
+      >
+        <button className="flex flex-col items-center gap-0.5 py-1 px-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/rp/rp_nav_home_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
+          <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>Home</span>
+        </button>
+        <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/rp/rp_nav_quiz_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
+          <span className="text-[10px] font-medium">Quiz</span>
+        </button>
+        <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/rp/rp_nav_play_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
+          <span className="text-[10px] font-medium">Play</span>
+        </button>
+        <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/rp/rp_nav_rank_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
+          <span className="text-[10px] font-medium">Rangliste</span>
+        </button>
+        <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/rp/rp_nav_profile_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
+          <span className="text-[10px] font-medium">Profil</span>
+        </button>
+      </nav>
     </div>
   );
 }

@@ -31,125 +31,99 @@
   --rp-radius-pill: 999px;
   --rp-shadow-card: 0 10px 30px rgba(42, 42, 74, 0.08);
 
-  /* Phone dimensions — design target */
-  --rp-phone-w: 390px;
-  --rp-phone-h: 844px;
-
-  /* Phone-shell tokens — UX can tweak via CSS vars */
-  --ps-bezel: 12px;
-  --ps-radius-outer: 44px;
-  --ps-radius-inner: 36px;
-  --ps-case-color: rgba(42, 42, 74, 0.92);
-  --ps-case-shadow: 0 24px 80px rgba(42, 42, 74, 0.25);
-  --ps-letterbox-bg: var(--rp-bg-hero, var(--rp-bg));
   --ps-notch-inset: 0px;
+  --ps-frame-radius: 0px;
 }
 
-/* ── Phone Shell ─────────────────────────────────────────
-   < 768px: full-bleed, no bezel, no decorative chrome
-   ≥ 768px: centered device frame with bezel + notch
-   ────────────────────────────────────────────────────── */
+/* ── PhoneShell ───────────────────────────────────────── */
 
-/* Wrapper — letterbox background on wide screens */
-.ps-wrap {
-  display: flex;
-  flex-direction: column;
+.ps-stage {
   min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--rp-bg);
 }
 
-/* Frame — just a pass-through on mobile */
 .ps-frame {
   position: relative;
+  width: 100%;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
 }
 
-/* Screen — holds app content */
-.ps-screen {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  padding-top: max(env(safe-area-inset-top, 0px), var(--ps-notch-inset, 0px));
-}
-
-/* Direct children fill and scroll internally */
-.ps-screen > * {
-  flex: 1 1 0%;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* Decorative elements hidden on mobile */
-.ps-notch,
-.ps-home {
+.ps-notch {
   display: none;
 }
 
-/* ── Desktop: device frame ─────────────────────────── */
+/*
+ * .ps-screen is intentionally transparent.
+ * Background must come from the page root (child) so the gradient
+ * extends fully under the notch / safe-area inset — no white strip.
+ */
+.ps-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
 @media (min-width: 768px) {
-  .ps-wrap {
-    align-items: center;
-    justify-content: center;
-    background: var(--ps-letterbox-bg);
+  :root {
+    --ps-notch-inset: 42px;
+    --ps-frame-radius: 52px;
+  }
+
+  .ps-stage {
+    padding: 24px;
+    background: linear-gradient(160deg, #E0EAFF 0%, #F5E0F0 50%, #FFF0E0 100%);
   }
 
   .ps-frame {
-    flex: none;
-    width: calc(var(--rp-phone-w) + var(--ps-bezel) * 2);
-    height: calc(var(--rp-phone-h) + var(--ps-bezel) * 2);
-    border-radius: var(--ps-radius-outer);
-    background: var(--ps-case-color);
-    box-shadow: var(--ps-case-shadow);
-    padding: var(--ps-bezel);
-    transform-origin: center center;
-    scale: min(
-      1,
-      (100vw - 48px) / (var(--rp-phone-w) + var(--ps-bezel) * 2),
-      (100dvh - 48px) / (var(--rp-phone-h) + var(--ps-bezel) * 2)
-    );
-  }
-
-  .ps-screen {
-    --ps-notch-inset: 42px;
-    width: var(--rp-phone-w);
-    border-radius: var(--ps-radius-inner);
+    width: 393px;
+    height: min(852px, calc(100dvh - 48px));
+    min-height: auto;
+    border-radius: var(--ps-frame-radius);
+    border: 6px solid #1A1A2E;
+    box-shadow:
+      0 0 0 2px rgba(255, 255, 255, 0.15),
+      0 30px 80px rgba(26, 26, 46, 0.25),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
     overflow: hidden;
-    background: var(--rp-bg);
-  }
-
-  /* Override dvh-based min-heights so content sizes to the phone frame */
-  .ps-screen .min-h-dvh {
-    min-height: 100% !important;
   }
 
   .ps-notch {
-    display: block;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
     position: absolute;
-    top: calc(var(--ps-bezel) + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: 120px;
-    height: 34px;
-    border-radius: 20px;
-    background: var(--ps-case-color);
-    z-index: 10;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--ps-notch-inset);
+    z-index: 40;
+    pointer-events: none;
   }
 
-  .ps-home {
-    display: block;
-    position: absolute;
-    bottom: calc(var(--ps-bezel) + 6px);
-    left: 50%;
-    transform: translateX(-50%);
+  .ps-island {
     width: 120px;
-    height: 4px;
-    border-radius: 2px;
-    background: rgba(255, 255, 255, 0.25);
-    z-index: 10;
+    height: 34px;
+    margin-top: 10px;
+    border-radius: 20px;
+    background: #1A1A2E;
+  }
+
+  .ps-screen {
+    border-radius: calc(var(--ps-frame-radius) - 6px);
+  }
+
+  /* Inside phone frame, game screens fill the frame instead of the viewport */
+  .ps-screen > .min-h-dvh {
+    min-height: 100% !important;
   }
 }
 
