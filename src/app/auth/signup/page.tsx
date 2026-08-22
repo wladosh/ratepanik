@@ -137,21 +137,38 @@ export default function SignupPage() {
           paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
         }}
       >
-        <div className="w-full max-w-sm text-center space-y-4 animate-fade-in">
-          <div className="text-6xl">📬</div>
+        <div className="w-full max-w-sm text-center space-y-5 animate-fade-in">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
+            style={{ background: "rgba(61, 204, 138, 0.12)" }}
+          >
+            <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="var(--rp-success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12a10 10 0 1 1-10-10" />
+              <path d="M8 11.8 11 15l6.5-8" />
+            </svg>
+          </div>
           <h2
             className="text-2xl font-extrabold tracking-tight"
-            style={{ color: "var(--rp-text)" }}
+            style={{
+              background:
+                "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-pink) 50%, var(--rp-peach) 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
           >
             Bestätigungs-E-Mail gesendet!
           </h2>
-          <p style={{ color: "var(--rp-text-secondary)" }}>
+          <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
             Prüfe dein Postfach und klicke den Link, um dein Konto zu aktivieren.
           </p>
           <Link
             href="/auth/login"
-            className="inline-block mt-4 text-sm font-medium underline transition-colors"
-            style={{ color: "var(--rp-purple)" }}
+            className="inline-block mt-2 h-[48px] leading-[48px] w-full rounded-[var(--rp-radius-pill)] text-sm font-bold transition-all active:scale-[0.97]"
+            style={{
+              border: "2px solid var(--rp-purple-soft)",
+              color: "var(--rp-purple)",
+              background: "rgba(139, 124, 255, 0.06)",
+            }}
           >
             Zurück zum Login
           </Link>
