@@ -6,7 +6,7 @@ const THEME_ICONS: Record<string, string> = {
   gaming: "\u{1F3AE}",
   geschichte: "\u{1F4DC}",
   "wissenschaft-natur": "\u{1F52C}",
-  sport: "\u26BD",
+  sport: "⚽",
   musik: "\u{1F3B5}",
   "film-serie": "\u{1F3AC}",
   "reise-orte": "\u{1F30D}",
@@ -72,7 +72,7 @@ export function ThemePickScreen() {
         {game.isThemePicker ? (
           <div className="grid grid-cols-1 gap-3">
             {game.themeOptions.map((theme) => {
-              const icon = THEME_ICONS[theme.slug] ?? "\u2753";
+              const icon = THEME_ICONS[theme.slug] ?? "❓";
               return (
                 <button
                   key={theme.id}
