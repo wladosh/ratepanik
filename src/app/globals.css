@@ -31,14 +31,17 @@
   --rp-radius-pill: 999px;
   --rp-shadow-card: 0 10px 30px rgba(42, 42, 74, 0.08);
 
-  /* Phone-shell tokens — UX can tweak these via CSS vars */
-  --ps-content-width: 390px;
+  /* Phone dimensions — design target */
+  --rp-phone-w: 390px;
+  --rp-phone-h: 844px;
+
+  /* Phone-shell tokens — UX can tweak via CSS vars */
   --ps-bezel: 12px;
   --ps-radius-outer: 44px;
   --ps-radius-inner: 36px;
-  --ps-case-color: #3a3a42;
+  --ps-case-color: rgba(42, 42, 74, 0.92);
   --ps-case-shadow: 0 24px 80px rgba(42, 42, 74, 0.25);
-  --ps-letterbox-bg: linear-gradient(160deg, #E8F4FF 0%, #FFE8F3 45%, #FFF3D6 100%);
+  --ps-letterbox-bg: var(--rp-bg-hero, var(--rp-bg));
 }
 
 /* ── Phone Shell ─────────────────────────────────────────
@@ -94,18 +97,22 @@
 
   .ps-frame {
     flex: none;
-    width: calc(var(--ps-content-width) + var(--ps-bezel) * 2);
-    height: calc(844px + var(--ps-bezel) * 2);
+    width: calc(var(--rp-phone-w) + var(--ps-bezel) * 2);
+    height: calc(var(--rp-phone-h) + var(--ps-bezel) * 2);
     border-radius: var(--ps-radius-outer);
     background: var(--ps-case-color);
     box-shadow: var(--ps-case-shadow);
     padding: var(--ps-bezel);
     transform-origin: center center;
-    scale: min(1, (100dvh - 48px) / (844px + var(--ps-bezel) * 2));
+    scale: min(
+      1,
+      (100vw - 48px) / (var(--rp-phone-w) + var(--ps-bezel) * 2),
+      (100dvh - 48px) / (var(--rp-phone-h) + var(--ps-bezel) * 2)
+    );
   }
 
   .ps-screen {
-    width: var(--ps-content-width);
+    width: var(--rp-phone-w);
     border-radius: var(--ps-radius-inner);
     overflow: hidden;
     background: var(--rp-bg);
@@ -119,12 +126,12 @@
   .ps-notch {
     display: block;
     position: absolute;
-    top: var(--ps-bezel);
+    top: calc(var(--ps-bezel) + 8px);
     left: 50%;
     transform: translateX(-50%);
     width: 120px;
-    height: 28px;
-    border-radius: 0 0 18px 18px;
+    height: 34px;
+    border-radius: 20px;
     background: var(--ps-case-color);
     z-index: 10;
   }
