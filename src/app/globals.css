@@ -42,6 +42,7 @@
   --ps-case-color: rgba(42, 42, 74, 0.92);
   --ps-case-shadow: 0 24px 80px rgba(42, 42, 74, 0.25);
   --ps-letterbox-bg: var(--rp-bg-hero, var(--rp-bg));
+  --ps-notch-inset: 0px;
 }
 
 /* ── Phone Shell ─────────────────────────────────────────
@@ -71,6 +72,7 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  padding-top: max(env(safe-area-inset-top, 0px), var(--ps-notch-inset, 0px));
 }
 
 /* Direct children fill and scroll internally */
@@ -112,6 +114,7 @@
   }
 
   .ps-screen {
+    --ps-notch-inset: 42px;
     width: var(--rp-phone-w);
     border-radius: var(--ps-radius-inner);
     overflow: hidden;
