@@ -58,6 +58,7 @@ interface GameContextValue {
   error: string | null;
   loading: boolean;
   restoring: boolean;
+  disconnected: boolean;
   getAvatar: (playerId: string) => string;
 
   // Block state
@@ -135,6 +136,9 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const lastStateKeyRef = useRef("");
   const pickCompleteRef = useRef<string | null>(null);
   const subscribeRef = useRef<((roomId: string) => void) | null>(null);
+  const sessionRestoringRef = useRef(false);
+  const joinCodeUsedRef = useRef(false);
+  const [disconnected, setDisconnected] = useState(false);
 
   // --- derived state ---
 
@@ -343,9 +347,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         }
       )
       .subscribe((status, err) => {
-        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+        if (status === "SUBSCRIBED") {
+          setDisconnected(false);
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          setDisconnected(true);
           console.warn("Realtime subscription issue:", status, err);
-          setError("Verbindung weg. Einen Moment…");
           setTimeout(() => {
             if (channelRef.current) {
               supabase.removeChannel(channelRef.current);
@@ -482,6 +488,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     const raw = sessionStorage.getItem("ratepanik-session");
     if (!raw) return;
     let cancelled = false;
+    sessionRestoringRef.current = true;
     (async () => {
       try {
         const { roomId, playerId } = JSON.parse(raw);
@@ -518,6 +525,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         if (!cancelled) clearSession();
       } finally {
         if (!cancelled) setRestoring(false);
+        sessionRestoringRef.current = false;
       }
     })();
     return () => { cancelled = true; };
@@ -593,6 +601,46 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         const m = "Raum nicht gefunden. Prüfe den Code!";
         setError(m);
         return m;
+      }
+
+      const { data: existingPlayers } = await supabase
+        .from("players")
+        .select()
+        .eq("room_id", roomData.id);
+
+      // Check if this user is already a player in the room (rejoin scenario)
+      const stored = sessionStorage.getItem("ratepanik-session");
+      let existingPlayer: DbPlayer | null = null;
+      if (stored) {
+        try {
+          const { playerId } = JSON.parse(stored);
+          existingPlayer = existingPlayers?.find((p) => p.id === playerId) ?? null;
+        } catch { /* ignore parse errors */ }
+      }
+
+      if (existingPlayer) {
+        // Rejoin: player already exists in this room — restore state
+        const [
+          { data: answersData },
+          { data: blocksData },
+          { data: turnsData },
+        ] = await Promise.all([
+          supabase.from("answers").select().eq("room_id", roomData.id),
+          supabase.from("match_blocks").select().eq("room_id", roomData.id),
+          supabase.from("pick_correct_turns").select().eq("room_id", roomData.id),
+        ]);
+
+        setRoom(roomData);
+        setPlayers(existingPlayers || []);
+        setMyPlayerId(existingPlayer.id);
+        setAllAnswers(answersData || []);
+        setBlocks(blocksData || []);
+        setTurns(turnsData || []);
+        setPrompts([]);
+
+        saveSession(roomData.id, existingPlayer.id);
+        subscribeToRoom(roomData.id);
+        return null;
       }
 
       if (roomData.status !== "lobby") {
@@ -710,9 +758,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   };
 
   // Auto-join from ?join=CODE query param (landing guest flow)
-  const joinCodeUsedRef = useRef(false);
   useEffect(() => {
     if (!joinCode || joinCodeUsedRef.current || room) return;
+    // Defer auto-join if session restoration is in progress
+    if (sessionRestoringRef.current) return;
     joinCodeUsedRef.current = true;
     const autoName =
       user?.user_metadata?.display_name ||
@@ -1063,6 +1112,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     error,
     loading,
     restoring,
+    disconnected,
     getAvatar,
     blocks,
     currentBlock,

@@ -55,7 +55,9 @@ function HomeContent() {
     );
   }
 
-  if (!isAuthenticated || (isGuest && !joinCode)) {
+  const guestWithSession = isGuest && !joinCode && hasActiveGameSession();
+
+  if (!isAuthenticated || (isGuest && !joinCode && !guestWithSession)) {
     return <LandingScreen initialCode={joinCode} />;
   }
 
