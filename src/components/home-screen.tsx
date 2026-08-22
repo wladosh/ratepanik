@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { generateGuestName } from "@/lib/guest-name";
+import { xpProgressInLevel } from "@/lib/progression";
+import { avatarSrc, HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
 
 function GearIcon({ className }: { className?: string }) {
   return (
@@ -14,6 +16,8 @@ function GearIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+const FALLBACK_AVATAR = "/rp/rp_avatar_default_01_128@2x.png";
 
 export function HomeScreen() {
   const game = useGame();
@@ -37,6 +41,17 @@ export function HomeScreen() {
 
   const [roomCode, setRoomCode] = useState(initialJoinCode);
   const [joinError, setJoinError] = useState<string | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const xpProgress = useMemo(() => {
+    if (!profile) return null;
+    return xpProgressInLevel(profile.xp);
+  }, [profile]);
+
+  const showToast = useCallback((msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 2500);
+  }, []);
 
   async function handleCreate() {
     if (!canHost) {
@@ -59,7 +74,7 @@ export function HomeScreen() {
   }
 
   function handleToast() {
-    // Phase B placeholder
+    showToast("Kommt bald!");
   }
 
   if (authLoading) {
@@ -83,45 +98,149 @@ export function HomeScreen() {
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
+      {/* ── Toast overlay ──────────────────────── */}
+      {toastMsg && (
+        <div
+          className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          style={{ background: "var(--rp-purple)" }}
+        >
+          {toastMsg}
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto px-4 pb-20">
         {/* ── Header ──────────────────────────────── */}
-        <header className="flex items-center gap-3 py-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/rp/rp_avatar_default_01_128@2x.png"
-            alt={displayName}
-            width={48}
-            height={48}
-            className="w-12 h-12 rounded-full object-cover shrink-0"
-          />
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-bold text-[var(--rp-text)] truncate">{displayName}</h2>
-            <p className="text-xs text-[var(--rp-text-secondary)]">
-              {isGuest ? "Gast" : "Party-Spieler"}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div
-              className="flex items-center gap-1.5 h-8 px-3 rounded-full"
-              style={{ background: "rgba(255, 214, 107, 0.2)", border: "1px solid rgba(255, 214, 107, 0.4)" }}
+        <header className="py-4">
+          <div className="flex items-center gap-3">
+            {/* Avatar + Level badge */}
+            <button
+              onClick={() => showToast("Profil kommt bald!")}
+              className="relative shrink-0"
+              aria-label="Profil"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/rp/rp_currency_coin_24@2x.png"
-                alt="Coins"
-                width={16}
-                height={16}
-                className="w-4 h-4"
+                src={profile ? avatarSrc(profile.avatar_id) : FALLBACK_AVATAR}
+                alt={displayName}
+                width={48}
+                height={48}
+                className="w-12 h-12 rounded-full object-cover"
               />
-              <span className="text-sm font-bold text-[var(--rp-text)]">0</span>
-            </div>
-            <button
-              onClick={signOut}
-              className="w-9 h-9 flex items-center justify-center rounded-full transition-colors hover:bg-black/5"
-              aria-label="Einstellungen"
-            >
-              <GearIcon className="w-5 h-5 text-[var(--rp-text-secondary)]" />
+              {!isGuest && xpProgress && (
+                <span
+                  className="absolute flex items-center justify-center"
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: "50%",
+                    background: "var(--rp-level)",
+                    color: "#fff",
+                    fontSize: 11,
+                    fontWeight: 800,
+                    lineHeight: 1,
+                    bottom: -4,
+                    left: -4,
+                    border: "2px solid #fff",
+                  }}
+                  aria-label={`Level ${xpProgress.level}`}
+                >
+                  {xpProgress.level}
+                </span>
+              )}
             </button>
+
+            {/* Name + Title + XP */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <h2
+                    className="truncate text-[var(--rp-text)]"
+                    style={{ fontSize: 16, fontWeight: 800, lineHeight: 1.25 }}
+                  >
+                    {displayName}
+                  </h2>
+                  <p
+                    className="text-[var(--rp-text-secondary)] truncate"
+                    style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.3 }}
+                  >
+                    {isGuest ? "Gast" : "Party-Spieler"}
+                  </p>
+                </div>
+
+                {/* Hirncoin pill */}
+                {!isGuest && profile && (
+                  <button
+                    onClick={() => showToast("Shop kommt bald")}
+                    className="flex items-center gap-1.5 shrink-0"
+                    style={{
+                      height: 32,
+                      padding: "8px 12px",
+                      background: "var(--rp-hirncoin-soft)",
+                      borderRadius: 999,
+                    }}
+                    aria-label={`Hirncoins: ${profile.hirncoins}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={HIRNCOIN_ICON_20}
+                      alt=""
+                      width={20}
+                      height={20}
+                      className="w-5 h-5"
+                    />
+                    <span
+                      className="text-[var(--rp-text)]"
+                      style={{ fontSize: 14, fontWeight: 700 }}
+                    >
+                      {profile.hirncoins}
+                    </span>
+                  </button>
+                )}
+
+                {/* Settings gear */}
+                <button
+                  onClick={signOut}
+                  className="flex items-center justify-center rounded-full transition-colors hover:bg-black/5 shrink-0"
+                  style={{ width: 40, height: 40 }}
+                  aria-label="Einstellungen"
+                >
+                  <GearIcon className="w-5 h-5 text-[var(--rp-text-secondary)]" />
+                </button>
+              </div>
+
+              {/* XP bar (logged-in only) */}
+              {!isGuest && xpProgress && (
+                <div style={{ marginTop: 10 }}>
+                  <div
+                    style={{
+                      height: 8,
+                      borderRadius: 999,
+                      background: "var(--rp-xp-track)",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        borderRadius: 999,
+                        background: "var(--rp-xp)",
+                        width: `${Math.min(xpProgress.ratio * 100, 100)}%`,
+                        transition: "width 500ms ease-out",
+                        animation: "xp-fill 500ms ease-out",
+                      }}
+                    />
+                  </div>
+                  <p
+                    className="flex items-center gap-1 text-[var(--rp-text-secondary)]"
+                    style={{ fontSize: 11, fontWeight: 500, marginTop: 2 }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={XP_BADGE_16} alt="" width={14} height={14} className="w-3.5 h-3.5" />
+                    XP {xpProgress.current} / {xpProgress.needed}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
