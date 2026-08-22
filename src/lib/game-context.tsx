@@ -36,6 +36,7 @@ export type GamePhase =
   | "home"
   | "lobby"
   | "theme_pick"
+  | "playing_loading"
   | "number_guess"
   | "number_guess_waiting"
   | "number_guess_reveal"
@@ -56,6 +57,7 @@ interface GameContextValue {
   isHost: boolean;
   error: string | null;
   loading: boolean;
+  restoring: boolean;
   getAvatar: (playerId: string) => string;
 
   // Block state
@@ -120,10 +122,19 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const [themeOptions, setThemeOptions] = useState<Theme[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [restoring, setRestoring] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return !!JSON.parse(sessionStorage.getItem("ratepanik-session") || "{}").roomId;
+    } catch {
+      return false;
+    }
+  });
 
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const lastStateKeyRef = useRef("");
   const pickCompleteRef = useRef<string | null>(null);
+  const subscribeRef = useRef<((roomId: string) => void) | null>(null);
 
   // --- derived state ---
 
@@ -196,13 +207,13 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const isHost = myPlayer?.is_host ?? false;
 
   const phase: GamePhase = useMemo(() => {
-    if (!room) return "home";
+    if (!room) return restoring ? "playing_loading" : "home";
     if (room.status === "lobby") return "lobby";
     if (room.status === "finished") return "final";
 
     if (room.theme_vote_active) return "theme_pick";
 
-    if (!currentBlock) return "home";
+    if (!currentBlock) return "playing_loading";
 
     if (currentBlock.is_complete) return "block_scoreboard";
 
@@ -220,8 +231,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       return "pick_correct";
     }
 
-    return "home";
-  }, [room, currentBlock, roundAnswers, players.length, myPlayerId, correctTurnsCount]);
+    return "playing_loading";
+  }, [room, currentBlock, roundAnswers, players.length, myPlayerId, correctTurnsCount, restoring]);
 
   const getAvatar = useCallback(
     (playerId: string) => {
@@ -331,10 +342,25 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
           });
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          console.warn("Realtime subscription issue:", status, err);
+          setError("Verbindung weg. Einen Moment…");
+          setTimeout(() => {
+            if (channelRef.current) {
+              supabase.removeChannel(channelRef.current);
+            }
+            subscribeRef.current?.(roomId);
+          }, 2000);
+        }
+      });
 
     channelRef.current = channel;
   }, []);
+
+  useEffect(() => {
+    subscribeRef.current = subscribeToRoom;
+  }, [subscribeToRoom]);
 
   // --- load prompts when block theme is selected ---
 
@@ -463,8 +489,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
           supabase.from("rooms").select().eq("id", roomId).single(),
           supabase.from("players").select().eq("id", playerId).single(),
         ]);
-        if (cancelled || !roomData || !playerData) {
+        if (cancelled) return;
+        if (!roomData || !playerData) {
           clearSession();
+          setRestoring(false);
           return;
         }
         const [
@@ -488,6 +516,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         subscribeToRoom(roomId);
       } catch {
         if (!cancelled) clearSession();
+      } finally {
+        if (!cancelled) setRestoring(false);
       }
     })();
     return () => { cancelled = true; };
@@ -824,7 +854,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     });
 
     if (ansErr && ansErr.code !== "23505") {
-      console.error("Answer insert error:", ansErr);
+      setError("Konnte nicht senden. Nochmal tippen?");
     }
   };
 
@@ -837,7 +867,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     const payload = currentPrompt.payload as { cards: string[]; correct_indices: number[] };
     const isCorrect = payload.correct_indices.includes(cardIndex);
 
-    await supabase.from("pick_correct_turns").insert({
+    const { error: tapErr } = await supabase.from("pick_correct_turns").insert({
       room_id: room.id,
       block_index: currentBlock.block_index,
       player_id: myPlayerId,
@@ -845,6 +875,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       card_index: cardIndex,
       is_correct: isCorrect,
     });
+
+    if (tapErr) {
+      setError("Konnte nicht senden. Nochmal tippen?");
+    }
   };
 
   const advanceFromReveal = async () => {
@@ -1028,6 +1062,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     isHost,
     error,
     loading,
+    restoring,
     getAvatar,
     blocks,
     currentBlock,

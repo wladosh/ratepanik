@@ -9,13 +9,24 @@ import { GameProvider } from "@/lib/game-context";
 import { Game } from "@/components/game";
 import { useProfile } from "@/lib/use-profile";
 
+function hasActiveGameSession(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    return !!JSON.parse(sessionStorage.getItem("ratepanik-session") || "{}").roomId;
+  } catch {
+    return false;
+  }
+}
+
 function HomeContent() {
   const { user, isAuthenticated, isGuest, loading, needsUsername, refetchProfile } = useAuth();
   const { claimUsername, checkUsername } = useProfile(user);
   const searchParams = useSearchParams();
   const joinCode = searchParams.get("join") ?? undefined;
 
-  if (loading) {
+  const activeGame = hasActiveGameSession();
+
+  if (loading && !activeGame) {
     return (
       <div
         className="flex flex-1 items-center justify-center"
@@ -25,6 +36,14 @@ function HomeContent() {
           Laden...
         </div>
       </div>
+    );
+  }
+
+  if (activeGame) {
+    return (
+      <GameProvider joinCode={joinCode}>
+        <Game />
+      </GameProvider>
     );
   }
 

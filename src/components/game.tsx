@@ -29,6 +29,17 @@ export function Game() {
             return <LobbyScreen />;
           case "theme_pick":
             return <ThemePickScreen />;
+          case "playing_loading":
+            return (
+              <div
+                className="flex flex-1 items-center justify-center"
+                style={{ background: "var(--rp-bg-hero)" }}
+              >
+                <div className="text-lg animate-pulse font-medium" style={{ color: "var(--rp-text-secondary)" }}>
+                  Spiel wird geladen…
+                </div>
+              </div>
+            );
           case "number_guess":
           case "number_guess_waiting":
             return <NumberGuessScreen />;
