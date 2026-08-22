@@ -904,6 +904,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
     if (ansErr && ansErr.code !== "23505") {
       setError("Konnte nicht senden. Nochmal tippen?");
+      throw new Error(ansErr.message);
     }
   };
 
