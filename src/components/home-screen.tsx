@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { generateGuestName } from "@/lib/guest-name";
 import { xpProgressInLevel } from "@/lib/progression";
+import { avatarSrc, HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
 
 function GearIcon({ className }: { className?: string }) {
   return (
@@ -16,10 +17,7 @@ function GearIcon({ className }: { className?: string }) {
   );
 }
 
-function avatarSrc(avatarId: string): string {
-  const num = avatarId.replace("default_", "");
-  return `/rp/rp_avatar_default_${num}_128@2x.png`;
-}
+const FALLBACK_AVATAR = "/rp/rp_avatar_default_01_128@2x.png";
 
 export function HomeScreen() {
   const game = useGame();
@@ -122,7 +120,7 @@ export function HomeScreen() {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={profile ? avatarSrc(profile.avatar_id) : "/rp/rp_avatar_default_01_128@2x.png"}
+                src={profile ? avatarSrc(profile.avatar_id) : FALLBACK_AVATAR}
                 alt={displayName}
                 width={48}
                 height={48}
@@ -184,7 +182,7 @@ export function HomeScreen() {
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src="/rp/rp_currency_coin_24@2x.png"
+                      src={HIRNCOIN_ICON_20}
                       alt=""
                       width={20}
                       height={20}
@@ -233,9 +231,11 @@ export function HomeScreen() {
                     />
                   </div>
                   <p
-                    className="text-[var(--rp-text-secondary)]"
+                    className="flex items-center gap-1 text-[var(--rp-text-secondary)]"
                     style={{ fontSize: 11, fontWeight: 500, marginTop: 2 }}
                   >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={XP_BADGE_16} alt="" width={14} height={14} className="w-3.5 h-3.5" />
                     XP {xpProgress.current} / {xpProgress.needed}
                   </p>
                 </div>

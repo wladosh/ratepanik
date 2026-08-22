@@ -2,20 +2,10 @@
 
 import { useCallback } from "react";
 import { useGame } from "@/lib/game-context";
-
-const AVATAR_IMGS = [
-  "/rp/rp_avatar_default_01_128@2x.png",
-  "/rp/rp_avatar_default_02_128@2x.png",
-  "/rp/rp_avatar_default_03_128@2x.png",
-  "/rp/rp_avatar_default_04_128@2x.png",
-  "/rp/rp_avatar_default_05_128@2x.png",
-  "/rp/rp_avatar_default_06_128@2x.png",
-  "/rp/rp_avatar_default_07_128@2x.png",
-  "/rp/rp_avatar_default_08_128@2x.png",
-];
+import { AVATAR_POOL } from "@/lib/rp-assets";
 
 function getAvatarSrc(index: number) {
-  return AVATAR_IMGS[index % AVATAR_IMGS.length];
+  return AVATAR_POOL[index % AVATAR_POOL.length];
 }
 
 function CrownIcon({ className }: { className?: string }) {
