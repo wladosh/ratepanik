@@ -130,16 +130,45 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
-        <div className="w-full max-w-sm text-center space-y-4">
-          <div className="text-6xl">📬</div>
-          <h2 className="text-2xl font-bold text-white">Bestätigungs-E-Mail gesendet!</h2>
-          <p className="text-white/80">
+      <div
+        className="flex min-h-dvh flex-col items-center justify-center px-5 py-8"
+        style={{
+          background: "var(--rp-bg-hero)",
+          paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
+        }}
+      >
+        <div className="w-full max-w-sm text-center space-y-5 animate-fade-in">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
+            style={{ background: "rgba(61, 204, 138, 0.12)" }}
+          >
+            <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="var(--rp-success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 12a10 10 0 1 1-10-10" />
+              <path d="M8 11.8 11 15l6.5-8" />
+            </svg>
+          </div>
+          <h2
+            className="text-2xl font-extrabold tracking-tight"
+            style={{
+              background:
+                "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-pink) 50%, var(--rp-peach) 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Bestätigungs-E-Mail gesendet!
+          </h2>
+          <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
             Prüfe dein Postfach und klicke den Link, um dein Konto zu aktivieren.
           </p>
           <Link
             href="/auth/login"
-            className="inline-block mt-4 text-white/80 underline hover:text-white transition-colors"
+            className="inline-block mt-2 h-[48px] leading-[48px] w-full rounded-[var(--rp-radius-pill)] text-sm font-bold transition-all active:scale-[0.97]"
+            style={{
+              border: "2px solid var(--rp-purple-soft)",
+              color: "var(--rp-purple)",
+              background: "rgba(139, 124, 255, 0.06)",
+            }}
           >
             Zurück zum Login
           </Link>
@@ -149,17 +178,41 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
-      <div className="w-full max-w-sm space-y-6">
+    <div
+      className="flex min-h-dvh flex-col items-center justify-center px-5 py-8"
+      style={{
+        background: "var(--rp-bg-hero)",
+        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
+      }}
+    >
+      <div className="w-full max-w-sm space-y-5 animate-fade-in">
         <div className="text-center">
-          <h1 className="text-4xl font-black text-white tracking-tight drop-shadow-lg">
+          <h1
+            className="text-4xl font-extrabold tracking-tight"
+            style={{
+              background:
+                "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-pink) 50%, var(--rp-peach) 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             Ratepanik
           </h1>
-          <p className="mt-2 text-white/80">Konto erstellen</p>
+          <p className="mt-1" style={{ color: "var(--rp-text-secondary)" }}>
+            Konto erstellen
+          </p>
         </div>
 
         {error && (
-          <div className="rounded-xl bg-red-500/20 border border-red-300/30 px-4 py-3 text-sm text-red-100">
+          <div
+            className="rounded-xl px-4 py-3 text-sm font-medium"
+            style={{
+              background: "rgba(255, 92, 122, 0.1)",
+              border: "1px solid rgba(255, 92, 122, 0.2)",
+              color: "var(--rp-danger)",
+            }}
+          >
             {error}
           </div>
         )}
@@ -167,7 +220,12 @@ export default function SignupPage() {
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-3 rounded-2xl bg-white px-6 py-4 text-lg font-bold text-gray-800 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 h-[52px] rounded-[var(--rp-radius-md)] text-base font-bold transition-all active:scale-[0.98] disabled:opacity-50"
+          style={{
+            background: "var(--rp-bg-elevated)",
+            color: "var(--rp-text)",
+            boxShadow: "var(--rp-shadow-card)",
+          }}
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
             <path
@@ -190,13 +248,10 @@ export default function SignupPage() {
           Mit Google registrieren
         </button>
 
-        <div className="relative py-2">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/30" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-transparent px-4 text-sm text-white/70">oder</span>
-          </div>
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
+          <span className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>oder</span>
+          <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
         </div>
 
         <form onSubmit={handleSignup} className="space-y-3">
@@ -209,37 +264,64 @@ export default function SignupPage() {
               required
               minLength={3}
               maxLength={20}
-              className="w-full rounded-2xl border-2 px-5 py-3.5 pr-12 text-white placeholder:text-white/50 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
+              className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-5 pr-12 text-sm font-medium transition-all focus:outline-none"
               style={{
                 borderColor: nameError
-                  ? "rgba(255,100,100,0.8)"
+                  ? "var(--rp-danger)"
                   : nameAvailable
-                    ? "rgba(100,255,150,0.8)"
-                    : "rgba(255,255,255,0.3)",
-                background: "rgba(255,255,255,0.2)",
+                    ? "var(--rp-success)"
+                    : "var(--rp-border)",
+                background: "var(--rp-bg-elevated)",
+                color: "var(--rp-text)",
+              }}
+              onFocus={(e) => {
+                if (!nameError) {
+                  e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 3px rgba(139, 124, 255, 0.15)";
+                }
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.boxShadow = "none";
+                if (!nameError && !nameAvailable) {
+                  e.currentTarget.style.borderColor = "var(--rp-border)";
+                }
               }}
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
               {nameChecking && (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <div
+                  className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+                  style={{ borderColor: "var(--rp-purple)", borderTopColor: "transparent" }}
+                />
               )}
               {!nameChecking && nameAvailable && (
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="rgba(100,255,150,0.9)">
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-success)">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                 </svg>
               )}
               {!nameChecking && nameError && trimmedName.length > 0 && (
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="rgba(255,100,100,0.9)">
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-danger)">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                 </svg>
               )}
             </div>
           </div>
           {nameError && (
-            <p className="text-xs font-medium text-red-200 px-1">{nameError}</p>
+            <p
+              className="text-xs font-medium px-1"
+              style={{ color: "var(--rp-danger)" }}
+            >
+              {nameError}
+            </p>
           )}
           {nameAvailable && !nameError && (
-            <p className="text-xs font-medium text-green-200 px-1">Name verfügbar!</p>
+            <p
+              className="text-xs font-medium px-1"
+              style={{ color: "var(--rp-success)" }}
+            >
+              Name verfügbar!
+            </p>
           )}
 
           <input
@@ -248,7 +330,20 @@ export default function SignupPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="E-Mail"
             required
-            className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-3.5 text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
+            className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 text-sm font-medium transition-all focus:outline-none"
+            style={{
+              borderColor: "var(--rp-border)",
+              background: "var(--rp-bg-elevated)",
+              color: "var(--rp-text)",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-border)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
           />
           <input
             type="password"
@@ -257,12 +352,29 @@ export default function SignupPage() {
             placeholder="Passwort (min. 6 Zeichen)"
             required
             minLength={6}
-            className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-3.5 text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
+            className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 text-sm font-medium transition-all focus:outline-none"
+            style={{
+              borderColor: "var(--rp-border)",
+              background: "var(--rp-bg-elevated)",
+              color: "var(--rp-text)",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-border)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
           />
           <button
             type="submit"
             disabled={loading || nameAvailable === false || trimmedName.length < 3}
-            className="w-full rounded-2xl bg-purple-700 px-6 py-4 text-lg font-bold text-white shadow-xl transition-all hover:bg-purple-800 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40"
+            style={{
+              background:
+                "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+            }}
           >
             Registrieren
           </button>
@@ -271,7 +383,8 @@ export default function SignupPage() {
         <div className="text-center">
           <Link
             href="/auth/login"
-            className="text-sm text-white/80 underline hover:text-white transition-colors"
+            className="text-sm font-medium underline transition-colors"
+            style={{ color: "var(--rp-purple)" }}
           >
             Schon ein Konto? Anmelden
           </Link>
