@@ -14,8 +14,8 @@ export function LandingScreen() {
 
   async function handleJoin() {
     const trimmed = code.trim();
-    if (trimmed.length < 4) {
-      setError("Code muss mindestens 4 Zeichen haben.");
+    if (trimmed.length !== 6) {
+      setError("Code muss genau 6 Zeichen haben.");
       return;
     }
     setLoading(true);
@@ -53,14 +53,14 @@ export function LandingScreen() {
       </div>
 
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
-        {/* Trophy */}
+        {/* Trophy — freestanding on gradient */}
         <div className="mb-4">
           <Image
             src="/rp/rp_trophy_gold_512.png"
             alt="Ratepanik Trophy"
-            width={96}
-            height={96}
-            className="drop-shadow-lg"
+            width={88}
+            height={88}
+            className="drop-shadow-[0_8px_24px_rgba(255,214,107,0.4)]"
             priority
           />
         </div>
@@ -143,13 +143,13 @@ export function LandingScreen() {
 
           <button
             onClick={handleJoin}
-            disabled={loading || code.length < 4}
-            className="mt-4 w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100"
+            disabled={loading || code.length !== 6}
+            className="mt-4 w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100 disabled:shadow-none"
             style={{
-              background: loading
+              background: (loading || code.length !== 6)
                 ? "var(--rp-peach)"
                 : "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-              boxShadow: "0 4px 16px rgba(255, 138, 113, 0.35)",
+              boxShadow: code.length === 6 ? "0 4px 16px rgba(255, 138, 113, 0.35)" : "none",
             }}
           >
             {loading ? "Tritt bei…" : "Beitreten"}
@@ -167,11 +167,10 @@ export function LandingScreen() {
         <div className="w-full grid grid-cols-2 gap-3 mb-6">
           <button
             onClick={() => router.push("/auth/signup")}
-            className="h-[52px] flex items-center justify-center gap-2 rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97] border-2"
+            className="h-[52px] flex items-center justify-center gap-2 rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97]"
             style={{
-              borderColor: "var(--rp-purple-soft)",
-              color: "var(--rp-purple)",
-              background: "rgba(201, 192, 255, 0.12)",
+              background: "var(--rp-purple-soft)",
+              color: "#4A3ABA",
             }}
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
@@ -183,9 +182,9 @@ export function LandingScreen() {
             onClick={() => router.push("/auth/login")}
             className="h-[52px] flex items-center justify-center gap-2 rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97] border-2"
             style={{
-              borderColor: "var(--rp-border)",
+              borderColor: "var(--rp-purple)",
               color: "var(--rp-purple)",
-              background: "var(--rp-bg-elevated)",
+              background: "transparent",
             }}
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
