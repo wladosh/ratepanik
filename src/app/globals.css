@@ -33,11 +33,11 @@
 
   /* Phone-shell tokens — UX can tweak these via CSS vars */
   --ps-content-width: 390px;
-  --ps-bezel: 14px;
+  --ps-bezel: 12px;
   --ps-radius-outer: 44px;
   --ps-radius-inner: 36px;
   --ps-case-color: #3a3a42;
-  --ps-case-shadow: 0 20px 60px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.12);
+  --ps-case-shadow: 0 24px 80px rgba(42, 42, 74, 0.25);
   --ps-letterbox-bg: linear-gradient(160deg, #E8F4FF 0%, #FFE8F3 45%, #FFF3D6 100%);
 }
 
@@ -95,11 +95,13 @@
   .ps-frame {
     flex: none;
     width: calc(var(--ps-content-width) + var(--ps-bezel) * 2);
-    height: min(844px, calc(100dvh - 48px));
+    height: calc(844px + var(--ps-bezel) * 2);
     border-radius: var(--ps-radius-outer);
     background: var(--ps-case-color);
     box-shadow: var(--ps-case-shadow);
     padding: var(--ps-bezel);
+    transform-origin: center center;
+    scale: min(1, (100dvh - 48px) / (844px + var(--ps-bezel) * 2));
   }
 
   .ps-screen {
