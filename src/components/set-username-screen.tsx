@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 interface SetUsernameScreenProps {
   onClaimed: () => void;
@@ -15,14 +15,33 @@ export function SetUsernameScreen({
   checkUsername,
   defaultName = "",
 }: SetUsernameScreenProps) {
+  const prefillValid = defaultName.trim().length >= 3;
   const [name, setName] = useState(defaultName);
   const [error, setError] = useState<string | null>(null);
-  const [checking, setChecking] = useState(false);
+  const [checking, setChecking] = useState(prefillValid);
   const [available, setAvailable] = useState<boolean | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const trimmed = name.trim();
+
+  useEffect(() => {
+    const t = defaultName.trim();
+    if (t.length < 3) return;
+
+    const timer = setTimeout(async () => {
+      const result = await checkUsername(t);
+      setChecking(false);
+      setAvailable(result.available);
+      if (!result.available && result.error) {
+        setError(result.error);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+    // Only run on mount — defaultName is the initial prefill value
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleNameChange = useCallback(
     (value: string) => {
