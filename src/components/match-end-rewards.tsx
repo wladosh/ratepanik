@@ -4,7 +4,13 @@ import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
 import { xpProgressInLevel } from "@/lib/progression";
-import { HIRNCOIN_ICON_48, XP_BADGE_48, LEVELUP_FX_128 } from "@/lib/rp-assets";
+import {
+  HIRNCOIN_ICON_48,
+  XP_BADGE_48,
+  LEVELUP_FX_128,
+  TROPHY_GOLD_512,
+  CONFETTI_SHEET_512,
+} from "@/lib/rp-assets";
 import type { MatchRewardResult } from "@/lib/match-rewards";
 
 interface MatchEndRewardsProps {
@@ -13,45 +19,118 @@ interface MatchEndRewardsProps {
   previousLevel: number;
 }
 
-function seededRandom(seed: number): number {
-  const x = Math.sin(seed * 9301 + 49297) * 49297;
-  return x - Math.floor(x);
-}
-
-const CONFETTI_COLORS = ["#8B7CFF", "#FF8A71", "#FFD66B", "#6FCFB2", "#FF7AB6", "#7EB6FF"];
+/* ── Confetti background using the sprite sheet asset ────────────── */
 
 function ConfettiOverlay() {
-  const pieces = useMemo(() => Array.from({ length: 30 }, (_, i) => ({
-    id: i,
-    left: `${seededRandom(i * 3 + 1) * 100}%`,
-    delay: `${seededRandom(i * 3 + 2) * 2}s`,
-    duration: `${2 + seededRandom(i * 3 + 3) * 2}s`,
-    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-    size: 4 + seededRandom(i * 3 + 4) * 6,
-    shape: i % 3 === 0 ? "circle" : "rect",
-  })), []);
-
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {pieces.map((p) => (
-        <div
-          key={p.id}
-          className="absolute"
-          style={{
-            left: p.left,
-            top: "-10px",
-            width: p.size,
-            height: p.shape === "circle" ? p.size : p.size * 1.5,
-            borderRadius: p.shape === "circle" ? "50%" : "2px",
-            background: p.color,
-            animation: `confetti-drift ${p.duration} ${p.delay} ease-in infinite`,
-            opacity: 0.8,
-          }}
-        />
-      ))}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={CONFETTI_SHEET_512}
+        alt=""
+        width={512}
+        height={512}
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-md opacity-60"
+        style={{ animation: "confetti-drift 6s ease-in infinite" }}
+        aria-hidden="true"
+      />
+      {/* Mirrored copy for wider coverage */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={CONFETTI_SHEET_512}
+        alt=""
+        width={512}
+        height={512}
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-md opacity-40"
+        style={{
+          animation: "confetti-drift 5s 1.5s ease-in infinite",
+          transform: "translateX(-50%) scaleX(-1)",
+        }}
+        aria-hidden="true"
+      />
     </div>
   );
 }
+
+/* ── Scoreboard (brief, shown first) ────────────────────────────── */
+
+function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
+  const game = useGame();
+  const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
+
+  return (
+    <div
+      className="flex flex-1 flex-col items-center px-4 py-6 relative overflow-hidden"
+      style={{
+        background: "var(--rp-bg-hero)",
+        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
+      }}
+    >
+      <ConfettiOverlay />
+      <div className="w-full max-w-sm text-center relative z-10 pt-6">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={TROPHY_GOLD_512}
+          alt="Pokal"
+          width={80}
+          height={80}
+          className="w-20 h-20 mx-auto mb-3 animate-bounce-slow"
+        />
+        <h1 className="text-2xl font-extrabold mb-1" style={{ color: "var(--rp-text)" }}>
+          Runde vorbei!
+        </h1>
+        <p className="text-sm mb-5" style={{ color: "var(--rp-text-secondary)" }}>
+          Endstand
+        </p>
+
+        <div className="space-y-2 mb-6">
+          {sortedPlayers.map((player, i) => (
+            <div
+              key={player.id}
+              className="flex items-center gap-3 px-4 py-3 animate-fade-in"
+              style={{
+                animationDelay: `${i * 150}ms`,
+                background: i === 0 ? "rgba(255, 214, 107, 0.1)" : "var(--rp-bg-elevated)",
+                borderRadius: "var(--rp-radius-md)",
+                border: "1px solid var(--rp-border)",
+              }}
+            >
+              <span className="w-8 text-center text-lg font-black" style={{ color: "var(--rp-text-secondary)" }}>
+                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+              </span>
+              <span className="text-2xl">{game.getAvatar(player.id)}</span>
+              <div className="flex-1 text-left">
+                <p className="font-bold" style={{ color: "var(--rp-text)" }}>
+                  {player.display_name}
+                  {player.id === game.myPlayerId && (
+                    <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>(Du)</span>
+                  )}
+                </p>
+              </div>
+              <span className="text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
+                {player.score}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={onContinue}
+          className="w-full h-[48px] rounded-[var(--rp-radius-pill)] text-base font-bold text-white transition-all active:scale-[0.97] animate-fade-in"
+          style={{
+            background: "linear-gradient(135deg, var(--rp-purple) 0%, #6B5CE7 100%)",
+            boxShadow: "0 6px 20px rgba(139, 124, 255, 0.35)",
+            animationDelay: "0.8s",
+          }}
+        >
+          Weiter
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── XP reward row ──────────────────────────────────────────────── */
 
 function XpRow({
   xpAwarded,
@@ -102,6 +181,8 @@ function XpRow({
   );
 }
 
+/* ── Hirncoins reward row ───────────────────────────────────────── */
+
 function HirncoinRow({ hirncoinsAwarded }: { hirncoinsAwarded: number }) {
   return (
     <div
@@ -137,14 +218,15 @@ function HirncoinRow({ hirncoinsAwarded }: { hirncoinsAwarded: number }) {
   );
 }
 
+/* ── Conditional level-up banner ────────────────────────────────── */
+
 function LevelUpBanner({ newLevel }: { newLevel: number }) {
   return (
     <div
-      className="flex items-center gap-3 p-4 animate-fade-in"
+      className="flex items-center gap-3 p-4"
       style={{
         background: "var(--rp-level-up-bg)",
         borderRadius: "var(--rp-radius-md)",
-        animationDelay: "0.9s",
         animation: "level-up-glow 2s ease-in-out 1.2s, fade-in 0.4s 0.9s ease-out both",
       }}
     >
@@ -168,19 +250,23 @@ function LevelUpBanner({ newLevel }: { newLevel: number }) {
   );
 }
 
+/* ── Top 3 leaderboard ──────────────────────────────────────────── */
+
+const PLACE_COLORS = ["var(--rp-peach)", "var(--rp-text-secondary)", "var(--rp-hirncoin)"];
+const PLACE_BGS = [
+  "rgba(255, 138, 113, 0.12)",
+  "rgba(107, 107, 138, 0.08)",
+  "rgba(245, 166, 35, 0.10)",
+];
+
 function Top3Section() {
   const game = useGame();
-  const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
-  const top3 = sortedPlayers.slice(0, 3);
+  const top3 = useMemo(
+    () => [...game.players].sort((a, b) => b.score - a.score).slice(0, 3),
+    [game.players],
+  );
 
   if (top3.length === 0) return null;
-
-  const placeColors = ["var(--rp-peach)", "var(--rp-text-secondary)", "var(--rp-hirncoin)"];
-  const placeBgs = [
-    "rgba(255, 138, 113, 0.12)",
-    "rgba(107, 107, 138, 0.08)",
-    "rgba(245, 166, 35, 0.10)",
-  ];
 
   return (
     <div
@@ -200,7 +286,7 @@ function Top3Section() {
           <div key={player.id} className="flex items-center gap-3">
             <span
               className="w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold text-white shrink-0"
-              style={{ background: placeColors[i] }}
+              style={{ background: PLACE_COLORS[i] }}
             >
               {i + 1}
             </span>
@@ -213,7 +299,7 @@ function Top3Section() {
             </span>
             <span
               className="text-sm font-bold tabular-nums px-2 py-0.5 rounded-lg"
-              style={{ background: placeBgs[i], color: placeColors[i] }}
+              style={{ background: PLACE_BGS[i], color: PLACE_COLORS[i] }}
             >
               {player.score.toLocaleString("de-DE")} Punkte
             </span>
@@ -223,6 +309,8 @@ function Top3Section() {
     </div>
   );
 }
+
+/* ── Guest end screen: scoreboard + upsell, NO fake numbers ─────── */
 
 function GuestEndScreen() {
   const game = useGame();
@@ -238,7 +326,14 @@ function GuestEndScreen() {
     >
       <ConfettiOverlay />
       <div className="w-full max-w-sm text-center relative z-10 pt-6">
-        <div className="text-5xl mb-3 animate-bounce-slow">🏆</div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={TROPHY_GOLD_512}
+          alt="Pokal"
+          width={80}
+          height={80}
+          className="w-20 h-20 mx-auto mb-3 animate-bounce-slow"
+        />
         <h1 className="text-2xl font-extrabold mb-1" style={{ color: "var(--rp-text)" }}>
           Runde vorbei!
         </h1>
@@ -278,18 +373,28 @@ function GuestEndScreen() {
           ))}
         </div>
 
-        {/* Guest CTA */}
+        {/* Guest upsell */}
         <div
-          className="p-4 mb-6 text-center animate-fade-in"
+          className="p-4 mb-5 text-center animate-fade-in"
           style={{
             background: "var(--rp-level-up-bg)",
             borderRadius: "var(--rp-radius-md)",
             animationDelay: "0.6s",
           }}
         >
-          <p className="text-sm font-semibold" style={{ color: "var(--rp-level)" }}>
+          <p className="text-sm font-semibold mb-3" style={{ color: "var(--rp-level)" }}>
             Melde dich an, um XP & Hirncoins zu behalten
           </p>
+          <a
+            href="/auth/login"
+            className="inline-flex items-center justify-center h-[40px] px-6 rounded-[var(--rp-radius-pill)] text-sm font-bold text-white transition-all active:scale-[0.97]"
+            style={{
+              background: "linear-gradient(135deg, var(--rp-purple) 0%, #6B5CE7 100%)",
+              boxShadow: "0 4px 12px rgba(139, 124, 255, 0.3)",
+            }}
+          >
+            Anmelden
+          </a>
         </div>
 
         {/* CTAs */}
@@ -342,18 +447,15 @@ function GuestEndScreen() {
   );
 }
 
-export function MatchEndRewardsScreen({ rewards, previousXp, previousLevel }: MatchEndRewardsProps) {
+/* ── Rewards Card (logged-in flow) ──────────────────────────────── */
+
+function RewardsCard({ rewards, previousXp, previousLevel }: MatchEndRewardsProps) {
   const game = useGame();
-  const { isGuest } = useAuth();
 
   const didLevelUp = rewards
     ? xpProgressInLevel(previousXp + rewards.xpAwarded).level > previousLevel
     : false;
   const newLevel = rewards ? xpProgressInLevel(previousXp + rewards.xpAwarded).level : previousLevel;
-
-  if (isGuest) {
-    return <GuestEndScreen />;
-  }
 
   return (
     <div
@@ -368,7 +470,14 @@ export function MatchEndRewardsScreen({ rewards, previousXp, previousLevel }: Ma
       <div className="w-full max-w-sm relative z-10 pt-4 animate-fade-in">
         {/* Hero trophy */}
         <div className="text-center mb-4">
-          <div className="text-5xl mb-2 animate-bounce-slow">🏆</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={TROPHY_GOLD_512}
+            alt="Pokal"
+            width={80}
+            height={80}
+            className="w-20 h-20 mx-auto mb-2 animate-bounce-slow"
+          />
           <h1 className="text-2xl font-extrabold" style={{ color: "var(--rp-text)" }}>
             Runde vorbei!
           </h1>
@@ -377,7 +486,7 @@ export function MatchEndRewardsScreen({ rewards, previousXp, previousLevel }: Ma
           </p>
         </div>
 
-        {/* Rewards Card */}
+        {/* XP + Hirncoins + optional Level-up */}
         {rewards && (
           <div className="space-y-3 mb-4">
             <XpRow xpAwarded={rewards.xpAwarded} previousXp={previousXp} />
@@ -438,3 +547,19 @@ export function MatchEndRewardsScreen({ rewards, previousXp, previousLevel }: Ma
     </div>
   );
 }
+
+/* ── Main export: orchestrates Scoreboard → Rewards flow ────────── */
+
+export function MatchEndRewardsScreen({ rewards, previousXp, previousLevel }: MatchEndRewardsProps) {
+  const { isGuest } = useAuth();
+
+  if (isGuest) {
+    return <GuestEndScreen />;
+  }
+
+  return (
+    <RewardsCard rewards={rewards} previousXp={previousXp} previousLevel={previousLevel} />
+  );
+}
+
+export { BriefScoreboard };

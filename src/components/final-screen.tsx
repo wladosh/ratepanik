@@ -6,7 +6,11 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { calculateMatchRewards, type MatchRewardResult } from "@/lib/match-rewards";
 import { levelFromXp } from "@/lib/progression";
-import { MatchEndRewardsScreen } from "./match-end-rewards";
+import { MatchEndRewardsScreen, BriefScoreboard } from "./match-end-rewards";
+
+type FinalStep = "scoreboard" | "rewards";
+
+const SCOREBOARD_AUTO_MS = 3500;
 
 export function FinalScreen() {
   const game = useGame();
@@ -15,7 +19,9 @@ export function FinalScreen() {
   const [previousXp, setPreviousXp] = useState(0);
   const [previousLevel, setPreviousLevel] = useState(1);
   const [ready, setReady] = useState(() => !!(isGuest || !user));
+  const [step, setStep] = useState<FinalStep>("scoreboard");
   const grantedRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
   const myPlayer = sortedPlayers.find((p) => p.id === game.myPlayerId);
@@ -102,6 +108,33 @@ export function FinalScreen() {
     grantedRef.current = true;
     void grantRewards();
   }, [roomId, userId, isGuest, grantRewards]);
+
+  // Auto-advance from scoreboard to rewards after a brief pause
+  useEffect(() => {
+    if (step !== "scoreboard" || !ready) return;
+    timerRef.current = setTimeout(() => setStep("rewards"), SCOREBOARD_AUTO_MS);
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, [step, ready]);
+
+  const handleScoreboardContinue = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setStep("rewards");
+  }, []);
+
+  // Guests skip straight to GuestEndScreen (which has its own scoreboard)
+  if (isGuest) {
+    return (
+      <MatchEndRewardsScreen
+        rewards={null}
+        previousXp={0}
+        previousLevel={1}
+      />
+    );
+  }
+
+  if (step === "scoreboard") {
+    return <BriefScoreboard onContinue={handleScoreboardContinue} />;
+  }
 
   if (!ready) {
     return (
