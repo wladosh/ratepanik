@@ -1,17 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function LoginPage() {
+function LoginContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const joinCode = searchParams.get("join") ?? "";
   const supabase = createBrowserSupabase();
+
+  const redirectAfterLogin = joinCode ? `/?join=${joinCode}` : "/";
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -40,7 +44,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/");
+    router.push(redirectAfterLogin);
     router.refresh();
   }
 
@@ -51,7 +55,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback${joinCode ? `?next=${encodeURIComponent(`/?join=${joinCode}`)}` : ""}`,
       },
     });
 
@@ -73,7 +77,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/");
+    router.push(redirectAfterLogin);
     router.refresh();
   }
 
@@ -222,7 +226,36 @@ export default function LoginPage() {
         >
           Als Gast beitreten (nur mitspielen)
         </button>
+
+        <div className="text-center pt-2">
+          <Link
+            href="/"
+            className="text-sm font-medium transition-colors"
+            style={{ color: "var(--rp-text-secondary)" }}
+          >
+            ← Zurück zur Startseite
+          </Link>
+        </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div
+          className="flex min-h-dvh items-center justify-center"
+          style={{ background: "var(--rp-bg-hero)" }}
+        >
+          <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
+            Laden...
+          </div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

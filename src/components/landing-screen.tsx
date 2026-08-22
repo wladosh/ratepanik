@@ -190,7 +190,7 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
             Registrieren
           </button>
           <button
-            onClick={() => router.push("/auth/login")}
+            onClick={() => router.push(code.length === 6 ? `/auth/login?join=${code}` : "/auth/login")}
             className="h-[52px] flex items-center justify-center gap-2 rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97] border-2"
             style={{
               borderColor: "var(--rp-purple)",
