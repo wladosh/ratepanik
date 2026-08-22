@@ -29,6 +29,7 @@ import {
   calculateNumberGuessPoints,
   calculatePickCorrectPoints,
 } from "./game-store";
+import { useAuth } from "./auth-context";
 
 export type GamePhase =
   | "home"
@@ -107,6 +108,7 @@ function generateRoomCode(): string {
 }
 
 export function GameProvider({ children, joinCode }: { children: ReactNode; joinCode?: string }) {
+  const { user } = useAuth();
   const [room, setRoom] = useState<DbRoom | null>(null);
   const [players, setPlayers] = useState<DbPlayer[]>([]);
   const [blocks, setBlocks] = useState<DbMatchBlock[]>([]);
@@ -618,7 +620,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   useEffect(() => {
     if (!joinCode || joinCodeUsedRef.current || room) return;
     joinCodeUsedRef.current = true;
-    void joinRoom(joinCode, "Gast");
+    const autoName =
+      user?.user_metadata?.display_name ||
+      user?.user_metadata?.full_name ||
+      user?.email?.split("@")[0] ||
+      "Gast";
+    void joinRoom(joinCode, autoName);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [joinCode, room]);
 

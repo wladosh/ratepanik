@@ -5,8 +5,6 @@ import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 
-type Mode = "idle" | "create" | "join";
-
 function GearIcon({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -33,24 +31,16 @@ export function HomeScreen() {
     return joinCode && joinCode.length === 6 ? joinCode.toUpperCase() : "";
   }, [searchParams]);
 
-  const [mode, setMode] = useState<Mode>(initialJoinCode ? "join" : "idle");
-  const [name, setName] = useState(initialJoinCode ? displayName || "Gast" : "");
   const [roomCode, setRoomCode] = useState(initialJoinCode);
   const [joinError, setJoinError] = useState<string | null>(null);
 
-  function handleStartCreate() {
+  async function handleCreate() {
     if (!canHost) {
       router.push("/auth/login");
       return;
     }
-    setMode("create");
-    setName(displayName);
-  }
-
-  async function handleCreate() {
-    const trimmed = name.trim();
-    if (!trimmed || !user?.id) return;
-    await game.createRoom(trimmed, user.id);
+    if (!user?.id) return;
+    await game.createRoom(displayName, user.id);
   }
 
   async function handleJoin() {
@@ -76,66 +66,6 @@ export function HomeScreen() {
       >
         <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
           Laden...
-        </div>
-      </div>
-    );
-  }
-
-  if (mode === "create") {
-    return (
-      <div
-        className="flex flex-1 flex-col items-center justify-center px-5"
-        style={{
-          background: "var(--rp-bg-hero)",
-          paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
-        }}
-      >
-        <div className="w-full max-w-sm space-y-4 animate-fade-in">
-          <h2 className="text-2xl font-extrabold text-[var(--rp-text)] text-center">
-            Raum erstellen
-          </h2>
-          <label htmlFor="host-name" className="block text-sm font-semibold text-[var(--rp-text-secondary)]">
-            Dein Spielername
-          </label>
-          <input
-            id="host-name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-            placeholder="z.B. QuizMaster"
-            maxLength={20}
-            autoFocus
-            className="w-full h-[52px] rounded-2xl border-2 px-5 text-lg font-bold text-[var(--rp-text)] placeholder:text-gray-300 transition-all focus:outline-none"
-            style={{
-              borderColor: "var(--rp-border)",
-              background: "var(--rp-bg-elevated)",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "var(--rp-border)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          />
-          <button
-            onClick={handleCreate}
-            disabled={!name.trim() || game.loading}
-            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40"
-            style={{
-              background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-            }}
-          >
-            {game.loading ? "Erstelle Raum..." : "Spiel erstellen"}
-          </button>
-          <button
-            onClick={() => { setMode("idle"); setName(""); }}
-            className="w-full text-sm text-[var(--rp-text-secondary)] hover:text-[var(--rp-text)] transition-colors"
-          >
-            Abbrechen
-          </button>
         </div>
       </div>
     );
@@ -228,8 +158,9 @@ export function HomeScreen() {
 
         {/* ── Raum erstellen ──────────────────────── */}
         <button
-          onClick={handleStartCreate}
-          className="w-full flex items-center gap-4 p-4 mb-3 transition-all active:scale-[0.98]"
+          onClick={handleCreate}
+          disabled={game.loading}
+          className="w-full flex items-center gap-4 p-4 mb-3 transition-all active:scale-[0.98] disabled:opacity-60"
           style={{
             background: "linear-gradient(135deg, #FFECD2 0%, #FFE0CC 100%)",
             borderRadius: "var(--rp-radius-md)",
@@ -245,7 +176,9 @@ export function HomeScreen() {
             </svg>
           </div>
           <div className="flex-1 text-left">
-            <h3 className="text-base font-bold text-[var(--rp-text)]">Raum erstellen</h3>
+            <h3 className="text-base font-bold text-[var(--rp-text)]">
+              {game.loading ? "Erstelle Raum…" : "Raum erstellen"}
+            </h3>
             <p className="text-xs text-[var(--rp-text-secondary)]">
               Erstelle deinen eigenen<br />Quiz-Raum und lade Freunde ein!
             </p>
