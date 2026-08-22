@@ -1,9 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserSupabase } from "./supabase/client";
 
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-key"
-);
+export const supabase = createBrowserSupabase();
 
 export interface DbRoom {
   id: string;

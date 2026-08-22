@@ -485,16 +485,31 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     (async () => {
       try {
         const { roomId, playerId } = JSON.parse(raw);
-        const [{ data: roomData }, { data: playerData }] = await Promise.all([
+        const [
+          { data: roomData, error: roomErr },
+          { data: playerData, error: playerErr },
+        ] = await Promise.all([
           supabase.from("rooms").select().eq("id", roomId).single(),
           supabase.from("players").select().eq("id", playerId).single(),
         ]);
         if (cancelled) return;
-        if (!roomData || !playerData) {
-          clearSession();
+
+        const isNetworkError =
+          (roomErr && roomErr.code !== "PGRST116") ||
+          (playerErr && playerErr.code !== "PGRST116");
+        if (isNetworkError) {
+          setError("Verbindung weg. Einen Moment…");
           setRestoring(false);
           return;
         }
+
+        if (!roomData || !playerData) {
+          clearSession();
+          setError("Das Match ist vorbei.");
+          setRestoring(false);
+          return;
+        }
+
         const [
           { data: playersData },
           { data: answersData },
@@ -515,7 +530,9 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         setMyPlayerId(playerId);
         subscribeToRoom(roomId);
       } catch {
-        if (!cancelled) clearSession();
+        if (!cancelled) {
+          setError("Verbindung weg. Einen Moment…");
+        }
       } finally {
         if (!cancelled) setRestoring(false);
       }
@@ -577,6 +594,32 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
   };
 
+  const restoreIntoRoom = async (roomData: DbRoom, playerId: string): Promise<string | null> => {
+    const [
+      { data: playersData },
+      { data: answersData },
+      { data: blocksData },
+      { data: turnsData },
+    ] = await Promise.all([
+      supabase.from("players").select().eq("room_id", roomData.id),
+      supabase.from("answers").select().eq("room_id", roomData.id),
+      supabase.from("match_blocks").select().eq("room_id", roomData.id),
+      supabase.from("pick_correct_turns").select().eq("room_id", roomData.id),
+    ]);
+
+    setRoom(roomData);
+    setPlayers(playersData || []);
+    setAllAnswers(answersData || []);
+    setBlocks(blocksData || []);
+    setTurns(turnsData || []);
+    setMyPlayerId(playerId);
+    setPrompts([]);
+
+    saveSession(roomData.id, playerId);
+    subscribeToRoom(roomData.id);
+    return null;
+  };
+
   const joinRoom = async (code: string, displayName: string): Promise<string | null> => {
     setLoading(true);
     setError(null);
@@ -596,6 +639,28 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       }
 
       if (roomData.status !== "lobby") {
+        let existingPlayer: DbPlayer | null = null;
+        if (uid) {
+          const { data } = await supabase
+            .from("players")
+            .select()
+            .eq("room_id", roomData.id)
+            .eq("user_id", uid)
+            .maybeSingle();
+          existingPlayer = data;
+        }
+        if (!existingPlayer) {
+          const { data: byName } = await supabase
+            .from("players")
+            .select()
+            .eq("room_id", roomData.id)
+            .eq("display_name", displayName)
+            .maybeSingle();
+          existingPlayer = byName;
+        }
+        if (existingPlayer) {
+          return restoreIntoRoom(roomData, existingPlayer.id);
+        }
         const m = "Das Spiel läuft bereits!";
         setError(m);
         return m;
@@ -653,8 +718,6 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
           playerData = inserted;
         }
       } else {
-        // Context user not yet loaded — resolve directly from Supabase Auth
-        // so anon-auth guests still get user_id set on their player row.
         const { data: { user: freshUser } } = await supabase.auth.getUser();
         const fallbackUid = freshUser?.id ?? null;
 
