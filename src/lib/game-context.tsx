@@ -520,6 +520,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         .from("players")
         .insert({
           room_id: roomData.id,
+          user_id: hostUserId,
           display_name: hostName,
           is_host: true,
         })
@@ -550,6 +551,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     setLoading(true);
     setError(null);
     try {
+      const uid = user?.id ?? null;
+
       const { data: roomData, error: roomErr } = await supabase
         .from("rooms")
         .select()
@@ -568,28 +571,88 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         return m;
       }
 
-      const { data: existingPlayers } = await supabase
-        .from("players")
-        .select()
-        .eq("room_id", roomData.id);
+      let playerData: DbPlayer;
 
-      if ((existingPlayers?.length ?? 0) >= 4) {
-        const m = "Raum ist voll (max 4 Spieler)!";
-        setError(m);
-        return m;
+      // Rejoin: reuse existing player row for this auth user in this room
+      if (uid) {
+        const { data: existing } = await supabase
+          .from("players")
+          .select()
+          .eq("room_id", roomData.id)
+          .eq("user_id", uid)
+          .maybeSingle();
+
+        if (existing) {
+          const { data: updated, error: updateErr } = await supabase
+            .from("players")
+            .update({
+              display_name: displayName,
+              last_seen_at: new Date().toISOString(),
+            })
+            .eq("id", existing.id)
+            .select()
+            .single();
+
+          if (updateErr) throw updateErr;
+          playerData = updated;
+        } else {
+          // New join — check capacity first
+          const { data: existingPlayers } = await supabase
+            .from("players")
+            .select()
+            .eq("room_id", roomData.id);
+
+          if ((existingPlayers?.length ?? 0) >= 4) {
+            const m = "Raum ist voll (max 4 Spieler)!";
+            setError(m);
+            return m;
+          }
+
+          const { data: inserted, error: insertErr } = await supabase
+            .from("players")
+            .insert({
+              room_id: roomData.id,
+              user_id: uid,
+              display_name: displayName,
+              is_host: false,
+            })
+            .select()
+            .single();
+
+          if (insertErr) throw insertErr;
+          playerData = inserted;
+        }
+      } else {
+        // Context user not yet loaded — resolve directly from Supabase Auth
+        // so anon-auth guests still get user_id set on their player row.
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        const fallbackUid = freshUser?.id ?? null;
+
+        const { data: existingPlayers } = await supabase
+          .from("players")
+          .select()
+          .eq("room_id", roomData.id);
+
+        if ((existingPlayers?.length ?? 0) >= 4) {
+          const m = "Raum ist voll (max 4 Spieler)!";
+          setError(m);
+          return m;
+        }
+
+        const { data: inserted, error: insertErr } = await supabase
+          .from("players")
+          .insert({
+            room_id: roomData.id,
+            user_id: fallbackUid,
+            display_name: displayName,
+            is_host: false,
+          })
+          .select()
+          .single();
+
+        if (insertErr) throw insertErr;
+        playerData = inserted;
       }
-
-      const { data: playerData, error: playerErr } = await supabase
-        .from("players")
-        .insert({
-          room_id: roomData.id,
-          display_name: displayName,
-          is_host: false,
-        })
-        .select()
-        .single();
-
-      if (playerErr) throw playerErr;
 
       const { data: allPlayers } = await supabase
         .from("players")
