@@ -2,15 +2,9 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useGame } from "@/lib/game-context";
+import { TimerPill } from "./timer-pill";
+import { WaitingFooter } from "./waiting-footer";
 import type { NumberGuessPayload } from "@/lib/content";
-
-function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor">
-      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-    </svg>
-  );
-}
 
 export function NumberGuessScreen() {
   const game = useGame();
@@ -83,16 +77,19 @@ export function NumberGuessScreen() {
             )}
           </span>
 
-          <span
-            className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
-            style={{
-              background: "var(--rp-bg-elevated)",
-              color: "var(--rp-text-secondary)",
-              boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
-            }}
-          >
-            Zahlenraten
-          </span>
+          <div className="flex items-center gap-2">
+            <TimerPill timerSeconds={game.currentBlock?.timer_seconds} startedAt={game.currentBlock?.started_at} />
+            <span
+              className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
+              style={{
+                background: "var(--rp-bg-elevated)",
+                color: "var(--rp-text-secondary)",
+                boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
+              }}
+            >
+              Zahlenraten
+            </span>
+          </div>
         </div>
 
         {/* Question card */}
@@ -176,12 +173,12 @@ export function NumberGuessScreen() {
             <p className="text-xl font-bold" style={{ color: "var(--rp-text)" }}>
               Abgegeben!
             </p>
-            <div className="flex items-center justify-center gap-2 mt-3">
-              <PeopleIcon className="w-5 h-5" style={{ color: "var(--rp-purple-soft)" }} />
-              <span className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
-                {answeredCount} von {game.players.length} haben geantwortet
-              </span>
-            </div>
+            <p
+              className="mt-2 text-sm font-semibold tracking-wide"
+              style={{ color: "var(--rp-text-secondary)", opacity: 0.7 }}
+            >
+              Antwort weg. Kein Zurück.
+            </p>
             <div className="mt-3 flex justify-center gap-2">
               {game.players.map((p) => {
                 const answered = game.roundAnswers.some((a) => a.player_id === p.id);
@@ -200,6 +197,11 @@ export function NumberGuessScreen() {
           </div>
         )}
       </div>
+
+      {/* Waiting footer */}
+      {(hasAnswered || submitted) && (
+        <WaitingFooter answered={answeredCount} total={game.players.length} />
+      )}
     </div>
   );
 }

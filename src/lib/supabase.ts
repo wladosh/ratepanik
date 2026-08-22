@@ -58,6 +58,7 @@ export interface DbMatchBlock {
   prompt_ids: string[];
   current_round: number;
   rounds_total: number;
+  timer_seconds: number | null;
   is_complete: boolean;
   started_at: string | null;
   finished_at: string | null;
