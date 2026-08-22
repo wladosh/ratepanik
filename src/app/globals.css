@@ -31,6 +31,13 @@
   --rp-radius-pill: 999px;
   --rp-shadow-card: 0 10px 30px rgba(42, 42, 74, 0.08);
 
+  --rp-xp: #5B9DFF;
+  --rp-xp-track: rgba(91, 157, 255, 0.18);
+  --rp-hirncoin: #F5A623;
+  --rp-hirncoin-soft: #FFE8B8;
+  --rp-level: #8B7CFF;
+  --rp-level-up-bg: #F0ECFF;
+
   --ps-notch-inset: 0px;
   --ps-frame-radius: 0px;
 }
@@ -184,6 +191,10 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes xp-fill {
+  from { width: 0%; }
 }
 
 * {
