@@ -74,6 +74,30 @@ Covers: navigation icons, default avatars, currency coin, trophy, rank badges, a
 | `rp_fx_confetti_sheet_512.png` | 512×512 | PNG (RGBA) |
 | `rp_fx_confetti_sheet_512.webp` | 512×512 | WebP (lossy 90) |
 
+## Phase B — Hirncoin, XP Badge, Level-Up Burst
+
+### Hirncoins (Currency)
+
+Display name: **Hirncoins**. The `rp_currency_coin_*` files from Tranche 1 remain valid as alias/fallback.
+
+| Base name | 1x | @2x | @3x |
+|-----------|-----|------|------|
+| `rp_hirncoin_24` (24px) | ✓ | ✓ | ✓ |
+| `rp_hirncoin_48` (48px) | ✓ | ✓ | ✓ |
+
+### XP Badge
+
+| Base name | 1x | @2x | @3x |
+|-----------|-----|------|------|
+| `rp_badge_xp_32` (32px) | ✓ | ✓ | ✓ |
+| `rp_badge_xp_48` (48px) | ✓ | ✓ | ✓ |
+
+### Level-Up Burst (FX)
+
+| Base name | 1x | @2x | @3x |
+|-----------|-----|------|------|
+| `rp_fx_levelup_64` (64px) | ✓ | ✓ | ✓ |
+
 ## Notes
 
 - All assets are delivered by the Asset team — do NOT generate or invent replacements.
