@@ -203,13 +203,17 @@ export function PickCorrectScreen() {
               <span className="font-semibold" style={{ color: "var(--rp-peach)" }}>
                 Du bist dran!
               </span>
-            ) : (
+            ) : activePlayer ? (
               <>
                 <span className="font-semibold" style={{ color: "var(--rp-text)" }}>
-                  {activePlayer?.display_name}
+                  {activePlayer.display_name}
                 </span>
                 {" "}ist dran…
               </>
+            ) : (
+              <span className="font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+                Warte auf n\u00e4chsten Spieler\u2026
+              </span>
             )}
           </span>
           <div className="flex gap-1 ml-1">

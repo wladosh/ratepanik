@@ -84,6 +84,7 @@ interface GameContextValue {
   // Actions
   createRoom: (hostName: string, hostUserId: string) => Promise<void>;
   joinRoom: (code: string, displayName: string) => Promise<string | null>;
+  leaveRoom: () => Promise<void>;
   startGame: () => Promise<void>;
   selectTheme: (themeId: string) => Promise<void>;
   submitNumberGuess: (guess: number) => Promise<void>;
@@ -139,6 +140,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const sessionRestoringRef = useRef(false);
   const joinCodeUsedRef = useRef(false);
   const [disconnected, setDisconnected] = useState(false);
+  const myPlayerIdRef = useRef<string | null>(null);
 
   // --- derived state ---
 
@@ -246,6 +248,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     [sortedPlayers]
   );
 
+  useEffect(() => { myPlayerIdRef.current = myPlayerId; }, [myPlayerId]);
+
   // --- auto-clear errors ---
 
   useEffect(() => {
@@ -288,9 +292,18 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
               )
             );
           } else if (payload.eventType === "DELETE") {
-            setPlayers((prev) =>
-              prev.filter((p) => p.id !== (payload.old as { id: string }).id)
-            );
+            const leftPlayerId = (payload.old as { id: string }).id;
+            setPlayers((prev) => {
+              if (leftPlayerId !== myPlayerIdRef.current) {
+                const leftPlayer = prev.find((p) => p.id === leftPlayerId);
+                if (leftPlayer) {
+                  queueMicrotask(() =>
+                    setError(`${leftPlayer.display_name} hat das Spiel verlassen.`)
+                  );
+                }
+              }
+              return prev.filter((p) => p.id !== leftPlayerId);
+            });
           }
         }
       )
@@ -1078,6 +1091,30 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     lastStateKeyRef.current = "";
   };
 
+  const leaveRoom = async () => {
+    if (!room || !myPlayerId) {
+      goHome();
+      return;
+    }
+
+    const roomId = room.id;
+    const playerId = myPlayerId;
+
+    try {
+      await supabase
+        .from("answers")
+        .delete()
+        .eq("player_id", playerId)
+        .eq("room_id", roomId);
+
+      await supabase.from("players").delete().eq("id", playerId);
+    } catch (e) {
+      console.error("leaveRoom cleanup error:", e);
+    }
+
+    goHome();
+  };
+
   const goHome = () => {
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
@@ -1129,6 +1166,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     isThemePicker,
     createRoom,
     joinRoom,
+    leaveRoom,
     startGame,
     selectTheme,
     submitNumberGuess,

@@ -139,7 +139,7 @@ export function FinalScreen() {
             </div>
           )}
           <button
-            onClick={game.goHome}
+            onClick={() => void game.leaveRoom()}
             className="w-full h-[48px] rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97]"
             style={{
               border: "2px solid var(--rp-purple)",

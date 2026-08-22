@@ -59,10 +59,12 @@ export function ThemePickScreen() {
           <span className="text-base" style={{ color: "var(--rp-text-secondary)" }}>
             {game.isThemePicker ? (
               <span className="font-bold" style={{ color: "var(--rp-peach)" }}>Du wählst!</span>
-            ) : (
+            ) : picker ? (
               <>
-                <span className="font-bold" style={{ color: "var(--rp-text)" }}>{picker?.display_name}</span> wählt…
+                <span className="font-bold" style={{ color: "var(--rp-text)" }}>{picker.display_name}</span> wählt…
               </>
+            ) : (
+              <span className="font-bold" style={{ color: "var(--rp-text-secondary)" }}>Warte auf Auswahl\u2026</span>
             )}
           </span>
         </div>
