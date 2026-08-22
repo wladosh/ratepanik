@@ -34,7 +34,11 @@ export function NumberGuessScreen() {
     const num = parseFloat(guess);
     if (isNaN(num) || submitted) return;
     setSubmitted(true);
-    await game.submitNumberGuess(num);
+    try {
+      await game.submitNumberGuess(num);
+    } catch {
+      setSubmitted(false);
+    }
   }, [guess, submitted, game]);
 
   if (!prompt) {
