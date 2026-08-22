@@ -3,8 +3,8 @@
 import { useGame } from "@/lib/game-context";
 
 const MODE_LABELS: Record<string, string> = {
-  number_guess: "🔢 Zahlenraten",
-  pick_correct: "🃏 Passendes wählen",
+  number_guess: "\u{1F522} Zahlenraten",
+  pick_correct: "\u{1F0CF} Passendes w\u00e4hlen",
 };
 
 export function FinalScreen() {
@@ -17,59 +17,84 @@ export function FinalScreen() {
   if (!winner) return null;
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-500 to-pink-600 px-4 py-8">
-      <div className="w-full max-w-lg text-center">
-        <div className="mb-4 text-7xl sm:text-8xl animate-bounce-slow">🏆</div>
-        <h1 className="mb-2 text-4xl sm:text-5xl font-black text-white drop-shadow-lg">
+    <div
+      className="flex flex-1 flex-col items-center justify-center px-4 py-6"
+      style={{
+        background: "var(--rp-bg-hero)",
+        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
+      }}
+    >
+      <div className="w-full max-w-sm text-center">
+        <div className="mb-3 text-6xl animate-bounce-slow">{"\u{1F3C6}"}</div>
+        <h1 className="mb-1 text-3xl font-extrabold" style={{ color: "var(--rp-text)" }}>
           Spielende!
         </h1>
-        <p className="mb-8 text-xl text-white/90">
-          {isTie ? "Gleichstand — geteilter Sieg!" : `${winner.display_name} gewinnt!`}
+        <p className="mb-6 text-base" style={{ color: "var(--rp-text-secondary)" }}>
+          {isTie ? "Gleichstand \u2014 geteilter Sieg!" : `${winner.display_name} gewinnt!`}
         </p>
 
         {/* Winner card */}
-        <div className="mb-8 rounded-3xl bg-white/20 p-8 backdrop-blur-sm ring-2 ring-white/30">
-          <span className="text-6xl">{game.getAvatar(winner.id)}</span>
-          <h2 className="mt-4 text-3xl font-black text-white">
+        <div
+          className="mb-6 p-6"
+          style={{
+            background: "rgba(255, 214, 107, 0.12)",
+            borderRadius: "var(--rp-radius-lg)",
+            border: "1px solid rgba(255, 214, 107, 0.3)",
+          }}
+        >
+          <span className="text-5xl">{game.getAvatar(winner.id)}</span>
+          <h2 className="mt-3 text-2xl font-extrabold" style={{ color: "var(--rp-text)" }}>
             {winner.display_name}
           </h2>
-          <p className="mt-2 text-5xl font-black text-yellow-200">
+          <p className="mt-1 text-4xl font-black" style={{ color: "var(--rp-peach)" }}>
             {winner.score}
           </p>
-          <p className="mt-1 text-sm text-white/70">Punkte</p>
+          <p className="mt-0.5 text-xs" style={{ color: "var(--rp-text-secondary)" }}>Punkte</p>
         </div>
 
-        {/* All rankings (scores only, no Q&A — anti-spoiler §8) */}
-        <div className="mb-6 space-y-2">
+        {/* All rankings */}
+        <div className="mb-5 space-y-2">
           {sortedPlayers.map((player, i) => (
             <div
               key={player.id}
-              className="flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur-sm animate-fade-in"
-              style={{ animationDelay: `${i * 150}ms` }}
+              className="flex items-center gap-3 px-4 py-3 animate-fade-in"
+              style={{
+                animationDelay: `${i * 150}ms`,
+                background: i === 0 ? "rgba(255, 214, 107, 0.1)" : "var(--rp-bg-elevated)",
+                borderRadius: "var(--rp-radius-md)",
+                border: "1px solid var(--rp-border)",
+              }}
             >
-              <span className="w-8 text-center text-lg font-black text-white/70">
-                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+              <span className="w-8 text-center text-lg font-black" style={{ color: "var(--rp-text-secondary)" }}>
+                {i === 0 ? "\u{1F947}" : i === 1 ? "\u{1F948}" : i === 2 ? "\u{1F949}" : `${i + 1}.`}
               </span>
               <span className="text-2xl">{game.getAvatar(player.id)}</span>
               <div className="flex-1 text-left">
-                <p className="font-bold text-white">
+                <p className="font-bold" style={{ color: "var(--rp-text)" }}>
                   {player.display_name}
                   {player.id === game.myPlayerId && (
-                    <span className="ml-2 text-xs text-white/50">(Du)</span>
+                    <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>(Du)</span>
                   )}
                 </p>
               </div>
-              <span className="text-lg font-black text-white tabular-nums">
+              <span className="text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
                 {player.score}
               </span>
             </div>
           ))}
         </div>
 
-        {/* Per-block summary (modes only, no questions) */}
-        <div className="mb-8 rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-white/60">
-            Block-Übersicht
+        {/* Per-block summary */}
+        <div
+          className="mb-6 p-4"
+          style={{
+            background: "var(--rp-bg-elevated)",
+            borderRadius: "var(--rp-radius-md)",
+            border: "1px solid var(--rp-border)",
+          }}
+        >
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--rp-text-secondary)" }}>
+            Block-\u00dcbersicht
           </h3>
           <div className="grid grid-cols-4 gap-2">
             {game.blocks
@@ -77,10 +102,11 @@ export function FinalScreen() {
               .map((block) => (
                 <div
                   key={block.id}
-                  className="rounded-xl bg-white/10 p-2 text-center"
+                  className="rounded-xl p-2 text-center"
+                  style={{ background: "rgba(139, 124, 255, 0.06)" }}
                 >
-                  <p className="text-xs text-white/50">Block {block.block_index + 1}</p>
-                  <p className="text-sm">{MODE_LABELS[block.mode] ?? block.mode}</p>
+                  <p className="text-[10px]" style={{ color: "var(--rp-text-secondary)" }}>Block {block.block_index + 1}</p>
+                  <p className="text-xs">{MODE_LABELS[block.mode] ?? block.mode}</p>
                 </div>
               ))}
           </div>
@@ -91,20 +117,35 @@ export function FinalScreen() {
           {game.isHost ? (
             <button
               onClick={() => void game.resetGame()}
-              className="w-full rounded-2xl bg-white px-6 py-4 text-lg font-bold text-orange-600 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]"
+              className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97]"
+              style={{
+                background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+                boxShadow: "0 6px 20px rgba(255, 138, 113, 0.35)",
+              }}
             >
               Nochmal spielen!
             </button>
           ) : (
-            <div className="w-full rounded-2xl bg-white/10 px-6 py-3 text-center backdrop-blur-sm">
-              <p className="font-bold text-white/80">
+            <div
+              className="w-full py-3 text-center rounded-[var(--rp-radius-md)]"
+              style={{
+                background: "rgba(139, 124, 255, 0.08)",
+                border: "2px dashed var(--rp-purple-soft)",
+              }}
+            >
+              <p className="text-sm font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
                 Der Host kann eine neue Runde starten
               </p>
             </div>
           )}
           <button
             onClick={game.goHome}
-            className="w-full rounded-2xl border-2 border-white/30 px-6 py-3 text-base font-bold text-white transition-all hover:bg-white/10"
+            className="w-full h-[48px] rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97]"
+            style={{
+              border: "2px solid var(--rp-purple)",
+              color: "var(--rp-purple)",
+              background: "transparent",
+            }}
           >
             Neues Spiel
           </button>

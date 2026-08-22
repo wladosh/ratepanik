@@ -75,7 +75,7 @@
 @media (min-width: 768px) {
   :root {
     --ps-notch-inset: 42px;
-    --ps-frame-radius: 52px;
+    --ps-frame-radius: 44px;
   }
 
   .ps-stage {
@@ -84,11 +84,11 @@
   }
 
   .ps-frame {
-    width: 393px;
-    height: min(852px, calc(100dvh - 48px));
+    width: 390px;
+    height: min(844px, calc(100dvh - 48px));
     min-height: auto;
     border-radius: var(--ps-frame-radius);
-    border: 6px solid #1A1A2E;
+    border: 4px solid #1A1A2E;
     box-shadow:
       0 0 0 2px rgba(255, 255, 255, 0.15),
       0 30px 80px rgba(26, 26, 46, 0.25),
@@ -118,7 +118,7 @@
   }
 
   .ps-screen {
-    border-radius: calc(var(--ps-frame-radius) - 6px);
+    border-radius: calc(var(--ps-frame-radius) - 8px);
   }
 
   /* Inside phone frame, game screens fill the frame instead of the viewport */

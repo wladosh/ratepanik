@@ -67,17 +67,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-8 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400">
-      <div className="w-full max-w-sm space-y-6">
+    <div
+      className="flex min-h-dvh flex-col items-center justify-center px-5 py-8"
+      style={{
+        background: "var(--rp-bg-hero)",
+        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
+      }}
+    >
+      <div className="w-full max-w-sm space-y-5">
         <div className="text-center">
-          <h1 className="text-4xl font-black text-white tracking-tight drop-shadow-lg">
+          <h1
+            className="text-4xl font-extrabold tracking-tight"
+            style={{
+              background: "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-pink) 50%, var(--rp-peach) 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             Ratepanik
           </h1>
-          <p className="mt-2 text-white/80">Anmelden zum Spielen</p>
+          <p className="mt-1" style={{ color: "var(--rp-text-secondary)" }}>
+            Anmelden zum Spielen
+          </p>
         </div>
 
         {error && (
-          <div className="rounded-xl bg-red-500/20 border border-red-300/30 px-4 py-3 text-sm text-red-100">
+          <div
+            className="rounded-xl px-4 py-3 text-sm font-medium"
+            style={{
+              background: "rgba(255, 92, 122, 0.1)",
+              border: "1px solid rgba(255, 92, 122, 0.2)",
+              color: "var(--rp-danger)",
+            }}
+          >
             {error}
           </div>
         )}
@@ -85,36 +108,26 @@ export default function LoginPage() {
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-3 rounded-2xl bg-white px-6 py-4 text-lg font-bold text-gray-800 shadow-xl transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 h-[52px] rounded-[var(--rp-radius-md)] text-base font-bold transition-all active:scale-[0.98] disabled:opacity-50"
+          style={{
+            background: "var(--rp-bg-elevated)",
+            color: "var(--rp-text)",
+            boxShadow: "var(--rp-shadow-card)",
+          }}
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
-            <path
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              fill="#4285F4"
-            />
-            <path
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              fill="#34A853"
-            />
-            <path
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              fill="#FBBC05"
-            />
-            <path
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              fill="#EA4335"
-            />
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
           </svg>
           Mit Google anmelden
         </button>
 
-        <div className="relative py-2">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/30" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-transparent px-4 text-sm text-white/70">oder</span>
-          </div>
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
+          <span className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>oder</span>
+          <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
         </div>
 
         <form onSubmit={handleEmailLogin} className="space-y-3">
@@ -124,7 +137,20 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="E-Mail"
             required
-            className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-3.5 text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
+            className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 text-sm font-medium transition-all focus:outline-none"
+            style={{
+              borderColor: "var(--rp-border)",
+              background: "var(--rp-bg-elevated)",
+              color: "var(--rp-text)",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-border)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
           />
           <input
             type="password"
@@ -133,12 +159,28 @@ export default function LoginPage() {
             placeholder="Passwort"
             required
             minLength={6}
-            className="w-full rounded-2xl border-2 border-white/30 bg-white/20 px-5 py-3.5 text-white placeholder:text-white/50 backdrop-blur-sm focus:border-white focus:outline-none focus:ring-2 focus:ring-white/30 transition-all"
+            className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 text-sm font-medium transition-all focus:outline-none"
+            style={{
+              borderColor: "var(--rp-border)",
+              background: "var(--rp-bg-elevated)",
+              color: "var(--rp-text)",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--rp-border)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
           />
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-2xl bg-purple-700 px-6 py-4 text-lg font-bold text-white shadow-xl transition-all hover:bg-purple-800 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            className="w-full h-[52px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-50"
+            style={{
+              background: "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-purple-soft) 100%)",
+            }}
           >
             Anmelden
           </button>
@@ -147,30 +189,33 @@ export default function LoginPage() {
         <div className="text-center">
           <Link
             href="/auth/signup"
-            className="text-sm text-white/80 underline hover:text-white transition-colors"
+            className="text-sm font-medium underline transition-colors"
+            style={{ color: "var(--rp-purple)" }}
           >
             Noch kein Konto? Registrieren
           </Link>
         </div>
 
-        <div className="relative py-2">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-white/30" />
-          </div>
-          <div className="relative flex justify-center">
-            <span className="bg-transparent px-4 text-sm text-white/70">oder</span>
-          </div>
+        <div className="flex items-center gap-4">
+          <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
+          <span className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>oder</span>
+          <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
         </div>
 
         <button
           onClick={handleGuestLogin}
           disabled={loading}
-          className="w-full rounded-2xl border-2 border-white/40 bg-white/10 px-6 py-4 text-lg font-bold text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/20 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+          className="w-full h-[52px] rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97] disabled:opacity-50"
+          style={{
+            border: "2px solid var(--rp-purple-soft)",
+            color: "var(--rp-purple)",
+            background: "rgba(139, 124, 255, 0.06)",
+          }}
         >
-          Als Gast beitreten 👻
+          Als Gast beitreten
         </button>
-        <p className="text-center text-xs text-white/60">
-          Gäste können nur Spielen beitreten, nicht selbst hosten.
+        <p className="text-center text-xs" style={{ color: "var(--rp-text-secondary)" }}>
+          G&auml;ste k&ouml;nnen nur Spielen beitreten, nicht selbst hosten.
         </p>
       </div>
     </div>
