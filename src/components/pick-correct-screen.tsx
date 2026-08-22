@@ -181,7 +181,7 @@ export function PickCorrectScreen() {
                   }}
                 >
                   {isRevealed
-                    ? isCorrect ? "\u2713" : "\u2717"
+                    ? isCorrect ? "✓" : "✗"
                     : ANSWER_LABELS[i]}
                 </span>
                 <span
