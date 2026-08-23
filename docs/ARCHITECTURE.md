@@ -258,5 +258,6 @@ themes (8 seeded rows)
 - `mode` is stored as `text` (not Postgres enum) for forward compatibility
 - `prompts.payload` is `jsonb` — validated at application level per mode
 - Realtime uses Postgres Changes (not Broadcast) for consistency
+- Lobby settings live in `rooms.settings` JSONB (`docs/LOBBY_SETTINGS.md`); host-only while `status = lobby`
 - PR #2's `rooms`/`players`/`answers` tables are preserved; this migration only ADDs columns
 - No force-push to main; draft PR only
