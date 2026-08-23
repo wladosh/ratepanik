@@ -119,7 +119,7 @@ export function AvatarTile({
           className="text-[10px] font-semibold"
           style={{ color: "var(--rp-text-secondary)" }}
         >
-          {price} HC
+          Kaufen · {price} HC
         </span>
       )}
       {state === "equipped" && (
