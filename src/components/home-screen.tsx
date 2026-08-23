@@ -235,7 +235,8 @@ export function HomeScreen() {
                   onClick={signOut}
                   className="flex items-center justify-center rounded-full transition-colors hover:bg-black/5 shrink-0"
                   style={{ width: 40, height: 40 }}
-                  aria-label="Einstellungen"
+                  aria-label="Abmelden"
+                  title="Abmelden"
                 >
                   <GearIcon className="w-5 h-5 text-[var(--rp-text-secondary)]" />
                 </button>
@@ -465,7 +466,7 @@ export function HomeScreen() {
               </svg>
             </div>
             <div className="text-left">
-              <span className="text-sm font-bold text-[var(--rp-text)]">Stats</span>
+              <span className="text-sm font-bold text-[var(--rp-text)]">Statistik</span>
               <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">XP, Level, Spiele</p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -487,7 +488,7 @@ export function HomeScreen() {
               </svg>
             </div>
             <div className="text-left">
-              <span className="text-sm font-bold text-[var(--rp-text)]">Achievements</span>
+              <span className="text-sm font-bold text-[var(--rp-text)]">Erfolge</span>
               <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Deine Erfolge<br />und Abzeichen</p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -559,7 +560,7 @@ export function HomeScreen() {
         <button className="flex flex-col items-center gap-0.5 py-1 px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_home_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
-          <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>Home</span>
+          <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>Start</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -569,7 +570,7 @@ export function HomeScreen() {
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_play_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
-          <span className="text-[10px] font-medium">Play</span>
+          <span className="text-[10px] font-medium">Spielen</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}

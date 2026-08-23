@@ -60,7 +60,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 
   if (!isGuest && profileLoading) {
     return (
-      <PanelShell title="Stats" onBack={onBack}>
+      <PanelShell title="Statistik" onBack={onBack}>
         <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
           Laden…
         </p>
@@ -70,7 +70,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 
   if (isGuest || !profile) {
     return (
-      <PanelShell title="Stats" onBack={onBack}>
+      <PanelShell title="Statistik" onBack={onBack}>
         <EmptyCard
           headline="Stats brauchen ein Konto"
           body="Als Gast speichern wir keine XP, Spiele oder Siege. Melde dich an, dann zählen die Matches hier."
@@ -101,7 +101,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
   ];
 
   return (
-    <PanelShell title="Stats" onBack={onBack}>
+    <PanelShell title="Statistik" onBack={onBack}>
       <ul className="space-y-2">
         {rows.map((row) => (
           <li
@@ -169,7 +169,7 @@ function AchievementsPanel({ onBack }: { onBack: () => void }) {
   const ready = guestView || loaded;
 
   return (
-    <PanelShell title="Achievements" onBack={onBack}>
+    <PanelShell title="Erfolge" onBack={onBack}>
       {isGuest && (
         <p
           className="text-sm mb-4 px-1"

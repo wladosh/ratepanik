@@ -1,0 +1,272 @@
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  min-height: 224px;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  overflow: visible;
+}
+
+.ambientOne,
+.ambientTwo {
+  position: absolute;
+  z-index: -2;
+  border-radius: 999px;
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.ambientOne {
+  top: 8px;
+  left: 50%;
+  width: 210px;
+  height: 142px;
+  transform: translateX(-50%);
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.92) 0 26%, transparent 62%),
+    radial-gradient(circle at 30% 28%, rgba(255, 122, 182, 0.24), transparent 55%),
+    radial-gradient(circle at 72% 34%, rgba(126, 182, 255, 0.3), transparent 58%);
+}
+
+.ambientTwo {
+  top: 74px;
+  left: 50%;
+  width: 260px;
+  height: 88px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, rgba(139, 124, 255, 0.16), transparent 70%);
+}
+
+.orbit {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  z-index: -1;
+  width: 172px;
+  height: 118px;
+  transform: translateX(-50%);
+  border: 1.5px solid rgba(139, 124, 255, 0.17);
+  border-radius: 50%;
+  box-shadow:
+    0 0 38px rgba(139, 124, 255, 0.13),
+    inset 0 0 28px rgba(255, 255, 255, 0.5);
+}
+
+.orbit::before,
+.orbit::after {
+  content: "";
+  position: absolute;
+  inset: 13px;
+  border: 1px dashed rgba(255, 138, 113, 0.2);
+  border-radius: inherit;
+  transform: rotate(-8deg);
+}
+
+.orbit::after {
+  inset: 27px;
+  border-style: solid;
+  border-color: rgba(126, 182, 255, 0.18);
+  transform: rotate(9deg);
+}
+
+.orbit span {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 2px 7px currentColor;
+}
+
+.orbit span:nth-child(1) {
+  top: 10px;
+  left: 27px;
+  color: var(--rp-pink);
+  background: currentColor;
+}
+
+.orbit span:nth-child(2) {
+  top: 34px;
+  right: -2px;
+  color: var(--rp-sky);
+  background: currentColor;
+}
+
+.orbit span:nth-child(3) {
+  bottom: 4px;
+  left: 17px;
+  color: var(--rp-mint);
+  background: currentColor;
+}
+
+.trophyDrop {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  z-index: 2;
+  width: 132px;
+  height: 132px;
+  transform: translateX(-50%);
+}
+
+.trophyButton {
+  position: relative;
+  display: grid;
+  width: 132px;
+  height: 132px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.trophyButton:focus-visible {
+  outline: 3px solid rgba(139, 124, 255, 0.55);
+  outline-offset: 2px;
+}
+
+.trophyFloat,
+.trophyReact {
+  position: relative;
+  display: block;
+  width: 122px;
+  height: 122px;
+}
+
+.trophyReact {
+  transform-origin: 50% 78%;
+}
+
+.trophy {
+  position: relative;
+  z-index: 1;
+  width: 122px;
+  height: 122px;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 12px 18px rgba(112, 65, 10, 0.2))
+    drop-shadow(0 0 18px rgba(255, 214, 107, 0.34));
+}
+
+.shine {
+  position: absolute;
+  top: 17px;
+  left: 32px;
+  z-index: 2;
+  width: 17px;
+  height: 74px;
+  transform: rotate(19deg);
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.92), transparent);
+  filter: blur(3px);
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.confetti {
+  position: absolute;
+  top: 62px;
+  left: 62px;
+  z-index: 0;
+  width: 7px;
+  height: 15px;
+  border-radius: 4px;
+  background: var(--confetti-color);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--confetti-color) 38%, transparent);
+  pointer-events: none;
+}
+
+.confettiDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.wordmark {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.title {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  margin: 0;
+  font-size: clamp(2.8rem, 13vw, 3.35rem);
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: -0.065em;
+  filter: drop-shadow(0 4px 10px rgba(74, 58, 186, 0.12));
+}
+
+.title span {
+  display: inline-block;
+}
+
+.rate {
+  color: #7462f2;
+  text-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.72),
+    0 5px 16px rgba(116, 98, 242, 0.16);
+}
+
+.panik {
+  background: linear-gradient(115deg, #e966b0 6%, #ff7e91 54%, #ff9874 100%);
+  background-clip: text;
+  color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.68));
+}
+
+.swoosh {
+  width: 126px;
+  height: 7px;
+  margin-top: 6px;
+  transform: rotate(-1.5deg);
+  border-radius: 100% 30% 100% 30%;
+  background: linear-gradient(90deg, transparent, var(--rp-purple), var(--rp-pink), transparent);
+  opacity: 0.42;
+  filter: blur(0.3px);
+}
+
+.tagline {
+  position: relative;
+  z-index: 4;
+  margin: 7px 0 0;
+  color: var(--rp-text-secondary);
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-align: center;
+}
+
+@media (max-height: 760px) {
+  .hero {
+    min-height: 196px;
+    margin-bottom: 14px;
+  }
+
+  .trophyDrop {
+    top: -6px;
+    scale: 0.9;
+  }
+
+  .orbit {
+    top: 6px;
+    scale: 0.9;
+  }
+
+  .title {
+    font-size: 2.65rem;
+  }
+}
+

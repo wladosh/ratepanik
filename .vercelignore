@@ -1,0 +1,7 @@
+# Not part of the Next.js app. Does not reduce the Hobby deploy count;
+# only keeps git-triggered uploads smaller.
+docs
+supabase
+*.md
+.github
+.cursor
