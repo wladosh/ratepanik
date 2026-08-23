@@ -6,8 +6,10 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { generateGuestName } from "@/lib/guest-name";
 import { xpProgressInLevel } from "@/lib/progression";
-import { avatarSrc, HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
+import { HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
 import { HomePanel, type HomePanelId } from "@/components/home-panels";
+import { SchleimiPreview } from "@/components/schleimi-preview";
+import { useCosmetics } from "@/lib/use-cosmetics";
 import { dailyPlayStreakDays } from "@/lib/daily-play-streak";
 import { HomeDashboardCards } from "@/components/home-dashboard-cards";
 import { useI18n } from "@/lib/i18n-context";
@@ -23,8 +25,6 @@ function GearIcon({ className }: { className?: string }) {
     </svg>
   );
 }
-
-const FALLBACK_AVATAR = "/rp/rp_avatar_default_01_128@2x.png";
 
 function StreakCard({
   days,
@@ -107,6 +107,7 @@ export function HomeScreen() {
   const { catalog: achievementCatalog, unlocked: achievementUnlocked, loaded: achievementsLoaded } =
     useAchievements(user && !isGuest ? user.id : null);
   const { games: matchGames } = useMatchStats(user && !isGuest ? user.id : null);
+  const { equippedItems } = useCosmetics(user && !isGuest ? user.id : null);
   const [friendCountResult, setFriendCountResult] = useState<{ userId: string; count: number } | null>(null);
   const friendCount =
     user && !isGuest && friendCountResult?.userId === user.id
@@ -178,7 +179,13 @@ export function HomeScreen() {
   }
 
   if (panel) {
-    return <HomePanel id={panel} onBack={() => setPanel(null)} />;
+    return (
+      <HomePanel
+        id={panel}
+        onBack={() => setPanel(null)}
+        onNavigate={setPanel}
+      />
+    );
   }
 
   return (
@@ -205,18 +212,23 @@ export function HomeScreen() {
           <div className="flex items-center gap-3">
             {/* Avatar + Level badge */}
             <button
-              onClick={() => (isGuest ? showToast(t.home.shopNeedsAccount) : setPanel("shop"))}
+              onClick={() =>
+                isGuest ? showToast(t.cosmetics.customizeNeedsAccountHeadline) : setPanel("customize")
+              }
               className="relative shrink-0"
-              aria-label={t.home.avatarAria}
+              aria-label={t.cosmetics.customizeAria}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={profile ? avatarSrc(profile.avatar_id) : FALLBACK_AVATAR}
-                alt={displayName}
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-full object-cover"
-              />
+              <span
+                className="block overflow-hidden rounded-full"
+                style={{
+                  width: 48,
+                  height: 48,
+                  background: "var(--rp-bg-elevated)",
+                  boxShadow: "var(--rp-shadow-card)",
+                }}
+              >
+                <SchleimiPreview layers={equippedItems} size={48} label={displayName} />
+              </span>
               {!isGuest && xpProgress && (
                 <span
                   className="absolute flex items-center justify-center"

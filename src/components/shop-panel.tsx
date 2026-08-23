@@ -4,59 +4,48 @@ import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
-import { useCosmetics } from "@/lib/use-cosmetics";
-import { SHOP_AVATARS } from "@/lib/shop-catalog";
-import { HIRNCOIN_ICON_20 } from "@/lib/rp-assets";
-import { AvatarTile, type AvatarTileState } from "@/components/avatar-tile";
+import { useCosmetics, type OpenLootboxSuccess } from "@/lib/use-cosmetics";
+import { HIRNCOIN_ICON_20, LOOT_BOX_RARE_128 } from "@/lib/rp-assets";
 import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
+import { LootboxReveal } from "@/components/lootbox-reveal";
+import { RARITY_LABEL_DE } from "@/lib/schleimi-catalog";
 
-export function ShopPanel({ onBack }: { onBack: () => void }) {
+export function ShopPanel({
+  onBack,
+  onCustomize,
+}: {
+  onBack: () => void;
+  onCustomize: () => void;
+}) {
   const { t } = useI18n();
   const { user, isGuest, profile, profileLoading, refetchProfile } = useAuth();
-  const { owned, loading, buy, equip } = useCosmetics(
-    user && !isGuest ? user.id : null
+  const { catalogById, lootbox, loading, openLootbox } = useCosmetics(
+    user && !isGuest ? user.id : null,
   );
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reveal, setReveal] = useState<OpenLootboxSuccess | null>(null);
+  const [boxFailed, setBoxFailed] = useState(false);
 
-  function flash(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2200);
-  }
+  const balance = profile?.hirncoins ?? 0;
+  const canAfford = balance >= lootbox.price_hc;
+  const revealItem = reveal ? catalogById.get(reveal.item_id) : undefined;
 
-  async function handleTap(itemId: string, state: AvatarTileState, price: number) {
-    if (busyId) return;
+  async function handleOpen() {
+    if (busy || !canAfford) return;
     setError(null);
-    if (state === "equipped") return;
-    setBusyId(itemId);
+    setBusy(true);
     try {
-      if (state === "owned") {
-        const result = await equip(itemId);
-        if (!result.ok) {
-          setError(result.error);
-          return;
-        }
-        await refetchProfile();
-        flash("Avatar angezogen");
+      const requestId = crypto.randomUUID();
+      const result = await openLootbox(requestId);
+      if (!result.ok) {
+        setError(result.error);
         return;
       }
-      if (state === "locked") {
-        const balance = profile?.hirncoins ?? 0;
-        if (balance < price) {
-          setError("Nicht genug Hirncoins. Spiel ein Match!");
-          return;
-        }
-        const result = await buy(itemId);
-        if (!result.ok) {
-          setError(result.error);
-          return;
-        }
-        await refetchProfile();
-        flash("Gekauft — tippe zum Anziehen");
-      }
+      await refetchProfile();
+      setReveal(result);
     } finally {
-      setBusyId(null);
+      setBusy(false);
     }
   }
 
@@ -64,7 +53,7 @@ export function ShopPanel({ onBack }: { onBack: () => void }) {
     return (
       <PanelShell title={t.home.shop} onBack={onBack}>
         <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
-          Laden…
+          {t.common.loading}
         </p>
       </PanelShell>
     );
@@ -74,8 +63,8 @@ export function ShopPanel({ onBack }: { onBack: () => void }) {
     return (
       <PanelShell title={t.home.shop} onBack={onBack}>
         <EmptyCard
-          headline="Shop braucht ein Konto"
-          body="Als Gast kannst du keine Avatare kaufen. Melde dich an — Hirncoins nimmst du aus Matches mit."
+          headline={t.cosmetics.shopNeedsAccountHeadline}
+          body={t.cosmetics.shopNeedsAccountBody}
         />
         <Link
           href="/auth/login"
@@ -84,87 +73,124 @@ export function ShopPanel({ onBack }: { onBack: () => void }) {
             background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
           }}
         >
-          Anmelden
+          {t.landing.login}
         </Link>
       </PanelShell>
     );
   }
 
   return (
-    <PanelShell title={t.home.shop} onBack={onBack}>
-      {toast && (
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <PanelShell title={t.home.shop} onBack={onBack}>
         <div
-          className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
-          style={{ background: "var(--rp-purple)" }}
+          className="flex items-center justify-between gap-3 px-4 py-3 mb-5"
+          style={{
+            background: "var(--rp-bg-elevated)",
+            borderRadius: "var(--rp-radius-md)",
+            boxShadow: "var(--rp-shadow-card)",
+          }}
         >
-          {toast}
+          <p className="text-sm font-bold" style={{ color: "var(--rp-text)" }}>
+            {t.cosmetics.hirncoins}
+          </p>
+          <div className="flex items-center gap-1.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={HIRNCOIN_ICON_20} alt="" width={20} height={20} className="w-5 h-5" />
+            <span className="text-sm font-extrabold" style={{ color: "var(--rp-text)" }}>
+              {profile.hirncoins}
+            </span>
+          </div>
         </div>
-      )}
 
-      <div
-        className="flex items-center justify-between gap-3 px-4 py-3 mb-5"
-        style={{
-          background: "var(--rp-bg-elevated)",
-          borderRadius: "var(--rp-radius-md)",
-          boxShadow: "var(--rp-shadow-card)",
-        }}
-      >
-        <p className="text-sm font-bold" style={{ color: "var(--rp-text)" }}>
-          Avatare
-        </p>
-        <div className="flex items-center gap-1.5">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={HIRNCOIN_ICON_20} alt="" width={20} height={20} className="w-5 h-5" />
-          <span className="text-sm font-extrabold" style={{ color: "var(--rp-text)" }}>
-            {profile.hirncoins}
-          </span>
-        </div>
-      </div>
+        {loading ? (
+          <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+            {t.common.loading}
+          </p>
+        ) : (
+          <article
+            className="flex flex-col items-center px-4 py-6"
+            style={{
+              background: "var(--rp-bg-elevated)",
+              borderRadius: "var(--rp-radius-lg)",
+              boxShadow: "var(--rp-shadow-card)",
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={boxFailed ? LOOT_BOX_RARE_128 : lootbox.art_closed}
+              alt=""
+              width={160}
+              height={160}
+              className="h-40 w-40 object-contain"
+              onError={() => setBoxFailed(true)}
+            />
+            <h2
+              className="mt-3 text-xl font-extrabold"
+              style={{ color: "var(--rp-text)" }}
+            >
+              {t.cosmetics.boxName}
+            </h2>
+            <p className="mt-1 text-sm font-bold" style={{ color: "var(--rp-text-secondary)" }}>
+              {lootbox.price_hc} {t.cosmetics.hirncoins}
+            </p>
+            <p
+              className="mt-4 text-center text-xs leading-relaxed"
+              style={{ color: "var(--rp-text-secondary)" }}
+            >
+              {lootbox.weight_gewoehnlich} % {RARITY_LABEL_DE.gewoehnlich}
+              {" · "}
+              {lootbox.weight_selten} % {RARITY_LABEL_DE.selten}
+              {" · "}
+              {lootbox.weight_legendaer} % {RARITY_LABEL_DE.legendaer}
+            </p>
+            <button
+              type="button"
+              onClick={() => void handleOpen()}
+              disabled={busy || !canAfford}
+              className="mt-5 h-12 w-full rounded-[var(--rp-radius-pill)] text-sm font-bold text-white"
+              style={{
+                background:
+                  "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+                opacity: busy || !canAfford ? 0.5 : 1,
+              }}
+            >
+              {busy ? t.cosmetics.opening : t.cosmetics.open}
+            </button>
+            {!canAfford && (
+              <p className="mt-3 text-center text-xs font-medium" style={{ color: "var(--rp-danger)" }}>
+                {t.cosmetics.notEnough}
+              </p>
+            )}
+          </article>
+        )}
 
-      {loading ? (
-        <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
-          Laden…
-        </p>
-      ) : (
-        <div
-          className="grid gap-4 justify-items-center"
-          style={{ gridTemplateColumns: "repeat(3, 1fr)" }}
+        {error && (
+          <p className="mt-4 text-center text-sm font-medium" style={{ color: "var(--rp-danger)" }}>
+            {error}
+          </p>
+        )}
+
+        <p
+          className="mt-5 text-xs leading-relaxed px-1"
+          style={{ color: "var(--rp-text-secondary)" }}
         >
-          {SHOP_AVATARS.map((item) => {
-            const isOwned = owned.has(item.id);
-            const isEquipped = profile.avatar_id === item.id;
-            const state: AvatarTileState = isEquipped
-              ? "equipped"
-              : isOwned
-                ? "owned"
-                : "locked";
-            return (
-              <AvatarTile
-                key={item.id}
-                id={item.id}
-                name={item.name}
-                price={item.price}
-                state={state}
-                disabled={busyId !== null || (state === "locked" && item.price === 0)}
-                onClick={() => void handleTap(item.id, state, item.price)}
-              />
-            );
-          })}
-        </div>
-      )}
-
-      {error && (
-        <p className="mt-4 text-center text-sm font-medium" style={{ color: "var(--rp-danger)" }}>
-          {error}
+          {t.cosmetics.shopFinePrint}
         </p>
-      )}
+      </PanelShell>
 
-      <p
-        className="mt-5 text-xs leading-relaxed px-1"
-        style={{ color: "var(--rp-text-secondary)" }}
-      >
-        Nur Looks aus dem Avatar-Grid. Anziehen geht nur bei Besitz.
-      </p>
-    </PanelShell>
+      {reveal && revealItem && (
+        <LootboxReveal
+          result={reveal}
+          item={revealItem}
+          artClosed={lootbox.art_closed}
+          artOpen={lootbox.art_open}
+          onDismiss={() => setReveal(null)}
+          onCustomize={() => {
+            setReveal(null);
+            onCustomize();
+          }}
+        />
+      )}
+    </div>
   );
 }

@@ -1,23 +1,30 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
+import { MODE_PICK_CORRECT_256 } from "@/lib/rp-assets";
+import type { PickCorrectPayload } from "@/lib/content";
+import { MatchPlayShell } from "./match-play-shell";
+import { MatchStatusHeader } from "./match-status-header";
+import { QuestionStage } from "./question-stage";
 import { TimerPill } from "./timer-pill";
 import { QuestionTimerBar } from "./question-timer-bar";
 import { WaitingFooter } from "./waiting-footer";
-import type { PickCorrectPayload } from "@/lib/content";
+import styles from "./pick-correct-screen.module.css";
 
 const ANSWER_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
-
-const CARD_STYLE = {
-  border: "var(--rp-border)",
-  bg: "var(--rp-surface)",
-  label: "var(--rp-text-secondary)",
-};
+const CORRECT_TARGET = 4;
 
 function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor">
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      style={style}
+      fill="currentColor"
+      aria-hidden="true"
+    >
       <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z" />
     </svg>
   );
@@ -38,11 +45,7 @@ export function PickCorrectScreen() {
 
   const activePlayer = sortedPlayers[game.activePlayerIndex];
   const correctFound = game.turns.filter((t) => t.is_correct).length;
-
-  const localPlayerTapped = useMemo(
-    () => game.turns.some((t) => t.player_id === game.myPlayerId),
-    [game.turns, game.myPlayerId]
-  );
+  const huntComplete = correctFound >= CORRECT_TARGET;
 
   const tappedPlayerCount = useMemo(
     () => new Set(game.turns.map((t) => t.player_id)).size,
@@ -62,195 +65,192 @@ export function PickCorrectScreen() {
     return map;
   }, [game.turns]);
 
+  const playerNames = useMemo(
+    () => new Map(game.players.map((player) => [player.id, player.display_name])),
+    [game.players]
+  );
+
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
   const totalBlocks = game.room?.total_blocks ?? 4;
+  const showQuestionTimer =
+    !huntComplete &&
+    game.questionDeadlineMs != null &&
+    game.questionTimerMs != null;
+  const showWaitingFooter =
+    !huntComplete && !game.isMyTurn && activePlayer != null;
 
   if (!prompt || !payload) {
     return (
-      <div
-        className="flex flex-1 items-center justify-center"
-        style={{ background: "var(--rp-bg-hero)" }}
-      >
-        <div className="text-lg animate-pulse font-medium" style={{ color: "var(--rp-text-secondary)" }}>
+      <MatchPlayShell ariaLabel="Kartenjagd wird geladen">
+        <div className={styles.loading}>
           Karten werden geladen…
         </div>
-      </div>
+      </MatchPlayShell>
     );
   }
 
   return (
-    <div
-      className="flex flex-1 flex-col"
-      style={{
-        background: "var(--rp-bg-hero)",
-        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
-      }}
-    >
-      <div className="flex-1 flex flex-col px-4 pb-5">
-        {/* Header: Frage pill + Block pill — left gutter clears the 44×44 exit button */}
-        <div className="flex items-center justify-between mt-2 mb-4">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-11 shrink-0" aria-hidden="true" />
-            <span
-              className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
-              style={{
-                background: "var(--rp-bg-elevated)",
-                color: "var(--rp-text-secondary)",
-                boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
-              }}
-            >
-              Frage <span style={{ color: "var(--rp-peach)" }}>{blockNum}</span>/{totalBlocks}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <TimerPill timerSeconds={game.currentBlock?.timer_seconds} startedAt={game.currentBlock?.started_at} />
-            {/* Correct-found pill */}
-            <span
-              className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
-              style={{
-                background: "var(--rp-bg-elevated)",
-                color: "var(--rp-text-secondary)",
-                boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
-              }}
-            >
-              {correctFound}/4
-            </span>
-          </div>
-        </div>
-
-        {/* Question card */}
-        <div
-          className="p-5"
-          style={{
-            background: "var(--rp-bg-elevated)",
-            borderRadius: "var(--rp-radius-lg)",
-            boxShadow: "var(--rp-shadow-card)",
-            marginBottom: !localPlayerTapped && game.questionDeadlineMs != null ? 0 : 16,
-          }}
-        >
-          <h2
-            className="text-xl font-bold leading-snug"
-            style={{ color: "var(--rp-text)" }}
-          >
-            {prompt.prompt}
-          </h2>
-        </div>
-
-        {/* Countdown bar — hidden once the local player has tapped */}
-        {!localPlayerTapped && game.questionDeadlineMs != null && (
-          <QuestionTimerBar
-            key={game.currentBlock!.id}
-            deadlineMs={game.questionDeadlineMs}
-            durationMs={game.questionTimerMs ?? undefined}
+    <MatchPlayShell
+      ariaLabel="Richtig wählen – Kartenjagd"
+      contentClassName={styles.content}
+      footer={
+        showWaitingFooter ? (
+          <WaitingFooter
+            answered={tappedPlayerCount}
+            total={game.players.length}
+            mode="pick_correct"
+            label="haben schon eine Karte gewählt"
           />
-        )}
-
-        {/* Answer buttons */}
-        <div className="space-y-2.5 mb-4 flex-1">
-          {payload.cards.map((card, i) => {
-            const tapped = tappedIndices.has(i);
-            const result = turnResults.get(i);
-            const isCorrect = result?.is_correct;
-
-            let borderColor = CARD_STYLE.border;
-            let bgColor = CARD_STYLE.bg;
-            let opacity = "1";
-            let boxShadow = "none";
-
-            if (tapped && result) {
-              if (isCorrect) {
-                borderColor = "var(--rp-success)";
-                bgColor = "rgba(61, 204, 138, 0.1)";
-              } else {
-                borderColor = "var(--rp-danger)";
-                bgColor = "rgba(255, 92, 122, 0.06)";
-                opacity = "0.6";
-              }
-            } else if (tapped) {
-              borderColor = "var(--rp-purple)";
-              boxShadow = "0 0 0 3px var(--rp-purple-soft)";
-            }
-
-            return (
-              <button
-                key={i}
-                onClick={() => void game.tapCard(i)}
-                disabled={tapped || !game.isMyTurn}
-                className="w-full flex items-center gap-3 px-4 min-h-[56px] py-3 text-left transition-all active:scale-[0.98] disabled:active:scale-100"
-                style={{
-                  background: bgColor,
-                  borderRadius: "var(--rp-radius-md)",
-                  border: `2px solid ${borderColor}`,
-                  boxShadow,
-                  opacity,
-                }}
-              >
-                {/* Letter badge */}
+        ) : undefined
+      }
+    >
+      <MatchStatusHeader
+        current={blockNum}
+        total={totalBlocks}
+        timer={
+          showQuestionTimer ? (
+            <TimerPill
+              timerSeconds={game.questionTimerMs! / 1000}
+              deadlineMs={game.questionDeadlineMs}
+              hideWhenExpired
+            />
+          ) : undefined
+        }
+        trailing={
+          <div
+            className={styles.foundProgress}
+            role="progressbar"
+            aria-label="Richtige Karten gefunden"
+            aria-valuemin={0}
+            aria-valuemax={CORRECT_TARGET}
+            aria-valuenow={Math.min(correctFound, CORRECT_TARGET)}
+          >
+            <span className={styles.foundCount}>
+              {Math.min(correctFound, CORRECT_TARGET)}/{CORRECT_TARGET}
+            </span>
+            <span className={styles.foundDots} aria-hidden="true">
+              {Array.from({ length: CORRECT_TARGET }, (_, index) => (
                 <span
-                  className="w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold shrink-0"
-                  style={{
-                    background: tapped && result
-                      ? isCorrect ? "var(--rp-success)" : "var(--rp-danger)"
-                      : "var(--rp-bg-elevated)",
-                    color: tapped && result ? "white" : CARD_STYLE.label,
-                    boxShadow: tapped && result ? "none" : "0 2px 6px rgba(42, 42, 74, 0.08)",
-                  }}
-                >
-                  {tapped && result
-                    ? isCorrect ? "✓" : "✗"
-                    : ANSWER_LABELS[i]}
-                </span>
-                <span
-                  className="flex-1 text-[15px] font-semibold leading-snug"
-                  style={{ color: "var(--rp-text)" }}
-                >
-                  {card}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Turn / waiting indicator */}
-        <div className="flex items-center justify-center gap-2 py-2">
-          <PeopleIcon className="w-5 h-5" style={{ color: "var(--rp-purple-soft)" }} />
-          <span className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
-            {game.isMyTurn ? (
-              <span className="font-semibold" style={{ color: "var(--rp-peach)" }}>
-                Du bist dran!
-              </span>
-            ) : activePlayer ? (
-              <>
-                <span className="font-semibold" style={{ color: "var(--rp-text)" }}>
-                  {activePlayer.display_name}
-                </span>
-                {" "}ist dran…
-              </>
-            ) : (
-              <span className="font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-                Warte auf n\u00e4chsten Spieler\u2026
-              </span>
-            )}
-          </span>
-          <div className="flex gap-1 ml-1">
-            {[0, 1, 2].map((d) => (
-              <span
-                key={d}
-                className="w-1.5 h-1.5 rounded-full"
-                style={{
-                  background: "var(--rp-text-secondary)",
-                  opacity: 0.4,
-                  animation: `fade-in 0.6s ease-in-out ${d * 0.2}s infinite alternate`,
-                }}
-              />
-            ))}
+                  key={index}
+                  className={
+                    index < correctFound
+                      ? styles.foundDotComplete
+                      : styles.foundDot
+                  }
+                />
+              ))}
+            </span>
           </div>
-        </div>
+        }
+      />
+
+      <QuestionStage
+        headingId="pick-correct-question"
+        ariaLabel="Aufgabe der Kartenjagd"
+        eyebrow="Finde 4 richtige Karten"
+        question={prompt.prompt}
+        accentColor="var(--rp-peach-deep)"
+        accentBackground="rgba(255, 138, 113, 0.13)"
+        stageTint="rgba(255, 245, 239, 0.96)"
+        stageBorder="rgba(255, 138, 113, 0.17)"
+        artworkBackground="rgba(237, 230, 255, 0.68)"
+        artwork={
+          <Image
+            src={MODE_PICK_CORRECT_256}
+            alt=""
+            width={118}
+            height={118}
+            className={styles.modeArtwork}
+            priority
+          />
+        }
+        timer={
+          showQuestionTimer ? (
+            <QuestionTimerBar
+              key={game.currentBlock?.id ?? prompt.id}
+              deadlineMs={game.questionDeadlineMs!}
+              durationMs={game.questionTimerMs!}
+              ariaLabel="Verbleibende Zeit für die Kartenjagd"
+            />
+          ) : undefined
+        }
+      />
+
+      <div
+        className={[
+          styles.turnStatus,
+          game.isMyTurn ? styles.turnStatusActive : styles.turnStatusWaiting,
+        ].join(" ")}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <span className={styles.turnIcon}>
+          <PeopleIcon />
+        </span>
+        <span className={styles.turnCopy}>
+          <strong>
+            {game.isMyTurn
+              ? "Du bist dran"
+              : activePlayer
+                ? `${activePlayer.display_name} sucht`
+                : "Nächster Zug wird vorbereitet"}
+          </strong>
+          <span>
+            {game.isMyTurn
+              ? "Tippe auf eine noch verdeckte Karte."
+              : "Die Karten öffnen sich Zug für Zug."}
+          </span>
+        </span>
+        <span className={styles.turnPulse} aria-hidden="true" />
       </div>
 
-      {/* Waiting footer */}
-      <WaitingFooter answered={tappedPlayerCount} total={game.players.length} />
-    </div>
+      <div
+        className={styles.cardGrid}
+        aria-label="Antwortkarten"
+        aria-live="polite"
+      >
+        {payload.cards.map((card, index) => {
+          const tapped = tappedIndices.has(index);
+          const result = turnResults.get(index);
+          const isCorrect = result?.is_correct === true;
+          const state = tapped ? (isCorrect ? "correct" : "wrong") : "available";
+          const tappedBy = result ? playerNames.get(result.player_id) : undefined;
+          const canTap = game.isMyTurn && !tapped && !huntComplete;
+          const stateLabel = tapped
+            ? `${isCorrect ? "Richtig" : "Falsch"}${tappedBy ? `, gewählt von ${tappedBy}` : ""}`
+            : canTap
+              ? "Noch nicht gewählt"
+              : "Noch verdeckt";
+
+          return (
+            <button
+              key={index}
+              type="button"
+              onClick={() => void game.tapCard(index)}
+              disabled={!canTap}
+              className={styles.answerCard}
+              data-state={state}
+              aria-label={`${ANSWER_LABELS[index] ?? index + 1}: ${card}. ${stateLabel}`}
+            >
+              <span className={styles.answerBadge} aria-hidden="true">
+                {tapped ? (isCorrect ? "✓" : "×") : ANSWER_LABELS[index]}
+              </span>
+              <span className={styles.answerText}>{card}</span>
+              <span className={styles.answerState}>
+                {tapped ? (
+                  <>
+                    <span aria-hidden="true">{isCorrect ? "Gefunden" : "Daneben"}</span>
+                    {tappedBy ? <small>{tappedBy}</small> : null}
+                  </>
+                ) : (
+                  <span aria-hidden="true">{canTap ? "Wählen" : "Verdeckt"}</span>
+                )}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </MatchPlayShell>
   );
 }

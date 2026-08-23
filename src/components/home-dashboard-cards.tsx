@@ -9,8 +9,8 @@ import { useGSAP } from "@gsap/react";
 import type { HomePanelId } from "@/components/home-panels";
 import {
   AVATAR_POOL,
-  BADGE_FIRST_ROOM_128,
   BADGE_FIRST_WIN_128,
+  HOME_CREATE_ROOM_256,
   LOOT_BOX_RARE_128,
   RANK_BADGE_GOLD_128,
   TROPHY_GOLD_512,
@@ -102,7 +102,7 @@ function CreateRoomCard({
         <span>{t.home.createBody}</span>
       </span>
       <span className={styles.hostAsset} data-feature-asset aria-hidden="true">
-        <Image src={BADGE_FIRST_ROOM_128} alt="" width={84} height={84} />
+        <Image src={HOME_CREATE_ROOM_256} alt="" width={96} height={96} />
       </span>
       <ArrowMark />
     </button>

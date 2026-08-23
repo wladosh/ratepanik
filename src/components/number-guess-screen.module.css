@@ -1,0 +1,245 @@
+.screenContent {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.stageArtwork {
+  width: 118px;
+  height: 118px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 14px rgba(46, 93, 138, 0.18));
+}
+
+.promptHint {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  color: var(--rp-text-secondary);
+  background: rgba(126, 182, 255, 0.12);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.console {
+  margin-bottom: 16px;
+  padding: 18px;
+  border: 1px solid rgba(126, 182, 255, 0.2);
+  border-radius: var(--rp-radius-lg);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 16px 36px rgba(46, 93, 138, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+.consoleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 2px 10px;
+}
+
+.label {
+  color: var(--rp-text);
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.formatChip {
+  flex: none;
+  padding: 5px 9px;
+  border-radius: var(--rp-radius-pill);
+  color: #3973aa;
+  background: rgba(126, 182, 255, 0.16);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+}
+
+.field {
+  position: relative;
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  overflow: hidden;
+  border: 2px solid rgba(126, 182, 255, 0.28);
+  border-radius: 22px;
+  background: rgba(247, 251, 255, 0.98);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.field:focus-within {
+  border-color: var(--rp-focus-ring);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(139, 124, 255, 0.14);
+}
+
+.fieldInvalid {
+  border-color: var(--rp-danger);
+}
+
+.fieldInvalid:focus-within {
+  border-color: var(--rp-danger);
+  box-shadow: 0 0 0 4px rgba(255, 92, 122, 0.13);
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  height: 68px;
+  padding: 0 18px;
+  border: 0;
+  outline: 0;
+  color: var(--rp-text);
+  background: transparent;
+  font: inherit;
+  font-size: clamp(28px, 9vw, 38px);
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.inputWithUnit {
+  padding-right: 90px;
+  padding-left: 90px;
+}
+
+.input::placeholder {
+  color: rgba(107, 107, 138, 0.42);
+  font-size: 22px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.unit {
+  position: absolute;
+  right: 10px;
+  display: inline-flex;
+  max-width: 72px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 0 12px;
+  border: 1px solid rgba(126, 182, 255, 0.2);
+  border-radius: 15px;
+  color: #3973aa;
+  background: rgba(126, 182, 255, 0.14);
+  font-size: 13px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message {
+  min-height: 32px;
+  padding: 7px 3px 0;
+  color: var(--rp-text-secondary);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.error {
+  color: #d63459;
+}
+
+.submit {
+  display: flex;
+  width: 100%;
+  min-height: 56px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: var(--rp-radius-pill);
+  color: #fff;
+  background: linear-gradient(135deg, #6aa9ed 0%, #527ee9 100%);
+  box-shadow: 0 10px 24px rgba(82, 126, 233, 0.3);
+  cursor: pointer;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 850;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+
+.submit:hover:not(:disabled) {
+  box-shadow: 0 12px 28px rgba(82, 126, 233, 0.38);
+  transform: translateY(-1px);
+}
+
+.submit:active:not(:disabled) {
+  box-shadow: 0 6px 16px rgba(82, 126, 233, 0.28);
+  transform: scale(0.98);
+}
+
+.submit:focus-visible {
+  outline: 3px solid var(--rp-focus-ring);
+  outline-offset: 3px;
+}
+
+.submit:disabled {
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.submittedGuess {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 4px;
+  color: #3973aa;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.submittedUnit {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.waitingArtwork {
+  width: 82px;
+  height: 82px;
+  object-fit: contain;
+}
+
+@media (max-width: 360px) {
+  .console {
+    padding: 15px;
+  }
+
+  .formatChip {
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field,
+  .submit {
+    transition: none;
+  }
+
+  .submit:hover:not(:disabled),
+  .submit:active:not(:disabled) {
+    transform: none;
+  }
+}

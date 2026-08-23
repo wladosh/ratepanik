@@ -25,6 +25,21 @@ const de = {
     or: "oder",
     player: "Spieler",
   },
+  auth: {
+    rateLimit:
+      "Bestätigungs-Mails sind gerade voll (ca. 2 pro Stunde).",
+    bypassHint:
+      "Tipp: Google nutzen — oder mit einem bestehenden Testkonto anmelden.",
+    emailNotConfirmed:
+      "Diese E-Mail ist noch nicht bestätigt. Schau im Postfach (und Spam) nach dem Link.",
+    emailNotConfirmedHint:
+      "Keine neue Mail anstoßen: Limit ca. 2 pro Stunde. Google oder ein bestätigtes Testkonto geht sofort.",
+    invalidCredentials: "E-Mail oder Passwort stimmt nicht.",
+    alreadyRegistered: "Diese E-Mail hat schon ein Konto.",
+    alreadyRegisteredHint:
+      "Einfach anmelden — oder Google / ein bestätigtes Testkonto nutzen.",
+    generic: "Das hat nicht geklappt. Versuch's nochmal.",
+  },
   settings: {
     title: "Einstellungen",
     language: "Sprache",
@@ -74,7 +89,7 @@ const de = {
     stats: "Statistik",
     achievements: "Erfolge",
     shop: "Shop",
-    shopMeta: "Avatare & mehr",
+    shopMeta: "Hirnkiste",
     connectAccount: "Konto verbinden",
     loadingMeta: "Wird geladen",
     buildCrew: "Crew aufbauen",
@@ -83,6 +98,24 @@ const de = {
     levelGames: "Level {level} · {games} Spiele",
     levelOnly: "Level {level}",
     achievementsProgress: "{unlocked} von {total}",
+  },
+  cosmetics: {
+    customize: "Schleimi",
+    customizeAria: "Schleimi anpassen",
+    customizeNeedsAccountHeadline: "Schleimi braucht ein Konto",
+    customizeNeedsAccountBody:
+      "Als Gast bleibt der Schleim nackt. Anmelden — dann bleiben Looks gespeichert.",
+    shopNeedsAccountHeadline: "Shop braucht ein Konto",
+    shopNeedsAccountBody:
+      "Als Gast kannst du keine Hirnkiste öffnen. Melde dich an — Hirncoins nimmst du aus Matches mit.",
+    hirncoins: "Hirncoins",
+    boxName: "Hirnkiste",
+    open: "Öffnen",
+    opening: "Wird geöffnet…",
+    notEnough: "Nicht genug Hirncoins. Spiel ein Match!",
+    shopFinePrint:
+      "Eine Kiste, drei Seltenheiten. Duplikate werden zu ein paar Hirncoins. Kein Echtgeld.",
+    emptySlot: "Leer",
   },
   landing: {
     guestTitle: "Als Gast beitreten",
@@ -108,8 +141,6 @@ const de = {
     google: "Mit Google anmelden",
     guest: "Als Gast beitreten (nur mitspielen)",
     backHome: "← Zurück zur Startseite",
-    rateLimit:
-      "Zu viele Anmelde-Versuche gerade. Bitte etwa 1 Stunde warten oder später nochmal.",
   },
   signup: {
     subtitle: "Konto erstellen",
@@ -122,11 +153,11 @@ const de = {
     nameTooShort: "Name zu kurz (min. 3 Zeichen)",
     nameAvailable: "Name verfügbar!",
     claimFailed: "Name konnte nicht reserviert werden",
-    rateLimit:
-      "Zu viele Anmelde-Mails gerade. Bitte etwa 1 Stunde warten, Google nutzen, oder später nochmal.",
-    confirmTitle: "Bestätigungs-E-Mail gesendet!",
+    confirmTitle: "Bestätigungs-Mail ist unterwegs",
     confirmBody:
-      "Prüfe dein Postfach und klicke den Link, um dein Konto zu aktivieren.",
+      "Prüfe Postfach und Spam, dann den Link antippen. Supabase schickt nur ca. 2 Bestätigungen pro Stunde — wenn nichts kommt, einfach warten.",
+    confirmHint:
+      "Sofort spielen: Google, oder ein bestehendes Testkonto (schon bestätigt).",
     backToLogin: "Zurück zum Login",
   },
 } as const;
@@ -143,6 +174,21 @@ const en: StringTree<typeof de> = {
     guest: "Guest",
     or: "or",
     player: "Player",
+  },
+  auth: {
+    rateLimit:
+      "Confirmation emails are capped right now (about 2 per hour).",
+    bypassHint:
+      "Tip: use Google — or sign in with an existing test account.",
+    emailNotConfirmed:
+      "This email is not confirmed yet. Check your inbox (and spam) for the link.",
+    emailNotConfirmedHint:
+      "Don’t request another mail: limit is about 2 per hour. Google or a confirmed test account works now.",
+    invalidCredentials: "Email or password doesn’t match.",
+    alreadyRegistered: "This email already has an account.",
+    alreadyRegisteredHint:
+      "Just log in — or use Google / a confirmed test account.",
+    generic: "That didn’t work. Try again.",
   },
   settings: {
     title: "Settings",
@@ -193,7 +239,7 @@ const en: StringTree<typeof de> = {
     stats: "Stats",
     achievements: "Achievements",
     shop: "Shop",
-    shopMeta: "Avatars & more",
+    shopMeta: "Brain crate",
     connectAccount: "Connect account",
     loadingMeta: "Loading",
     buildCrew: "Build your crew",
@@ -202,6 +248,24 @@ const en: StringTree<typeof de> = {
     levelGames: "Level {level} · {games} games",
     levelOnly: "Level {level}",
     achievementsProgress: "{unlocked} of {total}",
+  },
+  cosmetics: {
+    customize: "Schleimi",
+    customizeAria: "Customize Schleimi",
+    customizeNeedsAccountHeadline: "Schleimi needs an account",
+    customizeNeedsAccountBody:
+      "Guests keep a bare slime. Sign in to save looks.",
+    shopNeedsAccountHeadline: "Shop needs an account",
+    shopNeedsAccountBody:
+      "Guests can’t open a brain crate. Sign in — Hirncoins come from matches.",
+    hirncoins: "Hirncoins",
+    boxName: "Brain crate",
+    open: "Open",
+    opening: "Opening…",
+    notEnough: "Not enough Hirncoins. Play a match!",
+    shopFinePrint:
+      "One crate, three rarities. Duplicates become a few Hirncoins. No real money.",
+    emptySlot: "Empty",
   },
   landing: {
     guestTitle: "Join as guest",
@@ -227,8 +291,6 @@ const en: StringTree<typeof de> = {
     google: "Continue with Google",
     guest: "Join as guest (play only)",
     backHome: "← Back to home",
-    rateLimit:
-      "Too many login attempts right now. Please wait about an hour, or try again later.",
   },
   signup: {
     subtitle: "Create account",
@@ -241,10 +303,11 @@ const en: StringTree<typeof de> = {
     nameTooShort: "Name too short (min. 3 characters)",
     nameAvailable: "Name available!",
     claimFailed: "Couldn’t reserve that name",
-    rateLimit:
-      "Too many signup emails right now. Please wait about an hour, use Google, or try later.",
-    confirmTitle: "Confirmation email sent!",
-    confirmBody: "Check your inbox and tap the link to activate your account.",
+    confirmTitle: "Confirmation email is on its way",
+    confirmBody:
+      "Check inbox and spam, then tap the link. Supabase only sends about 2 confirmations per hour — if nothing arrives, just wait.",
+    confirmHint:
+      "Play now: Google, or an existing test account that’s already confirmed.",
     backToLogin: "Back to login",
   },
 };

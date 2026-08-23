@@ -128,6 +128,38 @@ export interface DbUserCosmetic {
   user_id: string;
   item_id: string;
   acquired_at: string;
+  source?: "starter" | "lootbox" | "legacy_avatar";
+}
+
+export interface DbCosmeticItem {
+  id: string;
+  slot: "body_tint" | "face" | "hat" | "extra";
+  rarity: "gewoehnlich" | "selten" | "legendaer";
+  name_de: string;
+  asset_path: string;
+  active: boolean;
+  sort_order: number;
+}
+
+export interface DbUserLoadout {
+  user_id: string;
+  slot: "body_tint" | "face" | "hat" | "extra";
+  item_id: string | null;
+  updated_at: string;
+}
+
+export interface DbLootboxDef {
+  id: string;
+  price_hc: number;
+  weight_gewoehnlich: number;
+  weight_selten: number;
+  weight_legendaer: number;
+  dupe_hc_gewoehnlich: number;
+  dupe_hc_selten: number;
+  dupe_hc_legendaer: number;
+  art_closed: string;
+  art_open: string;
+  active: boolean;
 }
 
 export interface DbAchievement {

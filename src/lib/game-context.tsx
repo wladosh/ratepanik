@@ -1304,7 +1304,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   }, [isHost, room?.status, room?.settings, players.length]);
 
   const selectTheme = async (themeId: string) => {
-    if (!room || !currentBlock) return;
+    if (!room || !currentBlock) {
+      throw new Error("Die Themenauswahl ist nicht mehr aktiv.");
+    }
+    if (!isThemePicker) {
+      throw new Error("Nur der aktuelle Themenprofi darf ein Thema wählen.");
+    }
 
     const settings = parseRoomSettings(room.settings);
     const count = roundsForMode(currentBlock.mode, settings.questionsPerBlock);
@@ -1335,15 +1340,15 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     if (fetchedPrompts.length === 0) {
-      setError("Keine Fragen verfügbar. Bitte Fragemeister kontaktieren.");
-      return;
+      const message = "Keine Fragen verfügbar. Bitte Fragemeister kontaktieren.";
+      setError(message);
+      throw new Error(message);
     }
 
     const promptIds = fetchedPrompts.map((p) => p.id);
-    setPrompts(fetchedPrompts);
 
     // Update block with selected theme and prompts
-    await supabase
+    const { error: blockUpdateError } = await supabase
       .from("match_blocks")
       .update({
         theme_id: themeId,
@@ -1351,15 +1356,25 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         started_at: new Date().toISOString(),
       })
       .eq("id", currentBlock.id);
+    if (blockUpdateError) {
+      setError("Das Thema konnte nicht gespeichert werden. Bitte erneut versuchen.");
+      throw blockUpdateError;
+    }
 
     // Deactivate theme vote
-    await supabase
+    const { error: roomUpdateError } = await supabase
       .from("rooms")
       .update({
         theme_vote_active: false,
         updated_at: new Date().toISOString(),
       })
       .eq("id", room.id);
+    if (roomUpdateError) {
+      setError("Die Runde konnte nicht gestartet werden. Bitte erneut versuchen.");
+      throw roomUpdateError;
+    }
+
+    setPrompts(fetchedPrompts);
   };
 
   const submitNumberGuess = async (guess: number) => {

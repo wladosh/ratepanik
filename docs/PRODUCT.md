@@ -6,7 +6,7 @@
 > Owner: Wladislaw · Koordination: Stabschef · Umsetzung: Dev · Content: Fragemeister · UI: UX
 
 **Stand:** 2026-08-23  
-**Status:** Phase B — Progression live; Freunde-MVP (Liste, Last-seen, Join-Link) folgt dem Home-Panel.
+**Status:** Phase C Collect: Shop verkauft **eine** Hirnkiste; Schleimi-Slots. Phase B Progression bleibt. HOLD: Level-Nutzen, Gast-Progress-Merge. Flutter später.
 
 ---
 
@@ -63,9 +63,8 @@ Sichtbar / erreichbar:
 - Hirncoins-Stand
 - **Streak** — Kalendertage mit abgeschlossenem Match (`profiles.current_streak`, gleiche Logik wie Erfolg `streak_3`). Home zeigt die echte Zahl; **Bald**, wenn der Wert nicht gespeichert ist. Kein Fake-Flammen-Fortschritt.
 - **Spiel erstellen** / **Spiel beitreten**
-- Freunde
-- Lootbox-Shop / Inventar / Cosmetics anziehen
-- Achievements-Übersicht (später)
+- Freunde, Stats, Achievements
+- Shop: **Hirnkiste** (eine Lootbox-SKU). Home-Avatar öffnet Schleimi-Customize.
 
 ---
 
@@ -76,10 +75,10 @@ Sichtbar / erreichbar:
 - **Offen:** Was Level *bringen* soll. Progress ist gewollt — Nutzen später festlegen, XP-Kurve trotzdem früh einbauen.
 
 ### 5.2 Hirncoins
-Verdienen: Match-Ende (Sieg > Platz 2 > …). Ausgeben: **Avatar-Looks** im Shop (MVP). Lootboxen bleiben Phase C (on hold).
+Verdienen: Match-Ende (Sieg > Platz 2 > …). Ausgeben: **Hirnkiste** im Shop (100 HC, eine SKU). Alte Avatar-Looks sind nicht mehr käuflich.
 
-### 5.3 Cosmetics (MVP, keine Lootboxen)
-Statischer Katalog der 6 Default-Avatare (`default_01`–`06`). `default_01` ist Starter (gratis). Rest gegen Hirncoins. Besitz in `user_cosmetics`; anziehen nur Besitz (`equip_avatar`). Achievements-Badges sind keine Shop-Items. Lootboxen: nicht gebaut.
+### 5.3 Cosmetics (Phase C)
+Ein Maskottchen **Schleimi**, Cosmetics in Slots (`body_tint`, `face`, `hat`, `extra`). Shop verkauft nur `lootbox_basic` (Öffnen = kaufen + Server-Roll). Besitz in `user_cosmetics`; anziehen über `user_loadout` / `equip_slot`. Duplikat → kleine HC-Entschädigung. Achievements-Badges sind keine Shop-Items. Spec: `docs/PHASE_C_SHOP.md`.
 
 ### 5.4 Achievements
 Beispiele: exakter Zahlenraten-Treffer; erster Match-Sieg; 3 Matches mit Freunden; Passendes-wählen ohne Fehler; Streak exakter Treffer.
@@ -132,12 +131,12 @@ Next.js App Router; Supabase rooms/players/answers + Realtime (PR #2). Auth/Prog
 ## 12. MVP-Phasen
 **A Core:** Auth, Host-Regel, Lobby 2–4, Engine Zahlenraten+Passendes wählen, Ergebnis, Themenwahl, Content-Seed.
 **B Progression:** XP/Level, Hirncoins, Achievements live, Avatar starter.
-**C Collect:** Lootboxen (on hold), mehr Modi. Avatar-Shop ist MVP.
+**C Collect:** Hirnkiste + Schleimi-Slots (diese Slice). Keine zweiten Box-Tiers. Flutter später.
 
 ---
 
 ## 13. Offene Entscheidungen
-Level-Nutzen; Themen-Freigabe; Punkttabellen; 2 weitere Modi; Gast-Progress mergen?
+HOLD: Level-Nutzen; Gast-Progress mergen. Offen: Punkttabellen; Pity.
 
 ## 14. Agent-Rollen
 Stabschef, Dev, Fragemeister, UX, Asset später.

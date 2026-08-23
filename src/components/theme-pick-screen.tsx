@@ -1,109 +1,187 @@
 "use client";
 
+import Image from "next/image";
+import { useRef, useState } from "react";
 import { useGame } from "@/lib/game-context";
-import { modeEmoji, modeLabelDe } from "@/lib/game-store";
+import { themeArtSrc, themeEmoji } from "@/lib/rp-assets";
+import { AnswerWaitingPanel } from "./answer-waiting-panel";
+import { MatchPlayShell } from "./match-play-shell";
+import { MatchStatusHeader } from "./match-status-header";
+import styles from "./theme-pick-screen.module.css";
 
-const THEME_ICONS: Record<string, string> = {
-  gaming: "\u{1F3AE}",
-  geschichte: "\u{1F4DC}",
-  "wissenschaft-natur": "\u{1F52C}",
-  sport: "⚽",
-  musik: "\u{1F3B5}",
-  "film-serie": "\u{1F3AC}",
-  "reise-orte": "\u{1F30D}",
-  "alltag-peinlich": "\u{1F605}",
-};
+function ThemeCardsSkeleton() {
+  return (
+    <div
+      className={styles.cardGrid}
+      role="status"
+      aria-live="polite"
+      aria-label="Themen werden geladen"
+    >
+      {[0, 1].map((index) => (
+        <div key={index} className={styles.skeletonCard} aria-hidden="true">
+          <span className={styles.skeletonArt} />
+          <span className={styles.skeletonCopy}>
+            <span className={styles.skeletonLabel} />
+            <span className={styles.skeletonTitle} />
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function ThemePickScreen() {
   const game = useGame();
+  const [pendingThemeId, setPendingThemeId] = useState<string | null>(null);
+  const submissionLockedRef = useRef(false);
   const picker = game.players.find((p) => p.id === game.themePickerPlayerId);
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
+  const totalBlocks = game.room?.total_blocks ?? 4;
   const mode = game.currentBlock?.mode;
-  const modeLabel = modeLabelDe(mode);
+  const pickerName = picker?.display_name ?? "Der Themenprofi";
+  const optionsLoading = game.themeOptions.length === 0;
+
+  const handleThemeSelect = async (themeId: string) => {
+    if (submissionLockedRef.current) return;
+
+    submissionLockedRef.current = true;
+    setPendingThemeId(themeId);
+
+    try {
+      await game.selectTheme(themeId);
+    } catch {
+      submissionLockedRef.current = false;
+      setPendingThemeId(null);
+    }
+  };
 
   return (
-    <div
-      className="flex flex-1 flex-col items-center justify-center px-5 py-6"
-      style={{
-        background: "var(--rp-bg-hero)",
-        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
-      }}
+    <MatchPlayShell
+      ariaLabel="Themenauswahl"
+      contentClassName={styles.content}
     >
-      <div className="w-full max-w-sm text-center">
-        <p className="text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: "var(--rp-text-secondary)" }}>
-          Block {blockNum} von {game.room?.total_blocks ?? 4}
-        </p>
+      <div className={styles.layout}>
+        <MatchStatusHeader
+          current={blockNum}
+          total={totalBlocks}
+          mode={mode}
+          questionLabel="Block"
+        />
 
-        <span
-          className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold mb-3"
-          style={{
-            background: "var(--rp-bg-elevated)",
-            color: "var(--rp-text-secondary)",
-            boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
-          }}
-        >
-          {modeEmoji(mode)} {modeLabel}
-        </span>
-
-        <h2 className="mb-2 text-2xl font-extrabold" style={{ color: "var(--rp-text)" }}>
-          Thema wählen
-        </h2>
-
-        <div className="mb-6 flex items-center justify-center gap-2">
-          <span className="text-2xl">{picker ? game.getAvatar(picker.id) : ""}</span>
-          <span className="text-base" style={{ color: "var(--rp-text-secondary)" }}>
-            {game.isThemePicker ? (
-              <span className="font-bold" style={{ color: "var(--rp-peach)" }}>Du wählst!</span>
-            ) : picker ? (
-              <>
-                <span className="font-bold" style={{ color: "var(--rp-text)" }}>{picker.display_name}</span> wählt…
-              </>
-            ) : (
-              <span className="font-bold" style={{ color: "var(--rp-text-secondary)" }}>Warte auf Auswahl\u2026</span>
-            )}
+        <section className={styles.intro} aria-labelledby="theme-pick-title">
+          <span className={styles.introSpark} aria-hidden="true">
+            ✦
           </span>
-        </div>
+          <div className={styles.pickerAvatar} aria-hidden="true">
+            {picker ? game.getAvatar(picker.id) : "✨"}
+          </div>
+          <div className={styles.introCopy}>
+            <p className={styles.eyebrow}>
+              {game.isThemePicker ? "Du entscheidest" : `${pickerName} entscheidet`}
+            </p>
+            <h1 id="theme-pick-title" className={styles.title}>
+              Wählt euer Thema
+            </h1>
+            <p className={styles.subtitle}>
+              {game.isThemePicker
+                ? "Welches Thema bringt eure Runde in Fahrt?"
+                : `Lehn dich zurück – ${pickerName} sucht das nächste Thema aus.`}
+            </p>
+          </div>
+        </section>
 
-        {game.isThemePicker ? (
-          <div className="grid grid-cols-1 gap-3">
-            {game.themeOptions.map((theme) => {
-              const icon = THEME_ICONS[theme.slug] ?? "❓";
+        {optionsLoading ? (
+          <ThemeCardsSkeleton />
+        ) : game.isThemePicker ? (
+          <div className={styles.cardGrid} aria-label="Themen zur Auswahl">
+            {game.themeOptions.map((theme, index) => {
+              const artSrc = themeArtSrc(theme.slug);
+              const isSelected = pendingThemeId === theme.id;
+              const isDisabled = pendingThemeId !== null;
+
               return (
                 <button
                   key={theme.id}
-                  onClick={() => void game.selectTheme(theme.id)}
-                  className="flex items-center gap-4 p-5 transition-all active:scale-[0.97]"
-                  style={{
-                    background: "var(--rp-bg-elevated)",
-                    borderRadius: "var(--rp-radius-lg)",
-                    boxShadow: "var(--rp-shadow-card)",
-                    border: "2px solid var(--rp-border)",
-                  }}
+                  type="button"
+                  onClick={() => void handleThemeSelect(theme.id)}
+                  disabled={isDisabled}
+                  aria-describedby={`theme-hint-${theme.id}`}
+                  aria-label={`${theme.name_de} auswählen`}
+                  className={[
+                    styles.themeCard,
+                    index % 2 === 0 ? styles.cardPeach : styles.cardPurple,
+                    isSelected ? styles.themeCardSelected : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
-                  <span className="text-4xl">{icon}</span>
-                  <span className="text-lg font-bold" style={{ color: "var(--rp-text)" }}>
+                  <span className={styles.cardGlow} aria-hidden="true" />
+                  <span className={styles.cardArt} aria-hidden="true">
+                    {artSrc ? (
+                      <Image
+                        src={artSrc}
+                        alt=""
+                        width={176}
+                        height={176}
+                        sizes="176px"
+                        className={styles.themeImage}
+                        priority
+                      />
+                    ) : (
+                      <span className={styles.fallbackEmoji}>
+                        {themeEmoji(theme.slug)}
+                      </span>
+                    )}
+                  </span>
+                  <span className={styles.cardCopy}>
+                    <span className={styles.cardKicker}>
+                      {isSelected ? "Ausgewählt" : `Option ${index + 1}`}
+                    </span>
+                    <span className={styles.cardTitle}>
                     {theme.name_de}
+                  </span>
+                    <span
+                      id={`theme-hint-${theme.id}`}
+                      className={styles.cardAction}
+                    >
+                      {isSelected ? (
+                        <>
+                          <span className={styles.checkmark} aria-hidden="true">
+                            ✓
+                          </span>
+                          Wird vorbereitet …
+                        </>
+                      ) : (
+                        <>
+                          Thema wählen
+                          <span aria-hidden="true">→</span>
+                        </>
+                      )}
+                    </span>
                   </span>
                 </button>
               );
             })}
           </div>
         ) : (
-          <div
-            className="p-8"
-            style={{
-              background: "var(--rp-bg-elevated)",
-              borderRadius: "var(--rp-radius-lg)",
-              boxShadow: "var(--rp-shadow-card)",
-            }}
+          <AnswerWaitingPanel
+            className={styles.spectatorPanel}
+            artwork={
+              <span className={styles.waitingAvatar} aria-hidden="true">
+                {picker ? game.getAvatar(picker.id) : "🤔"}
+              </span>
+            }
+            title={`${pickerName} wählt gerade`}
+            description="Das nächste Thema erscheint gleich für alle."
           >
-            <div className="text-4xl animate-bounce-slow mb-3">{"\u{1F914}"}</div>
-            <p className="text-base" style={{ color: "var(--rp-text-secondary)" }}>
-              Warte auf {picker?.display_name}…
-            </p>
-          </div>
+            <span className={styles.waitingDots} aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+          </AnswerWaitingPanel>
         )}
       </div>
-    </div>
+    </MatchPlayShell>
   );
 }

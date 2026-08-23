@@ -34,7 +34,6 @@ export function FinalScreen() {
   const userId = user?.id;
   const profileXp = profile?.xp ?? 0;
   const profileLevel = profile?.level ?? 1;
-  const profileHirncoins = profile?.hirncoins ?? 0;
   const myScore = myPlayer?.score ?? 0;
   const playerCount = game.players.length;
 
@@ -96,7 +95,7 @@ export function FinalScreen() {
       await refetchProfile();
       setReady(true);
     }
-  }, [roomId, userId, placement, profileXp, profileLevel, profileHirncoins, myScore, playerCount, recordDailyPlay, refetchProfile, supabase]);
+  }, [roomId, userId, placement, profileXp, profileLevel, myScore, playerCount, recordDailyPlay, refetchProfile, supabase]);
 
   useEffect(() => {
     if (grantedRef.current || !roomId || !userId || isGuest) return;

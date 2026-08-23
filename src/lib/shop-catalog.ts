@@ -1,6 +1,7 @@
 import { AVATAR_IDS, type AvatarId } from "@/lib/rp-assets";
+import { LOOTBOX_BASIC_ID, LOOTBOX_BASIC_PRICE_HC } from "@/lib/schleimi-catalog";
 
-/** Starter look — always owned, never sold. */
+/** @deprecated Phase B grid. Shop no longer sells these. */
 export const STARTER_AVATAR_ID: AvatarId = "default_01";
 
 export interface ShopAvatar {
@@ -11,9 +12,8 @@ export interface ShopAvatar {
 }
 
 /**
- * Static shop catalog. Prices MUST stay in sync with
- * `avatar_shop_price()` in supabase/migrations/20260823_013_shop_avatars.sql.
- * No lootboxes. Achievement badges are not cosmetics.
+ * Legacy avatar grid — kept for types / leftover UI.
+ * Phase C shop sells `lootbox_basic` only. `purchase_avatar` is stubbed.
  */
 export const SHOP_AVATARS: readonly ShopAvatar[] = [
   { id: "default_01", name: "Starter", price: 0 },
@@ -23,6 +23,9 @@ export const SHOP_AVATARS: readonly ShopAvatar[] = [
   { id: "default_05", name: "Mango", price: 100 },
   { id: "default_06", name: "Himmel", price: 140 },
 ] as const;
+
+export const SHOP_LOOTBOX_ID = LOOTBOX_BASIC_ID;
+export const SHOP_LOOTBOX_PRICE_FALLBACK = LOOTBOX_BASIC_PRICE_HC;
 
 export function isAvatarId(id: string): id is AvatarId {
   return (AVATAR_IDS as readonly string[]).includes(id);

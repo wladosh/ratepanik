@@ -1,225 +1,231 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
-import { useGame } from "@/lib/game-context";
-import { TimerPill } from "./timer-pill";
-import { QuestionTimerBar } from "./question-timer-bar";
-import { WaitingFooter } from "./waiting-footer";
+import Image from "next/image";
+import { useCallback, useState } from "react";
 import type { NumberGuessPayload } from "@/lib/content";
+import { useGame } from "@/lib/game-context";
+import { MODE_NUMBER_GUESS_256 } from "@/lib/rp-assets";
+import { AnswerWaitingPanel } from "./answer-waiting-panel";
+import { GuessConsole } from "./guess-console";
+import { MatchPlayShell } from "./match-play-shell";
+import { MatchStatusHeader } from "./match-status-header";
+import styles from "./number-guess-screen.module.css";
+import { QuestionStage } from "./question-stage";
+import { QuestionTimerBar } from "./question-timer-bar";
+import { TimerPill } from "./timer-pill";
+import { WaitingFooter } from "./waiting-footer";
+
+interface PromptDraft {
+  promptId: string;
+  value: string;
+}
+
+interface PromptSubmission {
+  promptId: string;
+  value: number;
+}
+
+const GUESS_FORMATTER = new Intl.NumberFormat("de-DE", {
+  maximumFractionDigits: 20,
+  useGrouping: true,
+});
+
+function formatGuess(value: number): string {
+  return GUESS_FORMATTER.format(value);
+}
 
 export function NumberGuessScreen() {
   const game = useGame();
-  const [guess, setGuess] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-  const lastPromptRef = useRef<string | null>(null);
+  const [draft, setDraft] = useState<PromptDraft | null>(null);
+  const [submission, setSubmission] = useState<PromptSubmission | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const prompt = game.currentPrompt;
   const payload = prompt?.payload as NumberGuessPayload | undefined;
+  const promptId = prompt?.id ?? "";
+  const guess = draft?.promptId === promptId ? draft.value : "";
+  const localSubmission =
+    submission?.promptId === promptId ? submission.value : null;
+  const storedSubmission =
+    game.roundAnswers.find((answer) => answer.player_id === game.myPlayerId)
+      ?.numeric_answer ?? null;
+  const submittedGuess = localSubmission ?? storedSubmission;
   const hasAnswered = game.phase === "number_guess_waiting";
+  const waiting = hasAnswered || localSubmission !== null;
 
-  useEffect(() => {
-    if (prompt?.id && prompt.id !== lastPromptRef.current) {
-      lastPromptRef.current = prompt.id;
-      setGuess("");
-      setSubmitted(false);
-    }
-  }, [prompt?.id]);
-
-  const answeredCount = game.roundAnswers.length;
+  const localAnswerIsPending =
+    localSubmission !== null &&
+    !game.roundAnswers.some((answer) => answer.player_id === game.myPlayerId);
+  const answeredCount =
+    game.roundAnswers.length + (localAnswerIsPending ? 1 : 0);
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
   const totalBlocks = game.room?.total_blocks ?? 4;
   const roundNum = (game.currentBlock?.current_round ?? 0) + 1;
-  const roundsTotal = game.currentBlock?.rounds_total ?? 2;
+  const roundsTotal = game.currentBlock?.rounds_total ?? 1;
 
-  const handleSubmit = useCallback(async () => {
-    const num = parseFloat(guess);
-    if (isNaN(num) || submitted) return;
-    setSubmitted(true);
-    try {
-      await game.submitNumberGuess(num);
-    } catch {
-      setSubmitted(false);
-    }
-  }, [guess, submitted, game]);
+  const handleSubmit = useCallback(
+    async (value: number) => {
+      if (!prompt || hasAnswered || submission?.promptId === prompt.id) return;
+
+      const nextSubmission = { promptId: prompt.id, value };
+      setSubmissionError(null);
+      setSubmission(nextSubmission);
+
+      try {
+        await game.submitNumberGuess(value);
+      } catch {
+        setSubmission((current) =>
+          current?.promptId === prompt.id ? null : current,
+        );
+        setSubmissionError(
+          "Deine Schätzung konnte nicht gespeichert werden. Versuch es noch einmal.",
+        );
+      }
+    },
+    [game, hasAnswered, prompt, submission],
+  );
 
   if (!prompt) {
     return (
-      <div
-        className="flex flex-1 items-center justify-center"
-        style={{ background: "var(--rp-bg-hero)" }}
-      >
-        <div className="text-lg animate-pulse font-medium" style={{ color: "var(--rp-text-secondary)" }}>
-          Frage wird geladen…
+      <MatchPlayShell ariaLabel="Zahlenraten">
+        <div className="flex flex-1 items-center justify-center">
+          <p
+            className="text-lg font-medium motion-safe:animate-pulse"
+            role="status"
+            style={{ color: "var(--rp-text-secondary)" }}
+          >
+            Frage wird geladen…
+          </p>
         </div>
-      </div>
+      </MatchPlayShell>
     );
   }
 
+  const timer =
+    !waiting && game.questionDeadlineMs != null ? (
+      <QuestionTimerBar
+        key={`${game.currentBlock?.id ?? "block"}:${game.currentBlock?.current_round ?? 0}`}
+        deadlineMs={game.questionDeadlineMs}
+        durationMs={game.questionTimerMs ?? undefined}
+      />
+    ) : undefined;
+
+  const participants = game.players.map((player) => ({
+    id: player.id,
+    name: player.display_name,
+    avatar: game.getAvatar(player.id),
+    answered:
+      (player.id === game.myPlayerId && localSubmission !== null) ||
+      game.roundAnswers.some((answer) => answer.player_id === player.id),
+  }));
+
   return (
-    <div
-      className="flex flex-1 flex-col"
-      style={{
-        background: "var(--rp-bg-hero)",
-        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
-      }}
-    >
-      <div className="flex-1 flex flex-col px-4 pb-5">
-        {/* Header pills — left gutter clears the 44×44 exit button */}
-        <div className="flex items-center justify-between mt-2 mb-4">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-11 shrink-0" aria-hidden="true" />
-            <span
-              className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
-              style={{
-                background: "var(--rp-bg-elevated)",
-                color: "var(--rp-text-secondary)",
-                boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
-              }}
-            >
-              Frage <span style={{ color: "var(--rp-peach)" }}>{blockNum}</span>/{totalBlocks}
-            {roundsTotal > 1 && (
-              <span className="ml-1 text-xs opacity-60">
-                &middot; Runde {roundNum}/{roundsTotal}
-              </span>
-            )}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <TimerPill timerSeconds={game.currentBlock?.timer_seconds} startedAt={game.currentBlock?.started_at} />
-            <span
-              className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
-              style={{
-                background: "var(--rp-bg-elevated)",
-                color: "var(--rp-text-secondary)",
-                boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
-              }}
-            >
-              Zahlenraten
-            </span>
-          </div>
-        </div>
-
-        {/* Question card */}
-        <div
-          className="p-5"
-          style={{
-            background: "var(--rp-bg-elevated)",
-            borderRadius: "var(--rp-radius-lg)",
-            boxShadow: "var(--rp-shadow-card)",
-            marginBottom: (!hasAnswered && !submitted && game.questionDeadlineMs != null) ? 0 : 20,
-          }}
-        >
-          <h2
-            className="text-xl font-bold leading-snug"
-            style={{ color: "var(--rp-text)" }}
-          >
-            {prompt.prompt}
-          </h2>
-          {payload?.unit && (
-            <p className="mt-2 text-sm" style={{ color: "var(--rp-text-secondary)" }}>
-              Antwort in: {payload.unit}
-            </p>
-          )}
-          {prompt.hint && (
-            <p className="mt-2 text-sm italic" style={{ color: "var(--rp-text-secondary)", opacity: 0.7 }}>
-              Hinweis: {prompt.hint}
-            </p>
-          )}
-        </div>
-
-        {/* Countdown bar — hidden once submitted / answered */}
-        {!hasAnswered && !submitted && game.questionDeadlineMs != null && (
-          <QuestionTimerBar
-            key={`${game.currentBlock!.id}:${game.currentBlock!.current_round}`}
-            deadlineMs={game.questionDeadlineMs}
-            durationMs={game.questionTimerMs ?? undefined}
+    <MatchPlayShell
+      ariaLabel="Zahlenraten"
+      contentClassName={styles.screenContent}
+      footer={
+        waiting ? (
+          <WaitingFooter
+            answered={answeredCount}
+            total={game.players.length}
+            mode="number_guess"
           />
-        )}
+        ) : undefined
+      }
+    >
+      <MatchStatusHeader
+        current={blockNum}
+        total={totalBlocks}
+        mode="number_guess"
+        questionLabel="Block"
+        modeLabel={
+          roundsTotal > 1
+            ? `Schätzen ${roundNum}/${roundsTotal}`
+            : undefined
+        }
+        timer={
+          <TimerPill
+            timerSeconds={game.currentBlock?.timer_seconds}
+            startedAt={game.currentBlock?.started_at}
+          />
+        }
+      />
 
-        {/* Input or waiting state */}
-        {!hasAnswered && !submitted ? (
-          <div className="space-y-4 mb-5">
-            <input
-              type="number"
-              inputMode="decimal"
-              value={guess}
-              onChange={(e) => setGuess(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-              placeholder="Deine Schätzung…"
-              autoFocus
-              className="w-full h-[60px] rounded-[var(--rp-radius-md)] border-2 px-5 text-center text-3xl font-black transition-all focus:outline-none"
-              style={{
-                borderColor: "var(--rp-border)",
-                background: "var(--rp-bg-elevated)",
-                color: "var(--rp-text)",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "var(--rp-border)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
+      <QuestionStage
+        question={prompt.prompt}
+        headingId="number-guess-question"
+        eyebrow="Schätz-Challenge"
+        eyebrowIcon="≈"
+        accentColor="#3973aa"
+        accentBackground="rgba(126, 182, 255, 0.16)"
+        stageTint="rgba(232, 245, 255, 0.96)"
+        stageBorder="rgba(126, 182, 255, 0.2)"
+        artworkBackground="rgba(211, 235, 255, 0.76)"
+        supportingContent={
+          prompt.hint ? (
+            <span className={styles.promptHint}>
+              <span aria-hidden="true">💡</span>
+              <span>{prompt.hint}</span>
+            </span>
+          ) : undefined
+        }
+        artwork={
+          <Image
+            src={MODE_NUMBER_GUESS_256}
+            alt=""
+            width={118}
+            height={118}
+            className={styles.stageArtwork}
+            priority
+          />
+        }
+        timer={timer}
+      />
+
+      {!waiting ? (
+        <GuessConsole
+          value={guess}
+          unit={payload?.unit}
+          submissionError={submissionError}
+          onChange={(value) => {
+            setSubmissionError(null);
+            setDraft({ promptId, value });
+          }}
+          onSubmit={handleSubmit}
+        />
+      ) : (
+        <AnswerWaitingPanel
+          title="Schätzung gespeichert"
+          description={
+            submittedGuess !== null ? (
+              <>
+                Deine Antwort:
+                <br />
+                <strong className={styles.submittedGuess}>
+                  {formatGuess(submittedGuess)}
+                  {payload?.unit ? (
+                    <span className={styles.submittedUnit}>
+                      {payload.unit}
+                    </span>
+                  ) : null}
+                </strong>
+              </>
+            ) : (
+              "Deine Antwort ist sicher gespeichert."
+            )
+          }
+          artwork={
+            <Image
+              src={MODE_NUMBER_GUESS_256}
+              alt=""
+              width={82}
+              height={82}
+              className={styles.waitingArtwork}
             />
-            <button
-              onClick={handleSubmit}
-              disabled={!guess || isNaN(parseFloat(guess))}
-              className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
-              style={{
-                background: (!guess || isNaN(parseFloat(guess)))
-                  ? "var(--rp-peach)"
-                  : "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-                boxShadow: guess && !isNaN(parseFloat(guess))
-                  ? "0 6px 20px rgba(255, 138, 113, 0.35)"
-                  : "none",
-              }}
-            >
-              Abschicken
-            </button>
-          </div>
-        ) : (
-          <div
-            className="p-5 mb-5 text-center animate-fade-in"
-            style={{
-              background: "var(--rp-bg-elevated)",
-              borderRadius: "var(--rp-radius-lg)",
-              boxShadow: "var(--rp-shadow-card)",
-            }}
-          >
-            <p className="text-xl font-bold" style={{ color: "var(--rp-text)" }}>
-              Abgegeben!
-            </p>
-            <p
-              className="mt-2 text-sm font-semibold tracking-wide"
-              style={{ color: "var(--rp-text-secondary)", opacity: 0.7 }}
-            >
-              Antwort weg. Kein Zurück.
-            </p>
-            <div className="mt-3 flex justify-center gap-2">
-              {game.players.map((p) => {
-                const answered = game.roundAnswers.some((a) => a.player_id === p.id);
-                return (
-                  <span
-                    key={p.id}
-                    className="text-xl transition-opacity"
-                    style={{ opacity: answered ? 1 : 0.3 }}
-                    title={p.display_name}
-                  >
-                    {game.getAvatar(p.id)}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Waiting footer */}
-      {(hasAnswered || submitted) && (
-        <WaitingFooter answered={answeredCount} total={game.players.length} />
+          }
+          participants={participants}
+        />
       )}
-    </div>
+    </MatchPlayShell>
   );
 }

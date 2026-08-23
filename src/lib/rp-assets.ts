@@ -25,8 +25,58 @@ export const LEVELUP_FX_128 = "/rp/rp_fx_levelup_64@2x.png";
 export const TROPHY_GOLD_512 = "/rp/rp_trophy_gold_512.png";
 
 // ── Home dashboard feature art ─────────────────────────────────────
+export const HOME_CREATE_ROOM_256 = "/rp/rp_home_create_room_256.png";
 export const RANK_BADGE_GOLD_128 = "/rp/rp_badge_rank_1_128@2x.png";
 export const LOOT_BOX_RARE_128 = "/rp/rp_loot_box_rare_128@2x.png";
+
+// ── Game mode art ───────────────────────────────────────────────────
+export const MODE_ORDER_IT_256 = "/rp/rp_mode_order_it_256.png";
+export const MODE_NUMBER_GUESS_256 = "/rp/rp_mode_number_guess_256.png";
+export const MODE_PICK_CORRECT_256 = "/rp/rp_mode_pick_correct_256.png";
+
+// ── Theme category art ──────────────────────────────────────────────
+export const THEME_SLUGS = [
+  "gaming",
+  "geschichte",
+  "wissenschaft-natur",
+  "sport",
+  "musik",
+  "film-serie",
+  "reise-orte",
+  "alltag-peinlich",
+] as const;
+
+export type ThemeSlug = (typeof THEME_SLUGS)[number];
+
+export const THEME_ART_256: Record<ThemeSlug, string> = {
+  gaming: "/rp/rp_theme_gaming_256.png",
+  geschichte: "/rp/rp_theme_geschichte_256.png",
+  "wissenschaft-natur": "/rp/rp_theme_wissenschaft_natur_256.png",
+  sport: "/rp/rp_theme_sport_256.png",
+  musik: "/rp/rp_theme_musik_256.png",
+  "film-serie": "/rp/rp_theme_film_serie_256.png",
+  "reise-orte": "/rp/rp_theme_reise_orte_256.png",
+  "alltag-peinlich": "/rp/rp_theme_alltag_peinlich_256.png",
+};
+
+export const THEME_EMOJI: Record<ThemeSlug, string> = {
+  gaming: "🎮",
+  geschichte: "📜",
+  "wissenschaft-natur": "🔬",
+  sport: "⚽",
+  musik: "🎵",
+  "film-serie": "🎬",
+  "reise-orte": "🌍",
+  "alltag-peinlich": "😅",
+};
+
+export function themeArtSrc(slug: string): string | null {
+  return THEME_ART_256[slug as ThemeSlug] ?? null;
+}
+
+export function themeEmoji(slug: string): string {
+  return THEME_EMOJI[slug as ThemeSlug] ?? "❓";
+}
 
 // ── Confetti FX ─────────────────────────────────────────────────────
 export const CONFETTI_SHEET_512 = "/rp/rp_fx_confetti_sheet_512.webp";
