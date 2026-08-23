@@ -219,6 +219,14 @@
   100% { box-shadow: 0 0 0 0 rgba(139, 124, 255, 0); }
 }
 
+/* ── Achievement Toast: reduced-motion → fade only ────── */
+@media (prefers-reduced-motion: reduce) {
+  .achievement-toast-card {
+    transition: opacity 280ms ease-out !important;
+    transform: none !important;
+  }
+}
+
 * {
   -webkit-tap-highlight-color: transparent;
 }
