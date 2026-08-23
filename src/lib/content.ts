@@ -232,6 +232,7 @@ export async function prepareBlockTheme(
         theme_options: [themes[0].id],
         theme_id: themes[0].id,
         prompt_ids: fetched.map((p) => p.id),
+        rounds_total: Math.max(1, fetched.length),
       })
       .eq("id", blockId);
     if (error) {

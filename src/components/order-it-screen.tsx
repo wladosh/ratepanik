@@ -158,7 +158,7 @@ export function OrderItScreen() {
                 Deine Reihenfolge
               </h2>
               <p id="order-it-drag-hint" className={styles.dragHint}>
-                Karte halten und verschieben
+                Ziehen zum Sortieren
               </p>
             </div>
           </div>

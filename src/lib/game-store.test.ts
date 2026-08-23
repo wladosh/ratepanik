@@ -99,4 +99,10 @@ describe("generateBlockModes", () => {
     const modes = generateBlockModes(3, "number_guess");
     expect(modes).toEqual(["number_guess", "number_guess", "number_guess"]);
   });
+
+  it("can fill a long match beyond the four unique modes", () => {
+    const modes = generateBlockModes(6);
+    expect(modes).toHaveLength(6);
+    expect(modes.every((mode) => ALLOWED_MODES.has(mode))).toBe(true);
+  });
 });

@@ -1406,6 +1406,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       .update({
         theme_id: themeId,
         prompt_ids: promptIds,
+        rounds_total: Math.max(1, promptIds.length),
       })
       .eq("id", currentBlock.id);
     if (blockUpdateError) {

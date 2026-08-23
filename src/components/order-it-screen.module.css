@@ -44,6 +44,7 @@
 
 .sortingArea {
   margin-bottom: 16px;
+  touch-action: none;
 }
 
 .sortingHeader {

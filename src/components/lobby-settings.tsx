@@ -5,19 +5,21 @@ import { emptyPromptPoolReason, fetchActiveThemes, type Theme } from "@/lib/cont
 import { generateBlockModes } from "@/lib/game-store";
 import {
   DEFAULT_ROOM_SETTINGS,
+  GAME_LENGTH_PRESETS,
   TIMER_SECONDS_OPTIONS,
+  applyGameLength,
   settingsSummaryChips,
   startBlockedReason,
-  type BlockCount,
   type DifficultyFilter,
+  type GameLength,
   type MaxPlayers,
   type ModeFilter,
-  type QuestionsPerBlock,
   type RoomSettings,
   type ThemeMix,
   type TimerSeconds,
 } from "@/lib/room-settings";
 import { useI18n } from "@/lib/i18n-context";
+import lengthStyles from "./lobby-settings.module.css";
 
 function StandardMark({ on }: { on: boolean }) {
   const { t } = useI18n();
@@ -134,8 +136,16 @@ function Chevron({ up }: { up: boolean }) {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
+function Section({
+  title,
+  children,
+  defaultOpen = false,
+}: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <section
       className="p-3.5 mb-2.5"
@@ -316,37 +326,72 @@ export function LobbySettingsPanel({
         </div>
       </Section>
 
-      <Section title={t.lobby.sectionForm}>
-        <div>
-          <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-            {t.lobby.blocks}
-            <StandardMark on={settings.blocks === DEFAULT_ROOM_SETTINGS.blocks} />
-          </p>
-          <Segmented<BlockCount>
-            value={settings.blocks}
-            onChange={(blocks) => onChange({ blocks })}
-            options={[1, 2, 3, 4].map((n) => ({
-              value: n as BlockCount,
-              label: String(n),
-            }))}
-          />
-        </div>
-        <div>
-          <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-            {t.lobby.questionsPerBlock}
-            <StandardMark on={settings.questionsPerBlock === DEFAULT_ROOM_SETTINGS.questionsPerBlock} />
-          </p>
-          <Segmented<QuestionsPerBlock>
-            value={settings.questionsPerBlock}
-            onChange={(questionsPerBlock) => onChange({ questionsPerBlock })}
-            options={[1, 2, 3, 4].map((n) => ({
-              value: n as QuestionsPerBlock,
-              label: String(n),
-            }))}
-          />
-          <p className="text-[10px] mt-1" style={{ color: "var(--rp-text-secondary)" }}>
-            {t.lobby.questionsHint}
-          </p>
+      <Section title={t.lobby.sectionLength} defaultOpen>
+        <p className="text-[10px] -mt-1 mb-1" style={{ color: "var(--rp-text-secondary)" }}>
+          {t.lobby.lengthHint}
+        </p>
+        <div className={lengthStyles.grid} role="radiogroup" aria-label={t.lobby.sectionLength}>
+          {(
+            [
+              {
+                value: "short" as const,
+                title: t.lobby.lengthShort,
+                time: t.lobby.lengthShortTime,
+                minutes: GAME_LENGTH_PRESETS.short.minutes,
+                bars: 1,
+              },
+              {
+                value: "medium" as const,
+                title: t.lobby.lengthMedium,
+                time: t.lobby.lengthMediumTime,
+                minutes: GAME_LENGTH_PRESETS.medium.minutes,
+                bars: 2,
+              },
+              {
+                value: "long" as const,
+                title: t.lobby.lengthLong,
+                time: t.lobby.lengthLongTime,
+                minutes: GAME_LENGTH_PRESETS.long.minutes,
+                bars: 3,
+              },
+            ] satisfies {
+              value: GameLength;
+              title: string;
+              time: string;
+              minutes: number;
+              bars: number;
+            }[]
+          ).map((opt) => {
+            const selected = settings.gameLength === opt.value;
+            const isStandard = opt.value === DEFAULT_ROOM_SETTINGS.gameLength;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => onChange(applyGameLength(opt.value))}
+                className={`${lengthStyles.card} ${selected ? lengthStyles.selected : lengthStyles.idle}`}
+              >
+                {isStandard ? (
+                  <span className={lengthStyles.standard}>{t.lobby.standard}</span>
+                ) : null}
+                <span className={lengthStyles.timeRow}>
+                  <span className={lengthStyles.time}>{opt.minutes}</span>
+                  <span className={lengthStyles.unit}>Min</span>
+                </span>
+                <span className={lengthStyles.label}>{opt.title}</span>
+                <span className={lengthStyles.meter} aria-hidden="true">
+                  {[1, 2, 3].map((bar) => (
+                    <span
+                      key={bar}
+                      className={`${lengthStyles.bar} ${bar <= opt.bars ? lengthStyles.barOn : lengthStyles.barOff}`}
+                    />
+                  ))}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </Section>
 

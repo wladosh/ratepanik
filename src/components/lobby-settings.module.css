@@ -1,0 +1,137 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  min-height: 108px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 10px 10px;
+  border: 1.5px solid transparent;
+  border-radius: 18px;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    background 160ms ease,
+    border-color 160ms ease;
+}
+
+.card:focus-visible {
+  outline: 3px solid var(--rp-focus-ring);
+  outline-offset: 3px;
+}
+
+.card:active {
+  transform: scale(0.97);
+}
+
+.idle {
+  color: var(--rp-text);
+  background: var(--rp-bg-muted);
+  box-shadow: inset 0 0 0 1px rgba(42, 42, 74, 0.04);
+}
+
+.selected {
+  color: #fff;
+  background: linear-gradient(160deg, #9b8cff 0%, var(--rp-purple) 62%, #6f5fe0 100%);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 12px 24px rgba(139, 124, 255, 0.32);
+}
+
+.timeRow {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+}
+
+.time {
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+.unit {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.meter {
+  display: flex;
+  gap: 3px;
+  width: 100%;
+}
+
+.bar {
+  height: 4px;
+  flex: 1;
+  border-radius: 999px;
+}
+
+.barOn,
+.barOff {
+  display: block;
+}
+
+.idle .barOn {
+  background: var(--rp-purple);
+}
+
+.idle .barOff {
+  background: rgba(42, 42, 74, 0.12);
+}
+
+.selected .barOn {
+  background: #fff;
+}
+
+.selected .barOff {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.standard {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.idle .standard {
+  color: var(--rp-purple);
+}
+
+.selected .standard {
+  color: rgba(255, 255, 255, 0.86);
+}
+
+@media (max-width: 360px) {
+  .card {
+    min-height: 98px;
+    padding: 10px 8px 8px;
+  }
+
+  .time {
+    font-size: 22px;
+  }
+}

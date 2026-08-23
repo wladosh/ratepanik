@@ -1,8 +1,8 @@
 /** Default question countdown when a block has no timer snapshot (legacy). */
-export const QUESTION_TIMER_MS = 8_000;
+export const QUESTION_TIMER_MS = 30_000;
 
-/** order_it needs longer — 4-item reorder is not playable in 5s. */
-export const ORDER_IT_TIMER_MS = 20_000;
+/** order_it needs a floor so a 4-item reorder stays playable. */
+export const ORDER_IT_TIMER_MS = 30_000;
 
 export const FIND_LIE_CORRECT_POINTS = 400;
 export const ORDER_IT_POINTS_PER_SLOT = 100;
@@ -191,20 +191,24 @@ const ALL_PLAYABLE: PlayableMode[] = [
   "order_it",
 ];
 
-/** Mix of playable modes, or a single-mode filter. Count clamped 1–4. */
+/** Mix of playable modes, or a single-mode filter. Count clamped 1–6. */
 export function generateBlockModes(
   count: number = 4,
   filter: ModeFilter = "all",
 ): PlayableMode[] {
-  const n = Math.min(4, Math.max(1, Math.round(count)));
+  const n = Math.min(6, Math.max(1, Math.round(count)));
   if (filter !== "all") {
     return Array.from({ length: n }, () => filter);
   }
 
-  const pool = [...ALL_PLAYABLE];
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
+  const result: PlayableMode[] = [];
+  while (result.length < n) {
+    const pool = [...ALL_PLAYABLE];
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    result.push(...pool);
   }
-  return pool.slice(0, n);
+  return result.slice(0, n);
 }

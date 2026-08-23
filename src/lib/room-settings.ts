@@ -8,11 +8,12 @@ export type PlayableMode =
 export type ModeFilter = "all" | PlayableMode;
 export type DifficultyFilter = "mix" | "leicht" | "mittel" | "schwer";
 export type ThemeMix = "random" | "manual";
-export type TimerSeconds = 5 | 8 | 10 | 15;
+export type TimerSeconds = 20 | 30 | 45 | 60;
 export type RevealHoldMs = 500 | 1000 | 1500 | 2000;
 export type MaxPlayers = 2 | 3 | 4;
-export type BlockCount = 1 | 2 | 3 | 4;
+export type BlockCount = 1 | 2 | 3 | 4 | 5 | 6;
 export type QuestionsPerBlock = 1 | 2 | 3 | 4;
+export type GameLength = "short" | "medium" | "long";
 
 export interface RoomSettings {
   v: 1;
@@ -20,6 +21,7 @@ export interface RoomSettings {
   themeIds: string[];
   modeFilter: ModeFilter;
   difficulty: DifficultyFilter;
+  gameLength: GameLength;
   blocks: BlockCount;
   questionsPerBlock: QuestionsPerBlock;
   timerEnabled: boolean;
@@ -30,23 +32,35 @@ export interface RoomSettings {
   autoStart: boolean;
 }
 
+export const GAME_LENGTH_PRESETS: Record<
+  GameLength,
+  { blocks: BlockCount; questionsPerBlock: QuestionsPerBlock; minutes: 5 | 10 | 15 }
+> = {
+  short: { blocks: 3, questionsPerBlock: 2, minutes: 5 },
+  medium: { blocks: 4, questionsPerBlock: 3, minutes: 10 },
+  long: { blocks: 6, questionsPerBlock: 3, minutes: 15 },
+};
+
+export const GAME_LENGTH_OPTIONS: GameLength[] = ["short", "medium", "long"];
+
 export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   v: 1,
   themeMix: "random",
   themeIds: [],
   modeFilter: "all",
   difficulty: "mix",
-  blocks: 4,
-  questionsPerBlock: 2,
+  gameLength: "medium",
+  blocks: GAME_LENGTH_PRESETS.medium.blocks,
+  questionsPerBlock: GAME_LENGTH_PRESETS.medium.questionsPerBlock,
   timerEnabled: true,
-  timerSeconds: 10,
-  revealHoldMs: 1000,
+  timerSeconds: 30,
+  revealHoldMs: 2000,
   maxPlayers: 4,
   allowGuests: true,
   autoStart: false,
 };
 
-export const TIMER_SECONDS_OPTIONS: TimerSeconds[] = [5, 8, 10, 15];
+export const TIMER_SECONDS_OPTIONS: TimerSeconds[] = [20, 30, 45, 60];
 export const REVEAL_HOLD_OPTIONS: RevealHoldMs[] = [500, 1000, 1500, 2000];
 
 function asUnion<T extends number>(value: unknown, allowed: readonly T[], fallback: T): T {
@@ -55,6 +69,37 @@ function asUnion<T extends number>(value: unknown, allowed: readonly T[], fallba
 
 function asStringUnion<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
   return allowed.includes(value as T) ? (value as T) : fallback;
+}
+
+export function inferGameLength(blocks: number, questionsPerBlock: number): GameLength {
+  if (blocks >= 6 || blocks * questionsPerBlock >= 16) return "long";
+  if (blocks <= 3 && questionsPerBlock <= 2) return "short";
+  return "medium";
+}
+
+export function applyGameLength(
+  length: GameLength,
+): Pick<RoomSettings, "gameLength" | "blocks" | "questionsPerBlock"> {
+  const preset = GAME_LENGTH_PRESETS[length];
+  return {
+    gameLength: length,
+    blocks: preset.blocks,
+    questionsPerBlock: preset.questionsPerBlock,
+  };
+}
+
+/** Old 5/8/10/15 values were too frantic — map them onto the calmer scale. */
+export function parseTimerSeconds(value: unknown): TimerSeconds {
+  if (TIMER_SECONDS_OPTIONS.includes(value as TimerSeconds)) {
+    return value as TimerSeconds;
+  }
+  if (typeof value === "number" && Number.isFinite(value)) {
+    if (value <= 12) return 20;
+    if (value <= 22) return 30;
+    if (value <= 40) return 45;
+    return 60;
+  }
+  return DEFAULT_ROOM_SETTINGS.timerSeconds;
 }
 
 export function parseRoomSettings(raw: unknown): RoomSettings {
@@ -66,6 +111,15 @@ export function parseRoomSettings(raw: unknown): RoomSettings {
   const themeIds = Array.isArray(src.themeIds)
     ? src.themeIds.filter((id): id is string => typeof id === "string" && id.length > 0)
     : [];
+
+  const parsedBlocks = asUnion(src.blocks, [1, 2, 3, 4, 5, 6] as const, 4);
+  const parsedQuestions = asUnion(src.questionsPerBlock, [1, 2, 3, 4] as const, 3);
+  const gameLength = asStringUnion(
+    src.gameLength,
+    GAME_LENGTH_OPTIONS,
+    inferGameLength(parsedBlocks, parsedQuestions),
+  );
+  const length = applyGameLength(gameLength);
 
   return {
     v: 1,
@@ -81,11 +135,12 @@ export function parseRoomSettings(raw: unknown): RoomSettings {
       ["mix", "leicht", "mittel", "schwer"] as const,
       "mix",
     ),
-    blocks: asUnion(src.blocks, [1, 2, 3, 4] as const, 4),
-    questionsPerBlock: asUnion(src.questionsPerBlock, [1, 2, 3, 4] as const, 2),
+    gameLength: length.gameLength,
+    blocks: length.blocks,
+    questionsPerBlock: length.questionsPerBlock,
     timerEnabled: true,
-    timerSeconds: asUnion(src.timerSeconds, TIMER_SECONDS_OPTIONS, 10),
-    revealHoldMs: asUnion(src.revealHoldMs, REVEAL_HOLD_OPTIONS, 1000),
+    timerSeconds: parseTimerSeconds(src.timerSeconds),
+    revealHoldMs: asUnion(src.revealHoldMs, REVEAL_HOLD_OPTIONS, 2000),
     maxPlayers: asUnion(src.maxPlayers, [2, 3, 4] as const, 4),
     allowGuests: src.allowGuests !== false,
     autoStart: src.autoStart === true,
@@ -104,6 +159,7 @@ export function clampRoomSettings(
   const themeMix = settings.themeMix;
   const themeIds =
     themeMix === "manual" ? Array.from(new Set(settings.themeIds)) : [];
+  const length = applyGameLength(settings.gameLength);
 
   return {
     ...settings,
@@ -112,6 +168,7 @@ export function clampRoomSettings(
     themeIds,
     maxPlayers,
     timerEnabled: true,
+    ...length,
   };
 }
 
@@ -119,7 +176,8 @@ export function roundsForMode(
   mode: PlayableMode,
   questionsPerBlock: QuestionsPerBlock,
 ): number {
-  return mode === "number_guess" ? questionsPerBlock : 1;
+  void mode;
+  return questionsPerBlock;
 }
 
 /** Snapshot written onto match_blocks.timer_seconds. Timer is always on. */
@@ -129,7 +187,7 @@ export function timerSecondsForBlock(settings: RoomSettings): number {
 
 /**
  * Duration for the Match-Timer bar. Always on — same bar for everyone via started_at.
- * `timer_seconds === 0` or missing on a legacy block falls back to the 10s default.
+ * `timer_seconds === 0` or missing on a legacy block falls back to the current default.
  */
 export function questionTimerMsFromBlock(
   timerSeconds: number | null | undefined,
@@ -185,7 +243,13 @@ export function settingsSummaryChips(
           : t.lobby.diffHard,
   );
 
-  chips.push(interpolate(t.lobby.chipBlocks, { n: settings.blocks }));
+  chips.push(
+    settings.gameLength === "short"
+      ? t.lobby.chipLengthShort
+      : settings.gameLength === "long"
+        ? t.lobby.chipLengthLong
+        : t.lobby.chipLengthMedium,
+  );
   chips.push(interpolate(t.lobby.chipTimer, { n: settings.timerSeconds }));
   chips.push(interpolate(t.lobby.chipMax, { n: settings.maxPlayers }));
   chips.push(settings.allowGuests ? t.lobby.chipGuestsYes : t.lobby.chipGuestsNo);

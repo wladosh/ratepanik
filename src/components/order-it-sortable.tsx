@@ -3,18 +3,41 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { reorderItems } from "./order-it-reorder";
+import styles from "./order-it-sortable.module.css";
 
 export interface OrderItItem {
   orig: number;
   text: string;
 }
 
-const HOLD_MS = 180;
-const SCROLL_CANCEL_PX = 10;
-const MOUSE_DRAG_PX = 5;
-
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
+}
+
+function lockOverflowAncestors(start: HTMLElement): HTMLElement[] {
+  const locked: HTMLElement[] = [];
+  let node: HTMLElement | null = start;
+  while (node) {
+    const overflowY = getComputedStyle(node).overflowY;
+    if (overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay") {
+      locked.push(node);
+      node.dataset.rpOverflowY = node.style.overflowY;
+      node.dataset.rpTouchAction = node.style.touchAction;
+      node.style.overflowY = "hidden";
+      node.style.touchAction = "none";
+    }
+    node = node.parentElement;
+  }
+  return locked;
+}
+
+function unlockOverflowAncestors(nodes: HTMLElement[]) {
+  for (const node of nodes) {
+    node.style.overflowY = node.dataset.rpOverflowY ?? "";
+    node.style.touchAction = node.dataset.rpTouchAction ?? "";
+    delete node.dataset.rpOverflowY;
+    delete node.dataset.rpTouchAction;
+  }
 }
 
 function DragHandle() {
@@ -46,32 +69,21 @@ interface OrderItSortableProps {
 
 export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
   const listRef = useRef<HTMLDivElement>(null);
-  const rowRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const rowRefs = useRef<(HTMLElement | null)[]>([]);
   const itemsRef = useRef(items);
   const onChangeRef = useRef(onChange);
-
-  const pendingRef = useRef<{
-    pointerId: number;
-    index: number;
-    startX: number;
-    startY: number;
-    timer: number;
-    el: HTMLButtonElement;
-    isTouch: boolean;
-  } | null>(null);
+  const lockedRef = useRef<HTMLElement[]>([]);
 
   const dragRef = useRef<{
-    pointerId: number;
     from: number;
     startY: number;
     pitch: number;
-    grabEl: HTMLButtonElement;
+    grabEl: HTMLElement;
+    pointerId: number | null;
   } | null>(null);
 
   const overIndexRef = useRef(0);
-
   const [draggingFrom, setDraggingFrom] = useState<number | null>(null);
-  const [pressingIndex, setPressingIndex] = useState<number | null>(null);
 
   const resetRowTransforms = useCallback(() => {
     rowRefs.current.forEach((row) => {
@@ -79,15 +91,6 @@ export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
       gsap.killTweensOf(row);
       gsap.set(row, { y: 0, scale: 1, zIndex: 1 });
     });
-  }, []);
-
-  const clearPending = useCallback(() => {
-    const pending = pendingRef.current;
-    if (pending) {
-      window.clearTimeout(pending.timer);
-      pendingRef.current = null;
-    }
-    setPressingIndex(null);
   }, []);
 
   const applySiblingShifts = useCallback((from: number, over: number, pitch: number) => {
@@ -100,41 +103,26 @@ export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
     });
   }, []);
 
-  const activateDrag = useCallback(
-    (index: number, pointerId: number, clientY: number, el: HTMLButtonElement) => {
-      const pending = pendingRef.current;
-      if (pending) {
-        window.clearTimeout(pending.timer);
-        pendingRef.current = null;
-      }
-      setPressingIndex(null);
-
-      const rows = rowRefs.current.filter(Boolean) as HTMLButtonElement[];
+  const startDrag = useCallback(
+    (index: number, clientY: number, el: HTMLElement, pointerId: number | null) => {
+      if (dragRef.current) return;
+      const rows = rowRefs.current.filter(Boolean) as HTMLElement[];
       const measuredPitch =
         rows.length >= 2
           ? rows[1].getBoundingClientRect().top - rows[0].getBoundingClientRect().top
           : el.getBoundingClientRect().height + 8;
       const pitch = measuredPitch > 1 ? measuredPitch : 56;
 
-      try {
-        el.setPointerCapture(pointerId);
-      } catch {
-        /* pointer already gone */
+      if (pointerId != null) {
+        try {
+          el.setPointerCapture(pointerId);
+        } catch {
+          /* pointer already gone */
+        }
       }
 
-      const screen = el.closest(".ps-screen") as HTMLElement | null;
-      if (screen) {
-        screen.dataset.rpOverflow = screen.style.overflowY;
-        screen.style.overflowY = "hidden";
-      }
-
-      dragRef.current = {
-        pointerId,
-        from: index,
-        startY: clientY,
-        pitch,
-        grabEl: el,
-      };
+      lockedRef.current = lockOverflowAncestors(el);
+      dragRef.current = { from: index, startY: clientY, pitch, grabEl: el, pointerId };
       overIndexRef.current = index;
       setDraggingFrom(index);
       gsap.set(el, { zIndex: 8, scale: 1.04 });
@@ -147,23 +135,40 @@ export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
     [],
   );
 
+  const moveDrag = useCallback(
+    (clientY: number) => {
+      const drag = dragRef.current;
+      if (!drag) return;
+      const dy = clientY - drag.startY;
+      gsap.set(drag.grabEl, { y: dy, scale: 1.04 });
+      const over = clamp(
+        drag.from + Math.round(dy / drag.pitch),
+        0,
+        itemsRef.current.length - 1,
+      );
+      if (over !== overIndexRef.current) {
+        overIndexRef.current = over;
+        applySiblingShifts(drag.from, over, drag.pitch);
+      }
+    },
+    [applySiblingShifts],
+  );
+
   const finishDrag = useCallback(
     (commit: boolean) => {
       const drag = dragRef.current;
       if (!drag) return;
-
       const from = drag.from;
       const over = overIndexRef.current;
-      try {
-        drag.grabEl.releasePointerCapture(drag.pointerId);
-      } catch {
-        /* already released */
+      if (drag.pointerId != null) {
+        try {
+          drag.grabEl.releasePointerCapture(drag.pointerId);
+        } catch {
+          /* already released */
+        }
       }
-      const screen = drag.grabEl.closest(".ps-screen") as HTMLElement | null;
-      if (screen) {
-        screen.style.overflowY = screen.dataset.rpOverflow ?? "";
-        delete screen.dataset.rpOverflow;
-      }
+      unlockOverflowAncestors(lockedRef.current);
+      lockedRef.current = [];
       dragRef.current = null;
       setDraggingFrom(null);
 
@@ -176,124 +181,92 @@ export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
     [resetRowTransforms],
   );
 
+  const startDragRef = useRef(startDrag);
+  const moveDragRef = useRef(moveDrag);
+  const finishDragRef = useRef(finishDrag);
+  startDragRef.current = startDrag;
+  moveDragRef.current = moveDrag;
+  finishDragRef.current = finishDrag;
+
   useLayoutEffect(() => {
     itemsRef.current = items;
     onChangeRef.current = onChange;
-    resetRowTransforms();
+    if (!dragRef.current) resetRowTransforms();
   }, [items, onChange, resetRowTransforms]);
 
   useEffect(() => {
-    const onMove = (event: PointerEvent) => {
+    const list = listRef.current;
+    if (!list) return;
+
+    const onTouchStart = (event: TouchEvent) => {
+      if (event.touches.length !== 1) return;
+      const row = (event.target as HTMLElement | null)?.closest("[data-order-row]") as HTMLElement | null;
+      if (!row || !list.contains(row)) return;
+      const index = Number(row.dataset.orderIndex);
+      if (!Number.isFinite(index)) return;
+      event.preventDefault();
+      startDragRef.current(index, event.touches[0].clientY, row, null);
+    };
+
+    const onTouchMove = (event: TouchEvent) => {
+      if (!dragRef.current) return;
+      event.preventDefault();
+      const touch = event.touches[0];
+      if (touch) moveDragRef.current(touch.clientY);
+    };
+
+    const onTouchEnd = () => {
+      if (dragRef.current) finishDragRef.current(true);
+    };
+
+    const onTouchCancel = () => {
       const drag = dragRef.current;
-      if (drag && event.pointerId === drag.pointerId) {
-        event.preventDefault();
-        const dy = event.clientY - drag.startY;
-        gsap.set(drag.grabEl, { y: dy, scale: 1.04 });
+      if (!drag) return;
+      finishDragRef.current(overIndexRef.current !== drag.from);
+    };
 
-        const over = clamp(
-          drag.from + Math.round(dy / drag.pitch),
-          0,
-          itemsRef.current.length - 1,
-        );
-        if (over !== overIndexRef.current) {
-          overIndexRef.current = over;
-          applySiblingShifts(drag.from, over, drag.pitch);
-        }
-        return;
-      }
+    list.addEventListener("touchstart", onTouchStart, { passive: false });
+    list.addEventListener("touchmove", onTouchMove, { passive: false });
+    list.addEventListener("touchend", onTouchEnd);
+    list.addEventListener("touchcancel", onTouchCancel);
+    return () => {
+      list.removeEventListener("touchstart", onTouchStart);
+      list.removeEventListener("touchmove", onTouchMove);
+      list.removeEventListener("touchend", onTouchEnd);
+      list.removeEventListener("touchcancel", onTouchCancel);
+    };
+  }, []);
 
-      const pending = pendingRef.current;
-      if (!pending || event.pointerId !== pending.pointerId) return;
-
-      const dist = Math.hypot(event.clientX - pending.startX, event.clientY - pending.startY);
-      const threshold = pending.isTouch ? SCROLL_CANCEL_PX : MOUSE_DRAG_PX;
-      if (dist < threshold) return;
-
-      if (pending.isTouch) {
-        clearPending();
-        return;
-      }
-
-      activateDrag(pending.index, pending.pointerId, pending.startY, pending.el);
-      const next = dragRef.current;
-      if (next) {
-        gsap.set(next.grabEl, { y: event.clientY - next.startY, scale: 1.04 });
-      }
+  useEffect(() => {
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+      const drag = dragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      event.preventDefault();
+      moveDragRef.current(event.clientY);
     };
 
     const onUp = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
       if (dragRef.current?.pointerId === event.pointerId) {
-        finishDrag(true);
-        return;
-      }
-      if (pendingRef.current?.pointerId === event.pointerId) {
-        clearPending();
-      }
-    };
-
-    const onCancel = (event: PointerEvent) => {
-      if (dragRef.current?.pointerId === event.pointerId) {
-        finishDrag(false);
-        return;
-      }
-      if (pendingRef.current?.pointerId === event.pointerId) {
-        clearPending();
+        finishDragRef.current(true);
       }
     };
 
     window.addEventListener("pointermove", onMove, { passive: false });
     window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onCancel);
     return () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onCancel);
     };
-  }, [activateDrag, applySiblingShifts, clearPending, finishDrag]);
+  }, []);
 
   useEffect(() => {
     return () => {
-      clearPending();
+      unlockOverflowAncestors(lockedRef.current);
       resetRowTransforms();
     };
-  }, [clearPending, resetRowTransforms]);
-
-  const onPointerDown = (event: React.PointerEvent<HTMLButtonElement>, index: number) => {
-    if (event.button !== 0) return;
-    if (dragRef.current) return;
-
-    const el = event.currentTarget;
-    const isTouch = event.pointerType === "touch";
-    setPressingIndex(index);
-
-    if (isTouch) {
-      const timer = window.setTimeout(() => {
-        const pending = pendingRef.current;
-        if (!pending || pending.pointerId !== event.pointerId) return;
-        activateDrag(index, event.pointerId, pending.startY, el);
-      }, HOLD_MS);
-      pendingRef.current = {
-        pointerId: event.pointerId,
-        index,
-        startX: event.clientX,
-        startY: event.clientY,
-        timer,
-        el,
-        isTouch: true,
-      };
-      return;
-    }
-
-    pendingRef.current = {
-      pointerId: event.pointerId,
-      index,
-      startX: event.clientX,
-      startY: event.clientY,
-      timer: 0,
-      el,
-      isTouch: false,
-    };
-  };
+  }, [resetRowTransforms]);
 
   const moveWithKeyboard = (index: number, dir: -1 | 1) => {
     const next = index + dir;
@@ -304,10 +277,10 @@ export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
   return (
     <div
       ref={listRef}
-      role="group"
+      role="listbox"
       aria-label="Reihenfolge"
       aria-describedby="order-it-drag-hint"
-      className="relative space-y-2"
+      className={`relative space-y-2 ${styles.list}`}
     >
       <span
         className="pointer-events-none absolute bottom-7 left-[29px] top-7 w-0.5 rounded-full"
@@ -316,31 +289,37 @@ export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
       />
       {items.map((entry, i) => {
         const isDragging = draggingFrom === i;
-        const isPressing = pressingIndex === i && !isDragging;
         const isFirst = i === 0;
         const isLast = i === items.length - 1;
         return (
-          <button
-            type="button"
+          <div
+            role="option"
+            aria-selected={isDragging}
             key={entry.orig}
             ref={(node) => {
               rowRefs.current[i] = node;
             }}
             data-order-row
+            data-order-index={i}
             tabIndex={0}
             aria-grabbed={isDragging}
-            aria-label={`${i + 1}. ${entry.text}. Halten und ziehen zum Verschieben.`}
-            onPointerDown={(e) => onPointerDown(e, i)}
-            onKeyDown={(e) => {
-              if (e.key === "ArrowUp") {
-                e.preventDefault();
+            aria-label={`${i + 1}. ${entry.text}. Ziehen zum Verschieben.`}
+            onPointerDown={(event) => {
+              if (event.pointerType === "touch" || event.button !== 0) return;
+              if (dragRef.current) return;
+              startDrag(i, event.clientY, event.currentTarget, event.pointerId);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowUp") {
+                event.preventDefault();
                 moveWithKeyboard(i, -1);
-              } else if (e.key === "ArrowDown") {
-                e.preventDefault();
+              } else if (event.key === "ArrowDown") {
+                event.preventDefault();
                 moveWithKeyboard(i, 1);
               }
             }}
-            className="relative z-10 flex min-h-[58px] w-full select-none items-center gap-2.5 px-3 py-2 text-left"
+            onContextMenu={(event) => event.preventDefault()}
+            className={`relative z-10 flex min-h-[58px] w-full items-center gap-2.5 px-3 py-2 text-left ${styles.row}`}
             style={{
               background: isDragging
                 ? "linear-gradient(135deg, #FFFFFF 0%, #F4F0FF 100%)"
@@ -352,12 +331,8 @@ export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
               boxShadow: isDragging
                 ? "0 16px 32px rgba(42, 42, 74, 0.18)"
                 : "0 5px 14px rgba(42, 42, 74, 0.07)",
-              touchAction: isDragging ? "none" : "pan-y",
               cursor: isDragging ? "grabbing" : "grab",
-              opacity: isPressing ? 0.92 : 1,
-              transition: "box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.12s ease",
               willChange: isDragging ? "transform" : undefined,
-              position: "relative",
             }}
           >
             <span
@@ -378,7 +353,7 @@ export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
               {entry.text}
             </span>
             <DragHandle />
-          </button>
+          </div>
         );
       })}
     </div>
