@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
-import { supabase } from "@/lib/supabase";
+import { createBrowserSupabase } from "@/lib/supabase/client";
 import { calculateMatchRewards, type MatchRewardResult } from "@/lib/match-rewards";
 import { levelFromXp } from "@/lib/progression";
 import { useAchievementGrant } from "@/lib/use-achievement-grant";
@@ -17,6 +17,7 @@ export function FinalScreen() {
   const game = useGame();
   const { user, isGuest, profile, refetchProfile } = useAuth();
   const { tryUnlock, recordDailyPlay } = useAchievementGrant();
+  const supabase = createBrowserSupabase();
   const [rewards, setRewards] = useState<MatchRewardResult | null>(null);
   const [previousXp, setPreviousXp] = useState(0);
   const [previousLevel, setPreviousLevel] = useState(1);
@@ -104,7 +105,7 @@ export function FinalScreen() {
     } finally {
       setReady(true);
     }
-  }, [roomId, userId, placement, profileXp, profileLevel, profileHirncoins, myScore, playerCount, refetchProfile]);
+  }, [roomId, userId, placement, profileXp, profileLevel, profileHirncoins, myScore, playerCount, refetchProfile, supabase]);
 
   useEffect(() => {
     if (grantedRef.current || !roomId || !userId || isGuest) return;
