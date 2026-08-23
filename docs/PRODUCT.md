@@ -6,7 +6,7 @@
 > Owner: Wladislaw · Koordination: Stabschef · Umsetzung: Dev · Content: Fragemeister · UI: UX
 
 **Stand:** 2026-08-23  
-**Status:** Phase B GO — Progression-Schema angelegt; UI + Grant-Logik folgen in nächsten PRs.
+**Status:** Phase B — Progression live; Freunde-MVP (Liste, Last-seen, Join-Link) folgt dem Home-Panel.
 
 ---
 
@@ -76,12 +76,10 @@ Sichtbar / erreichbar:
 - **Offen:** Was Level *bringen* soll. Progress ist gewollt — Nutzen später festlegen, XP-Kurve trotzdem früh einbauen.
 
 ### 5.2 Hirncoins
-Verdienen: Match-Ende (Sieg > Platz 2 > …). Ausgeben: **Lootboxen**.
+Verdienen: Match-Ende (Sieg > Platz 2 > …). Ausgeben: **Avatar-Looks** im Shop (MVP). Lootboxen bleiben Phase C (on hold).
 
-### 5.3 Lootboxen & Cosmetics
-- Kauf mit Hirncoins.
-- Cosmetics Common → Legendary, am Avatar anziehbar.
-- Asset-Agent später; bis dahin Platzhalter ok.
+### 5.3 Cosmetics (MVP, keine Lootboxen)
+Statischer Katalog der 6 Default-Avatare (`default_01`–`06`). `default_01` ist Starter (gratis). Rest gegen Hirncoins. Besitz in `user_cosmetics`; anziehen nur Besitz (`equip_avatar`). Achievements-Badges sind keine Shop-Items. Lootboxen: nicht gebaut.
 
 ### 5.4 Achievements
 Beispiele: exakter Zahlenraten-Treffer; erster Match-Sieg; 3 Matches mit Freunden; Passendes-wählen ohne Fehler; Streak exakter Treffer.
@@ -91,12 +89,13 @@ Beispiele: exakter Zahlenraten-Treffer; erster Match-Sieg; 3 Matches mit Freunde
 ---
 
 ## 6. Freunde & Social
-Freunde hinzufügen; Lobby per Raumcode (MVP); später Freundes-Invites.
+Registrierte Spieler:innen können Freund:innen per **Username** oder **Freundecode** anfragen (Annehmen/Ablehnen). Die Liste zeigt Online (Last-seen < 2 Min.) oder zuletzt gesehen. **Einladen** erstellt eine Lobby und kopiert `/?join=CODE` (kein Chat, keine Push-Invites). Gäste sehen nur den Login-Hinweis.
 
 ---
 
 ## 7. Lobby
-Nur Registrierte hosten. Min 2, max 4. Host startet bei ≥2. Match-Typ MVP: **Standard**.
+- Nur Registrierte hosten. Min 2, max laut Lobby (Standard **4**). Host startet bei ≥2.
+- Vor **Runde starten**: Host stellt Themenmix, Modi, Schwierigkeit, Blöcke, Timer, Gäste und Auto-Start ein (`docs/LOBBY_SETTINGS.md`). Gäste sehen nur eine Zusammenfassung. Standard = bisheriges Match (4 Blöcke, Mix, 5s-Timer).
 
 ---
 
@@ -133,7 +132,7 @@ Next.js App Router; Supabase rooms/players/answers + Realtime (PR #2). Auth/Prog
 ## 12. MVP-Phasen
 **A Core:** Auth, Host-Regel, Lobby 2–4, Engine Zahlenraten+Passendes wählen, Ergebnis, Themenwahl, Content-Seed.
 **B Progression:** XP/Level, Hirncoins, Achievements live, Avatar starter.
-**C Collect/Social:** Lootboxen, Cosmetics, Freunde, mehr Modi.
+**C Collect:** Lootboxen (on hold), mehr Modi. Avatar-Shop ist MVP.
 
 ---
 

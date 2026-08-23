@@ -1,178 +1,29 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
-import { createBrowserSupabase } from "@/lib/supabase/client";
-import { ACHIEVEMENTS, type AchievementId } from "@/lib/rp-assets";
 import { xpProgressInLevel } from "@/lib/progression";
 import { dailyPlayStreakDays } from "@/lib/daily-play-streak";
+import { BADGE_FIRST_WIN_48 } from "@/lib/rp-assets";
+import { ACHIEVEMENT_UNLOCKED_COPY } from "@/lib/achievement-toast-context";
+import {
+  achievementBadgeSrc,
+  useAchievements,
+} from "@/lib/use-achievements";
+import { useMatchStats } from "@/lib/use-match-stats";
+import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
+import { FriendsPanel } from "@/components/friends-panel";
+import { ShopPanel } from "@/components/shop-panel";
 
 export type HomePanelId = "friends" | "stats" | "achievements" | "shop";
 
-const CATALOG_IDS = Object.keys(ACHIEVEMENTS) as AchievementId[];
-
-function BackButton({ onBack }: { onBack: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onBack}
-      className="flex items-center justify-center min-w-11 min-h-11 w-11 h-11 rounded-full transition-all active:scale-90"
-      style={{
-        background: "rgba(255,255,255,0.75)",
-        backdropFilter: "blur(8px)",
-        boxShadow: "0 2px 8px rgba(42,42,74,0.10)",
-      }}
-      aria-label="Zurück"
-    >
-      <svg
-        viewBox="0 0 24 24"
-        className="w-5 h-5"
-        fill="none"
-        stroke="var(--rp-text)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-    </button>
-  );
-}
-
-function PanelShell({
-  title,
-  onBack,
-  children,
-}: {
-  title: string;
-  onBack: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="flex flex-1 flex-col"
-      style={{
-        background: "var(--rp-bg-hero)",
-        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
-      }}
-    >
-      <header className="flex items-center gap-3 px-4 py-3">
-        <BackButton onBack={onBack} />
-        <h1
-          className="text-lg font-extrabold"
-          style={{ color: "var(--rp-text)" }}
-        >
-          {title}
-        </h1>
-      </header>
-      <div className="flex-1 overflow-y-auto px-4 pb-8">{children}</div>
-    </div>
-  );
-}
-
-function EmptyCard({
-  kicker,
-  headline,
-  body,
-}: {
-  kicker?: string;
-  headline: string;
-  body: string;
-}) {
-  return (
-    <div
-      className="flex flex-col items-center text-center px-4 py-10"
-      style={{
-        background: "var(--rp-bg-elevated)",
-        borderRadius: "var(--rp-radius-lg)",
-        boxShadow: "var(--rp-shadow-card)",
-      }}
-    >
-      {kicker && (
-        <p
-          className="text-xs font-bold uppercase tracking-wider mb-2"
-          style={{ color: "var(--rp-purple)" }}
-        >
-          {kicker}
-        </p>
-      )}
-      <h2
-        className="text-xl font-extrabold mb-2"
-        style={{ color: "var(--rp-text)" }}
-      >
-        {headline}
-      </h2>
-      <p
-        className="text-sm leading-relaxed"
-        style={{ color: "var(--rp-text-secondary)" }}
-      >
-        {body}
-      </p>
-    </div>
-  );
-}
-
-function FriendsPanel({ onBack }: { onBack: () => void }) {
-  return (
-    <PanelShell title="Freunde" onBack={onBack}>
-      <EmptyCard
-        kicker="Bald"
-        headline="Freundesliste kommt später"
-        body="Einladen geht schon über den Raumcode. Eine Freundesliste gibt es in dieser Version noch nicht."
-      />
-    </PanelShell>
-  );
-}
-
-function ShopPanel({ onBack }: { onBack: () => void }) {
-  return (
-    <PanelShell title="Shop" onBack={onBack}>
-      <EmptyCard
-        kicker="Bald"
-        headline="Shop kommt später"
-        body="Lootboxen und Cosmetics sind für Phase C geplant. Hirncoins sammelst du trotzdem schon am Match-Ende."
-      />
-    </PanelShell>
-  );
-}
-
 function StatsPanel({ onBack }: { onBack: () => void }) {
   const { user, isGuest, profile, profileLoading } = useAuth();
-  const [games, setGames] = useState<number | null>(null);
-  const [wins, setWins] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!user || isGuest) return;
-
-    const supabase = createBrowserSupabase();
-    let cancelled = false;
-
-    (async () => {
-      const [gamesRes, winsRes] = await Promise.all([
-        supabase
-          .from("match_rewards")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id),
-        supabase
-          .from("match_rewards")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("placement", 1),
-      ]);
-      if (cancelled) return;
-      setGames(gamesRes.count ?? 0);
-      setWins(winsRes.count ?? 0);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user, isGuest]);
+  const { games, wins } = useMatchStats(user && !isGuest ? user.id : null);
 
   if (!isGuest && profileLoading) {
     return (
-      <PanelShell title="Stats" onBack={onBack}>
+      <PanelShell title="Statistik" onBack={onBack}>
         <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
           Laden…
         </p>
@@ -182,7 +33,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 
   if (isGuest || !profile) {
     return (
-      <PanelShell title="Stats" onBack={onBack}>
+      <PanelShell title="Statistik" onBack={onBack}>
         <EmptyCard
           headline="Stats brauchen ein Konto"
           body="Als Gast speichern wir keine XP, Spiele oder Siege. Melde dich an, dann zählen die Matches hier."
@@ -205,6 +56,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 
   const rows: { label: string; value: string }[] = [
     { label: "Level", value: String(xp.level) },
+    { label: "XP gesamt", value: String(profile.xp) },
     { label: "XP in diesem Level", value: `${xp.current} / ${xp.needed}` },
     { label: "Hirncoins", value: String(profile.hirncoins) },
     { label: "Spiele beendet", value: games === null ? "…" : String(games) },
@@ -213,7 +65,15 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
   ];
 
   return (
-    <PanelShell title="Stats" onBack={onBack}>
+    <PanelShell title="Statistik" onBack={onBack}>
+      {games === 0 && (
+        <div className="mb-4">
+          <EmptyCard
+            headline="Noch keine Spiele"
+            body="Level, XP und Hirncoins kommen aus echten Matches. Spiel eine Runde, dann füllen sich die Zahlen."
+          />
+        </div>
+      )}
       <ul className="space-y-2">
         {rows.map((row) => (
           <li
@@ -253,35 +113,12 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 function AchievementsPanel({ onBack }: { onBack: () => void }) {
   const { user, isGuest } = useAuth();
   const guestView = !user || isGuest;
-  const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    if (guestView || !user) return;
-
-    const supabase = createBrowserSupabase();
-    let cancelled = false;
-
-    (async () => {
-      const { data } = await supabase
-        .from("user_achievements")
-        .select("achievement_id")
-        .eq("user_id", user.id);
-
-      if (cancelled) return;
-      setUnlocked(new Set((data ?? []).map((r: { achievement_id: string }) => r.achievement_id)));
-      setLoaded(true);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [guestView, user]);
-
-  const ready = guestView || loaded;
+  const { catalog, unlocked, loaded } = useAchievements(
+    guestView ? null : user.id
+  );
 
   return (
-    <PanelShell title="Achievements" onBack={onBack}>
+    <PanelShell title="Erfolge" onBack={onBack}>
       {isGuest && (
         <p
           className="text-sm mb-4 px-1"
@@ -290,48 +127,61 @@ function AchievementsPanel({ onBack }: { onBack: () => void }) {
           Als Gast bleiben Erfolge gesperrt. Mit Konto sammelst du sie in Matches.
         </p>
       )}
-      <ul className="space-y-3">
-        {CATALOG_IDS.map((id) => {
-          const meta = ACHIEVEMENTS[id];
-          const isOn = unlocked.has(id);
-          return (
-            <li
-              key={id}
-              className="flex items-center gap-3 p-3"
-              style={{
-                background: "var(--rp-bg-elevated)",
-                borderRadius: "var(--rp-radius-md)",
-                boxShadow: "var(--rp-shadow-card)",
-                opacity: ready && !isOn ? 0.55 : 1,
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={meta.badge48}
-                alt=""
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-xl object-contain shrink-0"
-                style={{ filter: ready && !isOn ? "grayscale(1)" : "none" }}
-              />
-              <div className="min-w-0 flex-1">
-                <p
-                  className="text-sm font-extrabold truncate"
-                  style={{ color: "var(--rp-text)" }}
-                >
-                  {meta.name_de}
-                </p>
-                <p
-                  className="text-xs"
-                  style={{ color: "var(--rp-text-secondary)" }}
-                >
-                  {!ready ? "…" : isOn ? "Freigeschaltet" : "Noch nicht"}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      {!loaded ? (
+        <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+          Laden…
+        </p>
+      ) : catalog.length === 0 ? (
+        <EmptyCard
+          headline="Keine Erfolge"
+          body="Der Katalog ist leer. Nach dem nächsten Content-Update erscheinen sie hier."
+        />
+      ) : (
+        <ul className="space-y-3">
+          {catalog.map((item) => {
+            const isOn = unlocked.has(item.id);
+            return (
+              <li
+                key={item.id}
+                className="flex items-center gap-3 p-3"
+                style={{
+                  background: "var(--rp-bg-elevated)",
+                  borderRadius: "var(--rp-radius-md)",
+                  boxShadow: "var(--rp-shadow-card)",
+                  opacity: isOn ? 1 : 0.55,
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={achievementBadgeSrc(item.icon_key)}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="w-12 h-12 rounded-xl object-contain shrink-0"
+                  style={{ filter: isOn ? "none" : "grayscale(1)" }}
+                  onError={(e) => {
+                    e.currentTarget.src = BADGE_FIRST_WIN_48;
+                  }}
+                />
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="text-sm font-extrabold truncate"
+                    style={{ color: "var(--rp-text)" }}
+                  >
+                    {item.name_de}
+                  </p>
+                  <p
+                    className="text-xs"
+                    style={{ color: isOn ? "var(--rp-purple)" : "var(--rp-text-secondary)" }}
+                  >
+                    {isOn ? ACHIEVEMENT_UNLOCKED_COPY : "Noch nicht"}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </PanelShell>
   );
 }

@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Profile } from "@/lib/use-profile";
 
 const PROFILE_COLUMNS_BASE =
-  "id, username, xp, level, hirncoins, avatar_id, avatar_onboarding_done, created_at, updated_at";
+  "id, username, xp, level, hirncoins, avatar_id, avatar_onboarding_done, friend_code, last_seen_at, created_at, updated_at";
 
 const PROFILE_COLUMNS_WITH_STREAK = `${PROFILE_COLUMNS_BASE}, current_streak`;
 

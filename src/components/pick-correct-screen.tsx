@@ -5,7 +5,6 @@ import { useGame } from "@/lib/game-context";
 import { TimerPill } from "./timer-pill";
 import { QuestionTimerBar } from "./question-timer-bar";
 import { WaitingFooter } from "./waiting-footer";
-import { QUESTION_TIMER_MS } from "@/lib/game-store";
 import type { PickCorrectPayload } from "@/lib/content";
 
 const ANSWER_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -143,7 +142,7 @@ export function PickCorrectScreen() {
           <QuestionTimerBar
             key={game.currentBlock!.id}
             deadlineMs={game.questionDeadlineMs}
-            durationMs={QUESTION_TIMER_MS}
+            durationMs={game.questionTimerMs ?? undefined}
           />
         )}
 

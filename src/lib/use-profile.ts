@@ -14,6 +14,8 @@ export interface Profile {
   avatar_id: string;
   avatar_onboarding_done: boolean;
   current_streak?: number;
+  friend_code?: string;
+  last_seen_at?: string | null;
   created_at: string;
   updated_at: string;
 }

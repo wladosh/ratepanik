@@ -5,7 +5,6 @@ import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { calculateMatchRewards, type MatchRewardResult } from "@/lib/match-rewards";
-import { levelFromXp } from "@/lib/progression";
 import { useAchievementGrant } from "@/lib/use-achievement-grant";
 import { MatchEndRewardsScreen, BriefScoreboard } from "./match-end-rewards";
 
@@ -53,35 +52,27 @@ export function FinalScreen() {
     setRewards(result);
 
     try {
-      const { data: existing } = await supabase
-        .from("match_rewards")
-        .select("id")
-        .eq("room_id", roomId)
-        .eq("user_id", userId)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc("grant_match_rewards", {
+        p_room_id: roomId,
+      });
 
-      if (!existing) {
-        await supabase.from("match_rewards").insert({
-          room_id: roomId,
-          user_id: userId,
-          placement,
-          xp_awarded: result.xpAwarded,
-          hirncoins_awarded: result.hirncoinsAwarded,
+      if (error) throw error;
+
+      const payload = data as {
+        ok?: boolean;
+        already?: boolean;
+        placement?: number;
+        xp_awarded?: number;
+        hirncoins_awarded?: number;
+      } | null;
+
+      if (payload?.ok) {
+        setRewards({
+          placement: payload.placement ?? placement,
+          xpAwarded: payload.xp_awarded ?? result.xpAwarded,
+          hirncoinsAwarded: payload.hirncoins_awarded ?? result.hirncoinsAwarded,
         });
-
-        const newXp = profileXp + result.xpAwarded;
-        const newHirncoins = profileHirncoins + result.hirncoinsAwarded;
-        const newLevel = levelFromXp(newXp);
-
-        await supabase
-          .from("profiles")
-          .update({
-            xp: newXp,
-            level: newLevel,
-            hirncoins: newHirncoins,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", userId);
+        await refetchProfile();
       } else {
         const { data: existingReward } = await supabase
           .from("match_rewards")

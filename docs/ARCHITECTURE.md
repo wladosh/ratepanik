@@ -244,12 +244,14 @@ themes (8 seeded rows)
 - Results without Q&A spoilers
 - Content schema (themes seeded, prompts empty for Fragemeister)
 
-**Schema allows but NOT built (Phase B/C):**
-- XP / Level / Währung (columns can be added later)
-- Achievements (e.g. exact-hit badge — `distance` column is ready)
-- Lootboxen / Cosmetics / Avatar
-- Freunde / Social
+**Schema allows but NOT built (Phase C):**
+- Lootboxen (on hold)
 - Additional modes (`find_lie`, `order_it` — schema supports them)
+
+**Built after Phase A:**
+- XP / Level / Hirncoins / Achievements (Phase B)
+- Freunde: request/accept via username or friend_code, last-seen presence, invite by copying `/?join=CODE` (no chat)
+- Shop: static avatar catalog (`default_01`–`06`), `user_cosmetics` ownership, `purchase_avatar` / `equip_avatar` (equip owned only)
 
 ---
 
@@ -259,5 +261,6 @@ themes (8 seeded rows)
 - `prompts.payload` is `jsonb` — validated at application level per mode
 - Realtime uses Postgres Changes (not Broadcast) for consistency
 - Daily play streak: `profiles.current_streak` / `last_played_date`, written by `record_daily_play()` at match end. Home must not fake a 0 when the column is missing.
+- Lobby settings live in `rooms.settings` JSONB (`docs/LOBBY_SETTINGS.md`); host-only while `status = lobby`
 - PR #2's `rooms`/`players`/`answers` tables are preserved; this migration only ADDs columns
 - No force-push to main; draft PR only
