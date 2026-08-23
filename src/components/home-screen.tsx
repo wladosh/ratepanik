@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -21,9 +21,15 @@ const FALLBACK_AVATAR = "/rp/rp_avatar_default_01_128@2x.png";
 
 export function HomeScreen() {
   const game = useGame();
-  const { user, canHost, isGuest, signOut, loading: authLoading, profile } = useAuth();
+  const { user, canHost, isGuest, signOut, loading: authLoading, profile, refetchProfile } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (user && !isGuest) {
+      refetchProfile();
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const displayName =
     profile?.username ||
