@@ -4,12 +4,15 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { createBrowserSupabase } from "@/lib/supabase/client";
-import { ACHIEVEMENTS, type AchievementId } from "@/lib/rp-assets";
 import { xpProgressInLevel } from "@/lib/progression";
+import { BADGE_FIRST_WIN_48 } from "@/lib/rp-assets";
+import { ACHIEVEMENT_UNLOCKED_COPY } from "@/lib/achievement-toast-context";
+import {
+  achievementBadgeSrc,
+  useAchievements,
+} from "@/lib/use-achievements";
 
 export type HomePanelId = "friends" | "stats" | "achievements" | "shop";
-
-const CATALOG_IDS = Object.keys(ACHIEVEMENTS) as AchievementId[];
 
 function BackButton({ onBack }: { onBack: () => void }) {
   return (
@@ -252,32 +255,9 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 function AchievementsPanel({ onBack }: { onBack: () => void }) {
   const { user, isGuest } = useAuth();
   const guestView = !user || isGuest;
-  const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    if (guestView || !user) return;
-
-    const supabase = createBrowserSupabase();
-    let cancelled = false;
-
-    (async () => {
-      const { data } = await supabase
-        .from("user_achievements")
-        .select("achievement_id")
-        .eq("user_id", user.id);
-
-      if (cancelled) return;
-      setUnlocked(new Set((data ?? []).map((r: { achievement_id: string }) => r.achievement_id)));
-      setLoaded(true);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [guestView, user]);
-
-  const ready = guestView || loaded;
+  const { catalog, unlocked, loaded } = useAchievements(
+    guestView ? null : user.id
+  );
 
   return (
     <PanelShell title="Achievements" onBack={onBack}>
@@ -289,48 +269,61 @@ function AchievementsPanel({ onBack }: { onBack: () => void }) {
           Als Gast bleiben Erfolge gesperrt. Mit Konto sammelst du sie in Matches.
         </p>
       )}
-      <ul className="space-y-3">
-        {CATALOG_IDS.map((id) => {
-          const meta = ACHIEVEMENTS[id];
-          const isOn = unlocked.has(id);
-          return (
-            <li
-              key={id}
-              className="flex items-center gap-3 p-3"
-              style={{
-                background: "var(--rp-bg-elevated)",
-                borderRadius: "var(--rp-radius-md)",
-                boxShadow: "var(--rp-shadow-card)",
-                opacity: ready && !isOn ? 0.55 : 1,
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={meta.badge48}
-                alt=""
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-xl object-contain shrink-0"
-                style={{ filter: ready && !isOn ? "grayscale(1)" : "none" }}
-              />
-              <div className="min-w-0 flex-1">
-                <p
-                  className="text-sm font-extrabold truncate"
-                  style={{ color: "var(--rp-text)" }}
-                >
-                  {meta.name_de}
-                </p>
-                <p
-                  className="text-xs"
-                  style={{ color: "var(--rp-text-secondary)" }}
-                >
-                  {!ready ? "…" : isOn ? "Freigeschaltet" : "Noch nicht"}
-                </p>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      {!loaded ? (
+        <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+          Laden…
+        </p>
+      ) : catalog.length === 0 ? (
+        <EmptyCard
+          headline="Keine Erfolge"
+          body="Der Katalog ist leer. Nach dem nächsten Content-Update erscheinen sie hier."
+        />
+      ) : (
+        <ul className="space-y-3">
+          {catalog.map((item) => {
+            const isOn = unlocked.has(item.id);
+            return (
+              <li
+                key={item.id}
+                className="flex items-center gap-3 p-3"
+                style={{
+                  background: "var(--rp-bg-elevated)",
+                  borderRadius: "var(--rp-radius-md)",
+                  boxShadow: "var(--rp-shadow-card)",
+                  opacity: isOn ? 1 : 0.55,
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={achievementBadgeSrc(item.icon_key)}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="w-12 h-12 rounded-xl object-contain shrink-0"
+                  style={{ filter: isOn ? "none" : "grayscale(1)" }}
+                  onError={(e) => {
+                    e.currentTarget.src = BADGE_FIRST_WIN_48;
+                  }}
+                />
+                <div className="min-w-0 flex-1">
+                  <p
+                    className="text-sm font-extrabold truncate"
+                    style={{ color: "var(--rp-text)" }}
+                  >
+                    {item.name_de}
+                  </p>
+                  <p
+                    className="text-xs"
+                    style={{ color: isOn ? "var(--rp-purple)" : "var(--rp-text-secondary)" }}
+                  >
+                    {isOn ? ACHIEVEMENT_UNLOCKED_COPY : "Noch nicht"}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </PanelShell>
   );
 }

@@ -11,6 +11,9 @@ import {
 } from "react";
 import { ACHIEVEMENTS, type AchievementId } from "@/lib/rp-assets";
 
+/** Same line as the achievement toast kicker. */
+export const ACHIEVEMENT_UNLOCKED_COPY = "Erfolg freigeschaltet!";
+
 interface ToastItem {
   id: string;
   achievementId: AchievementId;
@@ -200,7 +203,7 @@ export function AchievementToastSlot() {
               color: "var(--rp-text)",
             }}
           >
-            Erfolg freigeschaltet!
+            {ACHIEVEMENT_UNLOCKED_COPY}
           </p>
           <p
             style={{
