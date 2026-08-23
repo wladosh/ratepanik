@@ -28,6 +28,17 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = await createServerSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user || user.is_anonymous) {
+    return NextResponse.json(
+      { available: false, error: "Nicht angemeldet" },
+      { status: 401 }
+    );
+  }
+
   const { data, error } = await supabase.rpc("check_username_available", {
     desired_username: trimmed,
   });

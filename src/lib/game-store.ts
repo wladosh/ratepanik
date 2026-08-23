@@ -10,6 +10,14 @@ export function calculateNumberGuessPoints(
   return (totalPlayers - rank) * 100;
 }
 
+/** Timeout and full-lobby scoring share this field so ranks stay comparable. */
+export function numberGuessScoringPool(
+  playerCount: number,
+  answerCount: number,
+): number {
+  return Math.max(playerCount, answerCount);
+}
+
 /** Contribution-based scoring for pick_correct (§9.2) */
 export function calculatePickCorrectPoints(
   correctFound: number,

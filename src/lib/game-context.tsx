@@ -33,6 +33,7 @@ import {
   generateBlockModes,
   calculateNumberGuessPoints,
   calculatePickCorrectPoints,
+  numberGuessScoringPool,
 } from "./game-store";
 import {
   parseRoomSettings,
@@ -1302,10 +1303,15 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       }));
       answersForRound.sort((a, b) => a.dist - b.dist);
 
+      const totalPlayers = numberGuessScoringPool(
+        players.length,
+        answersForRound.length,
+      );
+
       for (let i = 0; i < answersForRound.length; i++) {
         const a = answersForRound[i];
         const rank = i + 1;
-        const pts = calculateNumberGuessPoints(rank, answersForRound.length);
+        const pts = calculateNumberGuessPoints(rank, totalPlayers);
 
         const { data: awarded } = await supabase
           .from("answers")
