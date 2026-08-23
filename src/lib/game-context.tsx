@@ -31,6 +31,7 @@ import {
   calculatePickCorrectPoints,
 } from "./game-store";
 import { useAuth } from "./auth-context";
+import { useAchievementGrant } from "./use-achievement-grant";
 import { generateGuestName } from "./guest-name";
 
 export type GamePhase =
@@ -115,6 +116,7 @@ function generateRoomCode(): string {
 
 export function GameProvider({ children, joinCode }: { children: ReactNode; joinCode?: string }) {
   const { user } = useAuth();
+  const { tryUnlock } = useAchievementGrant();
   const router = useRouter();
   const [room, setRoom] = useState<DbRoom | null>(null);
   const [players, setPlayers] = useState<DbPlayer[]>([]);
@@ -593,10 +595,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       saveSession(roomData.id, playerData.id);
       subscribeToRoom(roomData.id);
 
-      // first_room achievement — fire-and-forget, validated server-side
-      void supabase.rpc("try_unlock_achievement", {
-        p_achievement_id: "first_room",
-      });
+      void tryUnlock("first_room");
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Fehler beim Erstellen des Raums";
       setError(msg);
