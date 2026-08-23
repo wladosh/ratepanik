@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { data } = await supabase
         .from("profiles")
-        .select("id, username, xp, level, hirncoins, avatar_id, created_at, updated_at")
+        .select("id, username, xp, level, hirncoins, avatar_id, avatar_onboarding_done, created_at, updated_at")
         .eq("id", userId)
         .single();
 
@@ -102,8 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     !!user &&
     !isGuest &&
     !!profile &&
+    !profile.avatar_onboarding_done &&
     !avatarOnboardingDismissed &&
-    (typeof window !== "undefined" &&
+    (typeof window === "undefined" ||
       !localStorage.getItem(`rp_avatar_onboarding_${user.id}`));
 
   const markAvatarOnboardingDone = useCallback(() => {

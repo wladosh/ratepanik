@@ -11,6 +11,7 @@ export interface Profile {
   level: number;
   hirncoins: number;
   avatar_id: string;
+  avatar_onboarding_done: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -37,7 +38,7 @@ export function useProfile(user: User | null): UseProfileReturn {
 
     const { data } = await supabase
       .from("profiles")
-        .select("id, username, xp, level, hirncoins, avatar_id, created_at, updated_at")
+        .select("id, username, xp, level, hirncoins, avatar_id, avatar_onboarding_done, created_at, updated_at")
       .eq("id", user.id)
       .single();
 

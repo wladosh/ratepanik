@@ -25,20 +25,22 @@ export function AvatarOnboardingScreen({
       setSaveState("saving");
       try {
         const supabase = createBrowserSupabase();
-        const { error } = await supabase
-          .from("profiles")
-          .update({ avatar_id: avatarId })
-          .eq("id", userId);
+        const { data, error } = await supabase.rpc("update_own_profile", {
+          new_avatar_id: avatarId,
+          new_avatar_onboarding_done: true,
+        });
 
         if (error) throw error;
+        if (data && typeof data === "object" && "ok" in data && !data.ok) {
+          throw new Error((data as { error?: string }).error ?? "save failed");
+        }
 
-        localStorage.setItem(`rp_avatar_onboarding_${userId}`, "done");
         onDone();
       } catch {
         setSaveState("error");
       }
     },
-    [userId, onDone],
+    [onDone],
   );
 
   function handleWeiter() {
@@ -50,9 +52,10 @@ export function AvatarOnboardingScreen({
     if (saving) return;
     const supabase = createBrowserSupabase();
     supabase
-      .from("profiles")
-      .update({ avatar_id: "default_01" })
-      .eq("id", userId)
+      .rpc("update_own_profile", {
+        new_avatar_id: "default_01",
+        new_avatar_onboarding_done: false,
+      })
       .then(() => {});
     localStorage.setItem(`rp_avatar_onboarding_${userId}`, "skipped");
     onDone();
