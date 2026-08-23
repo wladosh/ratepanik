@@ -33,11 +33,11 @@ import {
 } from "./content";
 import {
   generateBlockModes,
-  calculateNumberGuessPoints,
   calculatePickCorrectPoints,
   calculateFindLiePoints,
   calculateOrderItPoints,
-  numberGuessScoringPool,
+  numberGuessCorrectFromPayload,
+  scoreNumberGuessAnswers,
   ORDER_IT_TIMER_MS,
 } from "./game-store";
 import {
@@ -1470,49 +1470,42 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       return;
     }
 
-    // Calculate rankings for current round
-
-    const correctAnswer = (currentPrompt?.payload as { answer: number })?.answer;
+    const correctAnswer = numberGuessCorrectFromPayload(currentPrompt?.payload);
     if (correctAnswer !== undefined) {
-      const answersForRound = roundAnswers.map((a) => ({
-        ...a,
-        dist: Math.abs((a.numeric_answer ?? 0) - correctAnswer),
-      }));
-      answersForRound.sort((a, b) => a.dist - b.dist);
-
-      const totalPlayers = numberGuessScoringPool(
+      const scored = scoreNumberGuessAnswers(
+        roundAnswers.map((a) => ({
+          id: a.id,
+          playerId: a.player_id,
+          numericAnswer: a.numeric_answer,
+        })),
+        correctAnswer,
         players.length,
-        answersForRound.length,
       );
 
-      for (let i = 0; i < answersForRound.length; i++) {
-        const a = answersForRound[i];
-        const rank = i + 1;
-        const pts = calculateNumberGuessPoints(rank, totalPlayers);
-
+      for (const row of scored) {
         const { data: awarded } = await supabase
           .from("answers")
           .update({
-            distance: a.dist,
-            rank,
-            points_awarded: pts,
+            distance: row.distance,
+            rank: row.rank,
+            points_awarded: row.points,
           })
-          .eq("id", a.id)
-          .eq("points_awarded", 0)
+          .eq("id", row.id)
+          .or("points_awarded.eq.0,points_awarded.is.null")
           .select("id");
 
-        if (!awarded?.length) continue;
+        if (!awarded?.length || row.points === 0) continue;
 
         const { data: latest } = await supabase
           .from("players")
           .select("score")
-          .eq("id", a.player_id)
+          .eq("id", row.playerId)
           .single();
         if (latest) {
           await supabase
             .from("players")
-            .update({ score: latest.score + pts })
-            .eq("id", a.player_id);
+            .update({ score: latest.score + row.points })
+            .eq("id", row.playerId);
         }
       }
     }

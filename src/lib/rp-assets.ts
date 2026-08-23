@@ -24,6 +24,10 @@ export const LEVELUP_FX_128 = "/rp/rp_fx_levelup_64@2x.png";
 // ── Trophy ──────────────────────────────────────────────────────────
 export const TROPHY_GOLD_512 = "/rp/rp_trophy_gold_512.png";
 
+// ── Home dashboard feature art ─────────────────────────────────────
+export const RANK_BADGE_GOLD_128 = "/rp/rp_badge_rank_1_128@2x.png";
+export const LOOT_BOX_RARE_128 = "/rp/rp_loot_box_rare_128@2x.png";
+
 // ── Confetti FX ─────────────────────────────────────────────────────
 export const CONFETTI_SHEET_512 = "/rp/rp_fx_confetti_sheet_512.webp";
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n-context";
 import { xpProgressInLevel } from "@/lib/progression";
 import { dailyPlayStreakDays } from "@/lib/daily-play-streak";
 import { BADGE_FIRST_WIN_48 } from "@/lib/rp-assets";
@@ -14,18 +15,20 @@ import { useMatchStats } from "@/lib/use-match-stats";
 import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
 import { FriendsPanel } from "@/components/friends-panel";
 import { ShopPanel } from "@/components/shop-panel";
+import { SettingsPanel } from "@/components/settings-panel";
 
-export type HomePanelId = "friends" | "stats" | "achievements" | "shop";
+export type HomePanelId = "friends" | "stats" | "achievements" | "shop" | "settings";
 
 function StatsPanel({ onBack }: { onBack: () => void }) {
+  const { t } = useI18n();
   const { user, isGuest, profile, profileLoading } = useAuth();
   const { games, wins } = useMatchStats(user && !isGuest ? user.id : null);
 
   if (!isGuest && profileLoading) {
     return (
-      <PanelShell title="Statistik" onBack={onBack}>
+      <PanelShell title={t.home.stats} onBack={onBack}>
         <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
-          Laden…
+          {t.common.loading}
         </p>
       </PanelShell>
     );
@@ -33,7 +36,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 
   if (isGuest || !profile) {
     return (
-      <PanelShell title="Statistik" onBack={onBack}>
+      <PanelShell title={t.home.stats} onBack={onBack}>
         <EmptyCard
           headline="Stats brauchen ein Konto"
           body="Als Gast speichern wir keine XP, Spiele oder Siege. Melde dich an, dann zählen die Matches hier."
@@ -65,7 +68,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
   ];
 
   return (
-    <PanelShell title="Statistik" onBack={onBack}>
+    <PanelShell title={t.home.stats} onBack={onBack}>
       {games === 0 && (
         <div className="mb-4">
           <EmptyCard
@@ -111,6 +114,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 }
 
 function AchievementsPanel({ onBack }: { onBack: () => void }) {
+  const { t } = useI18n();
   const { user, isGuest } = useAuth();
   const guestView = !user || isGuest;
   const { catalog, unlocked, loaded } = useAchievements(
@@ -118,7 +122,7 @@ function AchievementsPanel({ onBack }: { onBack: () => void }) {
   );
 
   return (
-    <PanelShell title="Erfolge" onBack={onBack}>
+    <PanelShell title={t.home.achievements} onBack={onBack}>
       {isGuest && (
         <p
           className="text-sm mb-4 px-1"
@@ -129,7 +133,7 @@ function AchievementsPanel({ onBack }: { onBack: () => void }) {
       )}
       {!loaded ? (
         <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
-          Laden…
+          {t.common.loading}
         </p>
       ) : catalog.length === 0 ? (
         <EmptyCard
@@ -202,5 +206,7 @@ export function HomePanel({
       return <AchievementsPanel onBack={onBack} />;
     case "shop":
       return <ShopPanel onBack={onBack} />;
+    case "settings":
+      return <SettingsPanel onBack={onBack} />;
   }
 }

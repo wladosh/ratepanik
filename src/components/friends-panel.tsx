@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n-context";
 import { useGame } from "@/lib/game-context";
 import { useFriends } from "@/lib/use-friends";
 import { createBrowserSupabase } from "@/lib/supabase/client";
@@ -40,6 +41,7 @@ function FriendAvatar({ profile }: { profile: DbFriendProfile }) {
 }
 
 export function FriendsPanel({ onBack }: { onBack: () => void }) {
+  const { t } = useI18n();
   const { user, isGuest, profile, profileLoading } = useAuth();
   const game = useGame();
   const { loading, incoming, outgoing, friends, addFriend, respond, remove } =
@@ -122,7 +124,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
 
   if (!isGuest && profileLoading) {
     return (
-      <PanelShell title="Freunde" onBack={onBack}>
+      <PanelShell title={t.home.friends} onBack={onBack}>
         <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
           Laden…
         </p>
@@ -132,7 +134,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
 
   if (isGuest || !profile) {
     return (
-      <PanelShell title="Freunde" onBack={onBack}>
+      <PanelShell title={t.home.friends} onBack={onBack}>
         <EmptyCard
           headline="Freunde brauchen ein Konto"
           body="Als Gast gibt’s keine Freundesliste. Melde dich an, dann kannst du Freund:innen per Name oder Code hinzufügen."
@@ -151,7 +153,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <PanelShell title="Freunde" onBack={onBack}>
+    <PanelShell title={t.home.friends} onBack={onBack}>
       {toast && (
         <div
           className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"

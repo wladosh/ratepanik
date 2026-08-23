@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n-context";
 import { useCosmetics } from "@/lib/use-cosmetics";
 import { SHOP_AVATARS } from "@/lib/shop-catalog";
 import { HIRNCOIN_ICON_20 } from "@/lib/rp-assets";
@@ -10,6 +11,7 @@ import { AvatarTile, type AvatarTileState } from "@/components/avatar-tile";
 import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
 
 export function ShopPanel({ onBack }: { onBack: () => void }) {
+  const { t } = useI18n();
   const { user, isGuest, profile, profileLoading, refetchProfile } = useAuth();
   const { owned, loading, buy, equip } = useCosmetics(
     user && !isGuest ? user.id : null
@@ -60,7 +62,7 @@ export function ShopPanel({ onBack }: { onBack: () => void }) {
 
   if (!isGuest && profileLoading) {
     return (
-      <PanelShell title="Shop" onBack={onBack}>
+      <PanelShell title={t.home.shop} onBack={onBack}>
         <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
           Laden…
         </p>
@@ -70,7 +72,7 @@ export function ShopPanel({ onBack }: { onBack: () => void }) {
 
   if (isGuest || !profile) {
     return (
-      <PanelShell title="Shop" onBack={onBack}>
+      <PanelShell title={t.home.shop} onBack={onBack}>
         <EmptyCard
           headline="Shop braucht ein Konto"
           body="Als Gast kannst du keine Avatare kaufen. Melde dich an — Hirncoins nimmst du aus Matches mit."
@@ -89,7 +91,7 @@ export function ShopPanel({ onBack }: { onBack: () => void }) {
   }
 
   return (
-    <PanelShell title="Shop" onBack={onBack}>
+    <PanelShell title={t.home.shop} onBack={onBack}>
       {toast && (
         <div
           className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"

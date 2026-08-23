@@ -1,5 +1,5 @@
 /** Default question countdown when a block has no timer snapshot (legacy). */
-export const QUESTION_TIMER_MS = 5_000;
+export const QUESTION_TIMER_MS = 8_000;
 
 /** order_it needs longer — 4-item reorder is not playable in 5s. */
 export const ORDER_IT_TIMER_MS = 20_000;
@@ -48,13 +48,37 @@ export function modeEmoji(mode: string | undefined | null): string {
   }
 }
 
-/** Rank-based scoring for number_guess (§9.1) */
+/** First-place number_guess points. Each worse unique distance gets half, last group 0. */
+export const NUMBER_GUESS_FIRST_POINTS = 400;
+
+export function numberGuessCorrectFromPayload(payload: unknown): number | undefined {
+  if (!payload || typeof payload !== "object") return undefined;
+  for (const [key, value] of Object.entries(payload as Record<string, unknown>)) {
+    if (key.toLowerCase() === "answer" && typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+/** Closeness group 0 is closest. Last group scores 0 unless everyone tied. */
+export function numberGuessPointsForGroup(
+  groupIndex: number,
+  groupCount: number,
+): number {
+  if (groupCount <= 0 || groupIndex < 0 || groupIndex >= groupCount) return 0;
+  if (groupCount === 1) return NUMBER_GUESS_FIRST_POINTS;
+  if (groupIndex >= groupCount - 1) return 0;
+  return Math.round(NUMBER_GUESS_FIRST_POINTS / 2 ** groupIndex);
+}
+
+/** Rank-based scoring for number_guess — 1st gets 400, next half, last 0. */
 export function calculateNumberGuessPoints(
   rank: number,
   totalPlayers: number
 ): number {
   if (rank < 1 || rank > totalPlayers) return 0;
-  return (totalPlayers - rank) * 100;
+  return numberGuessPointsForGroup(rank - 1, totalPlayers);
 }
 
 /** Timeout and full-lobby scoring share this field so ranks stay comparable. */
@@ -63,6 +87,74 @@ export function numberGuessScoringPool(
   answerCount: number,
 ): number {
   return Math.max(playerCount, answerCount);
+}
+
+export function scoreNumberGuessAnswers<
+  T extends { id: string; numericAnswer: number | null },
+>(
+  answers: T[],
+  correct: number,
+  playerCount: number,
+): (T & { distance: number; rank: number; points: number })[] {
+  const sorted = answers
+    .map((a) => ({
+      ...a,
+      distance: Math.abs((a.numericAnswer ?? 0) - correct),
+      missing: a.numericAnswer == null,
+    }))
+    .sort((a, b) => {
+      if (a.missing !== b.missing) return a.missing ? 1 : -1;
+      return a.distance - b.distance;
+    });
+
+  const groupOf: number[] = [];
+  let groupIndex = 0;
+  for (let i = 0; i < sorted.length; i++) {
+    if (i > 0) {
+      const prev = sorted[i - 1];
+      const cur = sorted[i];
+      if (prev.missing !== cur.missing || (!cur.missing && prev.distance !== cur.distance)) {
+        groupIndex += 1;
+      }
+    }
+    groupOf.push(groupIndex);
+  }
+
+  const answeredIds = new Set(
+    answers.filter((a) => a.numericAnswer != null).map((a) => a.id),
+  );
+  const missingPlayers = Math.max(0, playerCount - answeredIds.size);
+  const uniqueAnsweredGroups = new Set(
+    sorted.map((row, i) => (row.missing ? -1 : groupOf[i])).filter((g) => g >= 0),
+  ).size;
+  const groupCount =
+    uniqueAnsweredGroups + (missingPlayers > 0 || sorted.some((a) => a.missing) ? 1 : 0);
+
+  const firstRankOfGroup: number[] = [];
+  let nextRank = 1;
+  let prevGroup = -1;
+  const ranks: number[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const g = groupOf[i];
+    if (g !== prevGroup) {
+      firstRankOfGroup[g] = nextRank;
+      prevGroup = g;
+    }
+    ranks.push(firstRankOfGroup[g]);
+    nextRank += 1;
+  }
+
+  return sorted.map((row, i) => {
+    const g = groupOf[i];
+    const points = row.missing
+      ? 0
+      : numberGuessPointsForGroup(g, Math.max(groupCount, 1));
+    return {
+      ...row,
+      rank: ranks[i],
+      points,
+    };
+  });
 }
 
 /** Contribution-based scoring for pick_correct (§9.2) */

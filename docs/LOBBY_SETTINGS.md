@@ -17,9 +17,8 @@ so the existing match engine keeps working.
 | `difficulty` | `mix` | Maps to `prompts.difficulty`. Mix = no filter. |
 | `blocks` | `4` | Clamp 1–4 |
 | `questionsPerBlock` | `2` | Clamp 1–4. Applies to `number_guess` rounds. `pick_correct` stays 1 prompt/block. |
-| `timerEnabled` | `true` | Off → no MATCH_TIMER bar, no auto-timeout |
-| `timerSeconds` | `5` | 5 \| 8 \| 10 \| 15. Snapshotted onto `match_blocks.timer_seconds` |
-| `revealHoldMs` | `1000` | 500 \| 1000 \| 1500 \| 2000. Pick-correct highlight before Zwischenstand |
+| `timerSeconds` | `8` | 5 \| 8 \| 10 \| 15. Always on. Same bar for all via `started_at`. Snapshotted onto `match_blocks.timer_seconds` |
+| `revealHoldMs` | `1000` | Internal pick-correct highlight delay (not a lobby control) |
 | `maxPlayers` | `4` | 2–4. Cannot go below occupied seats. |
 | `allowGuests` | `true` | Anonymous join rejected when false |
 | `autoStart` | `false` | Host starts when `players.length === maxPlayers` (≥2) |
@@ -38,7 +37,7 @@ Spielerliste (compact)
 Einstellungen  (Host: editors / Gäste: read-only chips)
   Inhalt   Themenmix · Modi · Schwierigkeit
   Form     Blöcke · Fragen/Block
-  Tempo    Timer on/off · Dauer · Pause nach Auflösung
+  Tempo    Fragedauer (immer an, collapsed by default)
   Raum     Max Spieler · Gäste · Start wenn voll
 ────────────────────────
 Micro-hint
@@ -46,6 +45,7 @@ Micro-hint
 ```
 
 - One primary CTA. Toggles persist immediately (Realtime).
+- Setting blocks start collapsed; chevron expands.
 - Defaults marked **Standard**.
 - Guests see summary chips, not controls.
 
@@ -71,4 +71,4 @@ In-block fallback: other themes **in the same pool**, never silently widen diffi
 
 1. Apply `20260823_010_room_lobby_settings.sql` (SQL editor if `db push` needs password).
 2. Deploy app. Old rooms with `{}` parse as Standard.
-3. Smoke: host edits, second client sees chips; guest-off join; timer 5s bar; filter empty.
+3. Smoke: host edits, second client sees chips; guest-off join; timer 8s bar; filter empty.

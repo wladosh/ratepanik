@@ -1,10 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Profile } from "@/lib/use-profile";
 
-const PROFILE_COLUMNS_BASE =
-  "id, username, xp, level, hirncoins, avatar_id, avatar_onboarding_done, friend_code, last_seen_at, created_at, updated_at";
+const PROFILE_COLUMNS_CORE =
+  "id, username, xp, level, hirncoins, avatar_id, avatar_onboarding_done, created_at, updated_at";
 
-const PROFILE_COLUMNS_WITH_STREAK = `${PROFILE_COLUMNS_BASE}, current_streak`;
+const PROFILE_COLUMN_ATTEMPTS = [
+  `${PROFILE_COLUMNS_CORE}, current_streak, friend_code, last_seen_at`,
+  `${PROFILE_COLUMNS_CORE}, current_streak`,
+  PROFILE_COLUMNS_CORE,
+] as const;
 
 /**
  * Calendar-day play streak (`profiles.current_streak`), same counter as
@@ -51,22 +55,14 @@ export async function loadProfile(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<Profile | null> {
-  const withStreak = await supabase
-    .from("profiles")
-    .select(PROFILE_COLUMNS_WITH_STREAK)
-    .eq("id", userId)
-    .single();
+  for (const columns of PROFILE_COLUMN_ATTEMPTS) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(columns)
+      .eq("id", userId)
+      .maybeSingle();
 
-  if (!withStreak.error && withStreak.data) {
-    return withStreak.data as Profile;
+    if (!error && data) return data as unknown as Profile;
   }
-
-  const base = await supabase
-    .from("profiles")
-    .select(PROFILE_COLUMNS_BASE)
-    .eq("id", userId)
-    .single();
-
-  if (base.error || !base.data) return null;
-  return base.data as Profile;
+  return null;
 }

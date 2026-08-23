@@ -109,6 +109,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = async () => {
+    try {
+      sessionStorage.removeItem("ratepanik-session");
+    } catch {
+      /* ignore */
+    }
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);

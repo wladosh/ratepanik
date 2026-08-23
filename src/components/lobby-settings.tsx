@@ -5,7 +5,6 @@ import { emptyPromptPoolReason, fetchActiveThemes, type Theme } from "@/lib/cont
 import { generateBlockModes } from "@/lib/game-store";
 import {
   DEFAULT_ROOM_SETTINGS,
-  REVEAL_HOLD_OPTIONS,
   TIMER_SECONDS_OPTIONS,
   settingsSummaryChips,
   startBlockedReason,
@@ -14,7 +13,6 @@ import {
   type MaxPlayers,
   type ModeFilter,
   type QuestionsPerBlock,
-  type RevealHoldMs,
   type RoomSettings,
   type ThemeMix,
   type TimerSeconds,
@@ -117,7 +115,25 @@ function ToggleRow({
   );
 }
 
+function Chevron({ up }: { up: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="w-5 h-5 shrink-0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      {up ? <path d="M18 15l-6-6-6 6" /> : <path d="M6 9l6 6 6-6" />}
+    </svg>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
   return (
     <section
       className="p-3.5 mb-2.5"
@@ -127,13 +143,23 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         boxShadow: "var(--rp-shadow-card)",
       }}
     >
-      <h3
-        className="text-[10px] font-bold uppercase tracking-wider mb-2.5"
-        style={{ color: "var(--rp-purple)" }}
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-2 min-h-11 -my-1 py-1 text-left"
       >
-        {title}
-      </h3>
-      <div className="space-y-3">{children}</div>
+        <h3
+          className="text-[10px] font-bold uppercase tracking-wider"
+          style={{ color: "var(--rp-purple)" }}
+        >
+          {title}
+        </h3>
+        <span style={{ color: "var(--rp-text-secondary)" }}>
+          <Chevron up={open} />
+        </span>
+      </button>
+      {open && <div className="space-y-3 mt-2.5">{children}</div>}
     </section>
   );
 }
@@ -322,40 +348,20 @@ export function LobbySettingsPanel({
       </Section>
 
       <Section title="Tempo">
-        <ToggleRow
-          label="Match-Timer"
-          hint="Gleicher Balken für alle, synced über started_at."
-          checked={settings.timerEnabled}
-          standard={settings.timerEnabled === DEFAULT_ROOM_SETTINGS.timerEnabled}
-          onChange={(timerEnabled) => onChange({ timerEnabled })}
-        />
-        {settings.timerEnabled && (
-          <div>
-            <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-              Dauer
-              <StandardMark on={settings.timerSeconds === DEFAULT_ROOM_SETTINGS.timerSeconds} />
-            </p>
-            <Segmented<TimerSeconds>
-              value={settings.timerSeconds}
-              onChange={(timerSeconds) => onChange({ timerSeconds })}
-              options={TIMER_SECONDS_OPTIONS.map((s) => ({
-                value: s,
-                label: `${s}s`,
-              }))}
-            />
-          </div>
-        )}
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-            Pause nach Auflösung
-            <StandardMark on={settings.revealHoldMs === DEFAULT_ROOM_SETTINGS.revealHoldMs} />
+            Fragedauer
+            <StandardMark on={settings.timerSeconds === DEFAULT_ROOM_SETTINGS.timerSeconds} />
           </p>
-          <Segmented<RevealHoldMs>
-            value={settings.revealHoldMs}
-            onChange={(revealHoldMs) => onChange({ revealHoldMs })}
-            options={REVEAL_HOLD_OPTIONS.map((ms) => ({
-              value: ms,
-              label: `${(ms / 1000).toLocaleString("de-DE")}s`,
+          <p className="text-[10px] mb-1.5" style={{ color: "var(--rp-text-secondary)" }}>
+            Gleicher Balken für alle, synced über started_at. Immer an.
+          </p>
+          <Segmented<TimerSeconds>
+            value={settings.timerSeconds}
+            onChange={(timerSeconds) => onChange({ timerSeconds })}
+            options={TIMER_SECONDS_OPTIONS.map((s) => ({
+              value: s,
+              label: `${s}s`,
             }))}
           />
         </div>

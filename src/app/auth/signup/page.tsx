@@ -3,8 +3,10 @@
 import { useState, useRef, useCallback } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n-context";
 
 export default function SignupPage() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -21,19 +23,19 @@ export default function SignupPage() {
 
   const handleDisplayNameChange = useCallback((value: string) => {
     setDisplayName(value);
-    const t = value.trim();
+    const trimmed = value.trim();
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
-    if (t.length === 0) {
+    if (trimmed.length === 0) {
       setNameError(null);
       setNameAvailable(null);
       setNameChecking(false);
       return;
     }
 
-    if (t.length < 3) {
-      setNameError("Name zu kurz (min. 3 Zeichen)");
+    if (trimmed.length < 3) {
+      setNameError(t.signup.nameTooShort);
       setNameAvailable(null);
       setNameChecking(false);
       return;
@@ -48,7 +50,7 @@ export default function SignupPage() {
         const res = await fetch("/api/username/check", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: t }),
+          body: JSON.stringify({ username: trimmed }),
         });
         const data = await res.json();
         setNameChecking(false);
@@ -60,13 +62,13 @@ export default function SignupPage() {
         setNameChecking(false);
       }
     }, 400);
-  }, []);
+  }, [t.signup.nameTooShort]);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
 
     if (trimmedName.length < 3) {
-      setNameError("Name zu kurz (min. 3 Zeichen)");
+      setNameError(t.signup.nameTooShort);
       return;
     }
 
@@ -94,7 +96,7 @@ export default function SignupPage() {
         msg.includes("429")
       ) {
         setError(
-          "Zu viele Anmelde-Mails gerade. Bitte etwa 1 Stunde warten, Google nutzen, oder später nochmal."
+          t.signup.rateLimit
         );
       } else {
         setError(signupError.message);
@@ -112,7 +114,7 @@ export default function SignupPage() {
       const claimData = await claimRes.json();
 
       if (!claimData.ok) {
-        setError(claimData.error ?? "Name konnte nicht reserviert werden");
+        setError(claimData.error ?? t.signup.claimFailed);
         setLoading(false);
         return;
       }
@@ -167,10 +169,10 @@ export default function SignupPage() {
               backgroundClip: "text",
             }}
           >
-            Bestätigungs-E-Mail gesendet!
+            {t.signup.confirmTitle}
           </h2>
           <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
-            Prüfe dein Postfach und klicke den Link, um dein Konto zu aktivieren.
+            {t.signup.confirmBody}
           </p>
           <Link
             href="/auth/login"
@@ -181,7 +183,7 @@ export default function SignupPage() {
               background: "rgba(139, 124, 255, 0.06)",
             }}
           >
-            Zurück zum Login
+            {t.signup.backToLogin}
           </Link>
         </div>
       </div>
@@ -211,7 +213,7 @@ export default function SignupPage() {
             Ratepanik
           </h1>
           <p className="mt-1" style={{ color: "var(--rp-text-secondary)" }}>
-            Konto erstellen
+            {t.signup.subtitle}
           </p>
         </div>
 
@@ -256,12 +258,12 @@ export default function SignupPage() {
               fill="#EA4335"
             />
           </svg>
-          Mit Google registrieren
+          {t.signup.google}
         </button>
 
         <div className="flex items-center gap-4">
           <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
-          <span className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>oder</span>
+          <span className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>{t.common.or}</span>
           <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
         </div>
 
@@ -271,7 +273,7 @@ export default function SignupPage() {
               type="text"
               value={displayName}
               onChange={(e) => handleDisplayNameChange(e.target.value)}
-              placeholder="Anzeigename (min. 3 Zeichen)"
+              placeholder={t.signup.namePlaceholder}
               required
               minLength={3}
               maxLength={20}
@@ -331,7 +333,7 @@ export default function SignupPage() {
               className="text-xs font-medium px-1"
               style={{ color: "var(--rp-success)" }}
             >
-              Name verfügbar!
+              {t.signup.nameAvailable}
             </p>
           )}
 
@@ -339,7 +341,7 @@ export default function SignupPage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="E-Mail"
+            placeholder={t.signup.email}
             required
             className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 text-sm font-medium transition-all focus:outline-none"
             style={{
@@ -360,7 +362,7 @@ export default function SignupPage() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Passwort (min. 6 Zeichen)"
+            placeholder={t.signup.password}
             required
             minLength={6}
             className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 text-sm font-medium transition-all focus:outline-none"
@@ -387,7 +389,7 @@ export default function SignupPage() {
                 "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
             }}
           >
-            Registrieren
+            {t.signup.submit}
           </button>
         </form>
 
@@ -397,7 +399,7 @@ export default function SignupPage() {
             className="text-sm font-medium underline transition-colors"
             style={{ color: "var(--rp-purple)" }}
           >
-            Schon ein Konto? Anmelden
+            {t.signup.hasAccount}
           </Link>
         </div>
       </div>

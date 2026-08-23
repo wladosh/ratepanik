@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import { AchievementToastProvider } from "@/lib/achievement-toast-context";
+import { LocaleProvider } from "@/lib/i18n-context";
 import { PhoneShell } from "@/components/phone-shell";
 import "./globals.css";
 
@@ -33,11 +34,13 @@ export default function RootLayout({
   return (
     <html lang="de" className={`${jakarta.variable} antialiased`}>
       <body className="min-h-dvh font-sans bg-[var(--rp-bg)] text-[var(--rp-text)] overflow-x-hidden">
-        <AuthProvider>
-          <AchievementToastProvider>
-            <PhoneShell>{children}</PhoneShell>
-          </AchievementToastProvider>
-        </AuthProvider>
+        <LocaleProvider>
+          <AuthProvider>
+            <AchievementToastProvider>
+              <PhoneShell>{children}</PhoneShell>
+            </AchievementToastProvider>
+          </AuthProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

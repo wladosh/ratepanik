@@ -115,7 +115,7 @@ export function FindLieScreen() {
           <QuestionTimerBar
             key={game.currentBlock!.id}
             deadlineMs={game.questionDeadlineMs}
-            durationMs={QUESTION_TIMER_MS}
+            durationMs={game.questionTimerMs ?? QUESTION_TIMER_MS}
           />
         )}
 

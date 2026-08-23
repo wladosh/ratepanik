@@ -37,7 +37,7 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   blocks: 4,
   questionsPerBlock: 2,
   timerEnabled: true,
-  timerSeconds: 5,
+  timerSeconds: 8,
   revealHoldMs: 1000,
   maxPlayers: 4,
   allowGuests: true,
@@ -81,8 +81,8 @@ export function parseRoomSettings(raw: unknown): RoomSettings {
     ),
     blocks: asUnion(src.blocks, [1, 2, 3, 4] as const, 4),
     questionsPerBlock: asUnion(src.questionsPerBlock, [1, 2, 3, 4] as const, 2),
-    timerEnabled: src.timerEnabled !== false,
-    timerSeconds: asUnion(src.timerSeconds, TIMER_SECONDS_OPTIONS, 5),
+    timerEnabled: true,
+    timerSeconds: asUnion(src.timerSeconds, TIMER_SECONDS_OPTIONS, 8),
     revealHoldMs: asUnion(src.revealHoldMs, REVEAL_HOLD_OPTIONS, 1000),
     maxPlayers: asUnion(src.maxPlayers, [2, 3, 4] as const, 4),
     allowGuests: src.allowGuests !== false,
@@ -109,6 +109,7 @@ export function clampRoomSettings(
     themeMix,
     themeIds,
     maxPlayers,
+    timerEnabled: true,
   };
 }
 
@@ -119,19 +120,18 @@ export function roundsForMode(
   return mode === "number_guess" ? questionsPerBlock : 1;
 }
 
-/** Snapshot written onto match_blocks.timer_seconds. 0 = timer off. */
+/** Snapshot written onto match_blocks.timer_seconds. Timer is always on. */
 export function timerSecondsForBlock(settings: RoomSettings): number {
-  return settings.timerEnabled ? settings.timerSeconds : 0;
+  return settings.timerSeconds;
 }
 
 /**
- * Duration for the Match-Timer bar. `null` = timer off (no bar, no auto-advance).
- * `timer_seconds === 0` is explicit off; `null` on a legacy block falls back to 5s.
+ * Duration for the Match-Timer bar. Always on — same bar for everyone via started_at.
+ * `timer_seconds === 0` or missing on a legacy block falls back to the 8s default.
  */
 export function questionTimerMsFromBlock(
   timerSeconds: number | null | undefined,
-): number | null {
-  if (timerSeconds === 0) return null;
+): number {
   if (typeof timerSeconds === "number" && timerSeconds > 0) {
     return timerSeconds * 1000;
   }
@@ -179,9 +179,7 @@ export function settingsSummaryChips(
   );
 
   chips.push(`${settings.blocks} Blöcke`);
-  chips.push(
-    settings.timerEnabled ? `${settings.timerSeconds}s Timer` : "Ohne Timer",
-  );
+  chips.push(`${settings.timerSeconds}s Timer`);
   chips.push(`Max ${settings.maxPlayers}`);
   chips.push(settings.allowGuests ? "Gäste ja" : "Keine Gäste");
   if (settings.autoStart) chips.push("Start wenn voll");

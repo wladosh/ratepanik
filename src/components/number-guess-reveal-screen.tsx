@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
 import type { NumberGuessPayload } from "@/lib/content";
-import { calculateNumberGuessPoints, numberGuessScoringPool } from "@/lib/game-store";
+import { numberGuessCorrectFromPayload, scoreNumberGuessAnswers } from "@/lib/game-store";
 
 const RANK_MEDALS = ["\u{1F947}", "\u{1F948}", "\u{1F949}", "4."];
 
@@ -11,26 +11,32 @@ export function NumberGuessRevealScreen() {
   const game = useGame();
   const prompt = game.currentPrompt;
   const payload = prompt?.payload as NumberGuessPayload | undefined;
-  const correctAnswer = payload?.answer;
+  const correctAnswer = numberGuessCorrectFromPayload(prompt?.payload) ?? payload?.answer;
 
   const ranked = useMemo(() => {
     if (correctAnswer === undefined || correctAnswer === null) return [];
     const ca = correctAnswer;
+    const scored = scoreNumberGuessAnswers(
+      game.roundAnswers.map((a) => ({
+        id: a.id,
+        numericAnswer: a.numeric_answer,
+      })),
+      ca,
+      game.players.length,
+    );
+    const byId = new Map(scored.map((s) => [s.id, s]));
     return game.roundAnswers
-      .map((a) => ({
-        ...a,
-        distance: Math.abs((a.numeric_answer ?? 0) - ca),
-        player: game.players.find((p) => p.id === a.player_id),
-      }))
-      .sort((a, b) => a.distance - b.distance)
-      .map((a, i) => ({
-        ...a,
-        rank: i + 1,
-        points: calculateNumberGuessPoints(
-          i + 1,
-          numberGuessScoringPool(game.players.length, game.roundAnswers.length),
-        ),
-      }));
+      .map((a) => {
+        const s = byId.get(a.id);
+        return {
+          ...a,
+          distance: s?.distance ?? Math.abs((a.numeric_answer ?? 0) - ca),
+          rank: s?.rank ?? 0,
+          points: s?.points ?? 0,
+          player: game.players.find((p) => p.id === a.player_id),
+        };
+      })
+      .sort((a, b) => a.rank - b.rank);
   }, [game.roundAnswers, game.players, correctAnswer]);
 
   const myRanked = ranked.find((r) => r.player_id === game.myPlayerId);

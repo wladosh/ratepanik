@@ -108,7 +108,7 @@ Ergebnis ohne volle Fragen/Antworten (Anti-Spoiler). Default Gleichstand: geteil
 ## 9. Spielmodi
 
 ### 9.1 Zahlenraten (`number_guess`)
-Numerische Wahrheit; Abstand absolut; Punkte nach Rang (Vorschlag letzter 0); 2 Runden/Block; Achievement exakter Treffer.
+Numerische Wahrheit; Abstand absolut. Nächster Tipp bekommt die volle Punktzahl (400), jeder weitere eindeutige Abstand die Hälfte davon, der letzte Platz 0. Gleicher Tipp = gleiche Punkte. 2 Runden/Block; Achievement exakter Treffer.
 
 ### 9.2 Passendes wählen (`pick_correct`)
 Thema wählen (2 Optionen); 8 Karten (4 richtig/4 falsch); abwechselnd tippen bis 4 Richtige gefunden.

@@ -8,7 +8,9 @@ import { generateGuestName } from "@/lib/guest-name";
 import { xpProgressInLevel } from "@/lib/progression";
 import { avatarSrc, HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
 import { HomePanel, type HomePanelId } from "@/components/home-panels";
-import { dailyPlayStreakCopy, dailyPlayStreakDays } from "@/lib/daily-play-streak";
+import { dailyPlayStreakDays } from "@/lib/daily-play-streak";
+import { HomeDashboardCards } from "@/components/home-dashboard-cards";
+import { useI18n } from "@/lib/i18n-context";
 import { useAchievements } from "@/lib/use-achievements";
 import { useMatchStats } from "@/lib/use-match-stats";
 import { createBrowserSupabase } from "@/lib/supabase/client";
@@ -31,10 +33,17 @@ function StreakCard({
   days: number | null;
   loading: boolean;
 }) {
-  const label = loading ? "…" : days === null ? "Bald" : String(days);
+  const { t } = useI18n();
+  const label = loading ? "…" : days === null ? t.common.soon : String(days);
   const copy = loading
-    ? "Kalendertage in Folge gespielt."
-    : dailyPlayStreakCopy(days);
+    ? t.home.streakLoading
+    : days === null
+      ? t.home.streakNull
+      : days <= 0
+        ? t.home.streakZero
+        : days < 3
+          ? t.home.streakBuilding
+          : t.home.streakActive;
 
   return (
     <div
@@ -45,11 +54,11 @@ function StreakCard({
         boxShadow: "var(--rp-shadow-card)",
       }}
     >
-      <span className="text-2xl" role="img" aria-label="Feuer">
+      <span className="text-2xl" role="img" aria-label={t.home.streakAria}>
         🔥
       </span>
       <div className="flex-1">
-        <h4 className="text-sm font-bold text-[var(--rp-text)]">Streak</h4>
+        <h4 className="text-sm font-bold text-[var(--rp-text)]">{t.home.streakTitle}</h4>
         <p className="text-[10px] text-[var(--rp-text-secondary)]">{copy}</p>
       </div>
       <span
@@ -66,7 +75,8 @@ function StreakCard({
 
 export function HomeScreen() {
   const game = useGame();
-  const { user, canHost, isGuest, signOut, loading: authLoading, profile, profileLoading, refetchProfile } = useAuth();
+  const { t } = useI18n();
+  const { user, canHost, isGuest, loading: authLoading, profile, profileLoading, refetchProfile } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -80,7 +90,7 @@ export function HomeScreen() {
     user?.user_metadata?.display_name ||
     user?.user_metadata?.full_name ||
     user?.email?.split("@")[0] ||
-    "Spieler";
+    t.common.player;
   const streakDays = dailyPlayStreakDays(profile);
 
   const initialJoinCode = useMemo(() => {
@@ -97,21 +107,23 @@ export function HomeScreen() {
   const { catalog: achievementCatalog, unlocked: achievementUnlocked, loaded: achievementsLoaded } =
     useAchievements(user && !isGuest ? user.id : null);
   const { games: matchGames } = useMatchStats(user && !isGuest ? user.id : null);
-  const [friendCount, setFriendCount] = useState<number | null>(null);
+  const [friendCountResult, setFriendCountResult] = useState<{ userId: string; count: number } | null>(null);
+  const friendCount =
+    user && !isGuest && friendCountResult?.userId === user.id
+      ? friendCountResult.count
+      : null;
 
   useEffect(() => {
-    if (!user || isGuest) {
-      setFriendCount(null);
-      return;
-    }
+    if (!user || isGuest) return;
     const supabase = createBrowserSupabase();
     let cancelled = false;
+    const userId = user.id;
     void supabase
       .from("friendships")
       .select("id", { count: "exact", head: true })
       .eq("status", "accepted")
       .then(({ count }) => {
-        if (!cancelled) setFriendCount(count ?? 0);
+        if (!cancelled) setFriendCountResult({ userId, count: count ?? 0 });
       });
     return () => {
       cancelled = true;
@@ -140,7 +152,7 @@ export function HomeScreen() {
   async function handleJoin() {
     const trimmedCode = roomCode.trim();
     if (trimmedCode.length !== 6) {
-      setJoinError("Code muss genau 6 Zeichen haben.");
+      setJoinError(t.home.joinCodeLength);
       return;
     }
     setJoinError(null);
@@ -149,7 +161,7 @@ export function HomeScreen() {
   }
 
   function handleToast() {
-    showToast("Bald");
+    showToast(t.common.soon);
   }
 
   if (authLoading) {
@@ -159,7 +171,7 @@ export function HomeScreen() {
         style={{ background: "var(--rp-bg-hero)" }}
       >
         <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
-          Laden...
+          {t.common.loading}
         </div>
       </div>
     );
@@ -171,7 +183,7 @@ export function HomeScreen() {
 
   return (
     <div
-      className="rp-home-root flex flex-1 flex-col"
+      className="rp-home-root absolute inset-0 flex flex-col overflow-hidden"
       style={{
         background: "var(--rp-bg-hero)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
@@ -187,15 +199,15 @@ export function HomeScreen() {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 pb-20">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
         {/* ── Header ──────────────────────────────── */}
         <header className="py-4">
           <div className="flex items-center gap-3">
             {/* Avatar + Level badge */}
             <button
-              onClick={() => (isGuest ? showToast("Shop braucht ein Konto") : setPanel("shop"))}
+              onClick={() => (isGuest ? showToast(t.home.shopNeedsAccount) : setPanel("shop"))}
               className="relative shrink-0"
-              aria-label="Avatar"
+              aria-label={t.home.avatarAria}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -242,7 +254,7 @@ export function HomeScreen() {
                     className="text-[var(--rp-text-secondary)] truncate"
                     style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.3 }}
                   >
-                    {isGuest ? "Gast" : "Party-Spieler"}
+                    {isGuest ? t.common.guest : t.home.partyPlayer}
                   </p>
                 </div>
 
@@ -278,11 +290,11 @@ export function HomeScreen() {
 
                 {/* Settings gear */}
                 <button
-                  onClick={signOut}
+                  onClick={() => setPanel("settings")}
                   className="flex items-center justify-center rounded-full transition-colors hover:bg-black/5 shrink-0"
                   style={{ width: 40, height: 40 }}
-                  aria-label="Abmelden"
-                  title="Abmelden"
+                  aria-label={t.home.settingsAria}
+                  title={t.home.settingsAria}
                 >
                   <GearIcon className="w-5 h-5 text-[var(--rp-text-secondary)]" />
                 </button>
@@ -324,260 +336,25 @@ export function HomeScreen() {
           </div>
         </header>
 
-        {/* ── Hero card ───────────────────────────── */}
-        <div
-          className="relative overflow-hidden p-5 mb-4"
-          style={{
-            background: "linear-gradient(135deg, #D8CCFF 0%, #C9C0FF 40%, #B8D4FF 100%)",
-            borderRadius: "var(--rp-radius-lg)",
+        <HomeDashboardCards
+          roomCode={roomCode}
+          joinError={joinError}
+          loading={game.loading}
+          isGuest={isGuest}
+          friendCount={friendCount}
+          level={profile ? (xpProgress?.level ?? profile.level) : null}
+          matchGames={matchGames}
+          achievementsLoaded={achievementsLoaded}
+          achievementsUnlocked={achievementUnlocked.size}
+          achievementsTotal={achievementCatalog.length}
+          onCreate={handleCreate}
+          onJoin={handleJoin}
+          onCodeChange={(value) => {
+            setRoomCode(value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6));
+            setJoinError(null);
           }}
-        >
-          <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-            <div className="absolute top-3 left-[15%] w-1.5 h-1.5 rounded-full bg-white/50" />
-            <div className="absolute top-6 right-[20%] w-2 h-2 rounded-full bg-[var(--rp-pink)] opacity-40" />
-            <div className="absolute bottom-4 left-[10%] w-1 h-3 rounded-full bg-[var(--rp-yellow)] opacity-40 rotate-45" />
-            <div className="absolute top-8 left-[40%] w-1.5 h-1.5 rounded-full bg-[var(--rp-mint)] opacity-50" />
-            <div className="absolute bottom-6 right-[15%] w-1 h-3 rounded-full bg-white/40 -rotate-12" />
-          </div>
-          <div className="relative flex items-center gap-4">
-            <div className="flex-1">
-              <h3 className="text-xl font-extrabold text-[var(--rp-text)] leading-tight mb-1">
-                Werde<br />Ratepanik-Champion
-              </h3>
-              <p className="text-xs text-[var(--rp-text-secondary)] leading-snug">
-                Gewinne Runden, sammle Punkte<br />und hol dir den Champion-Pokal!
-              </p>
-            </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/rp/rp_trophy_gold_512.png"
-              alt="Trophy"
-              width={96}
-              height={96}
-              className="shrink-0 drop-shadow-[0_6px_20px_rgba(255,214,107,0.5)]"
-            />
-          </div>
-        </div>
-
-        {/* ── Raum erstellen ──────────────────────── */}
-        <button
-          onClick={handleCreate}
-          disabled={game.loading}
-          className="w-full flex items-center gap-4 p-4 mb-3 transition-all active:scale-[0.98] disabled:opacity-60"
-          style={{
-            background: "linear-gradient(135deg, #FFECD2 0%, #FFE0CC 100%)",
-            borderRadius: "var(--rp-radius-md)",
-            boxShadow: "var(--rp-shadow-card)",
-          }}
-        >
-          <div
-            className="w-11 h-11 flex items-center justify-center rounded-xl shrink-0"
-            style={{ background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)" }}
-          >
-            <svg viewBox="0 0 24 24" className="w-6 h-6" fill="white">
-              <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div className="flex-1 text-left">
-            <h3 className="text-base font-bold text-[var(--rp-text)]">
-              {game.loading ? "Erstelle Raum…" : "Raum erstellen"}
-            </h3>
-            <p className="text-xs text-[var(--rp-text-secondary)]">
-              Erstelle deinen eigenen<br />Quiz-Raum und lade Freunde ein!
-            </p>
-          </div>
-          <svg viewBox="0 0 24 24" className="w-5 h-5 text-[var(--rp-text-secondary)] shrink-0" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-
-        {/* ── Beitreten card ──────────────────────── */}
-        <div
-          className="w-full p-4 mb-4"
-          style={{
-            background: "var(--rp-bg-elevated)",
-            borderRadius: "var(--rp-radius-md)",
-            boxShadow: "var(--rp-shadow-card)",
-          }}
-        >
-          <h3 className="text-base font-bold text-[var(--rp-text)] mb-0.5">Beitreten</h3>
-          <p className="text-xs text-[var(--rp-text-secondary)] mb-3">
-            Tritt einem Spiel mit einem Code bei
-          </p>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 flex gap-1.5">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <input
-                  key={i}
-                  type="text"
-                  inputMode="text"
-                  maxLength={1}
-                  value={roomCode[i] ?? ""}
-                  readOnly
-                  tabIndex={-1}
-                  className="w-full aspect-square max-w-[42px] rounded-xl border-2 text-center text-lg font-bold text-[var(--rp-text)] bg-[#F5F3FF]"
-                  style={{ borderColor: "var(--rp-border)" }}
-                  aria-label={`Code Stelle ${i + 1}`}
-                />
-              ))}
-            </div>
-            <button
-              onClick={handleJoin}
-              disabled={roomCode.trim().length !== 6 || game.loading}
-              className="h-10 px-5 rounded-full text-sm font-bold transition-all active:scale-[0.97] disabled:opacity-40 shrink-0"
-              style={{
-                background: roomCode.trim().length === 6
-                  ? "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)"
-                  : "var(--rp-peach)",
-                color: "white",
-              }}
-            >
-              {game.loading ? "..." : "Beitreten"}
-            </button>
-          </div>
-          <input
-            type="text"
-            value={roomCode}
-            onChange={(e) => {
-              setRoomCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6));
-              setJoinError(null);
-            }}
-            onKeyDown={(e) => e.key === "Enter" && handleJoin()}
-            placeholder="Code eingeben"
-            maxLength={6}
-            className="w-full h-10 mt-2 rounded-xl border-2 px-4 text-sm font-medium text-[var(--rp-text)] placeholder:text-gray-300 transition-all focus:outline-none"
-            style={{
-              borderColor: joinError ? "var(--rp-danger)" : "var(--rp-border)",
-              background: "#FAFAFA",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = joinError ? "var(--rp-danger)" : "var(--rp-border)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          />
-          {joinError && (
-            <p className="mt-1 text-xs text-[var(--rp-danger)] font-medium">{joinError}</p>
-          )}
-        </div>
-
-        {/* ── 2×2 feature grid ────────────────────── */}
-        <div className="grid grid-cols-2 gap-3 mb-3">
-          <button
-            onClick={() => setPanel("friends")}
-            className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
-            style={{
-              background: "linear-gradient(135deg, #D6ECFF 0%, #C8E0FF 100%)",
-              borderRadius: "var(--rp-radius-md)",
-            }}
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(126, 182, 255, 0.3)" }}>
-              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-sky)">
-                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <span className="text-sm font-bold text-[var(--rp-text)]">Freunde</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">
-                {isGuest
-                  ? "Anmelden"
-                  : friendCount === null
-                    ? "…"
-                    : friendCount === 0
-                      ? "Hinzufügen"
-                      : friendCount === 1
-                        ? "1 Freund"
-                        : `${friendCount} Freunde`}
-              </p>
-            </div>
-            <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-
-          <button
-            onClick={() => setPanel("stats")}
-            className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
-            style={{
-              background: "linear-gradient(135deg, #EDE6FF 0%, #DDD4FF 100%)",
-              borderRadius: "var(--rp-radius-md)",
-            }}
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(139, 124, 255, 0.2)" }}>
-              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-purple)">
-                <path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <span className="text-sm font-bold text-[var(--rp-text)]">Statistik</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">
-                {isGuest || !profile
-                  ? "Anmelden"
-                  : matchGames === null
-                    ? `Lv. ${xpProgress?.level ?? profile.level}`
-                    : matchGames === 0
-                      ? `Lv. ${xpProgress?.level ?? profile.level}`
-                      : `Lv. ${xpProgress?.level ?? profile.level} · ${matchGames} Spiele`}
-              </p>
-            </div>
-            <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-
-          <button
-            onClick={() => setPanel("achievements")}
-            className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
-            style={{
-              background: "linear-gradient(135deg, #FFF5D6 0%, #FFEDB8 100%)",
-              borderRadius: "var(--rp-radius-md)",
-            }}
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(255, 214, 107, 0.3)" }}>
-              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-yellow)">
-                <path d="M12 2l2.4 7.2H22l-6 4.8 2.4 7.2L12 16.8 5.6 21.2 8 14 2 9.2h7.6z" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <span className="text-sm font-bold text-[var(--rp-text)]">Erfolge</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">
-                {isGuest
-                  ? "Anmelden"
-                  : !achievementsLoaded
-                    ? "…"
-                    : `${achievementUnlocked.size} / ${achievementCatalog.length}`}
-              </p>
-            </div>
-            <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-
-          <button
-            onClick={() => setPanel("shop")}
-            className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
-            style={{
-              background: "linear-gradient(135deg, #D6FFF0 0%, #C0F5E0 100%)",
-              borderRadius: "var(--rp-radius-md)",
-            }}
-          >
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(111, 207, 178, 0.25)" }}>
-              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-mint)">
-                <path d="M18 6h-2c0-2.21-1.79-4-4-4S8 3.79 8 6H6c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-6 11c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0-13c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2z" />
-              </svg>
-            </div>
-            <div className="text-left">
-              <span className="text-sm font-bold text-[var(--rp-text)]">Shop</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Avatare</p>
-            </div>
-            <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+          onOpenPanel={setPanel}
+        />
 
         {/* ── Streak card (calendar-day play streak, same as streak_3) ── */}
         {!isGuest && (
@@ -600,27 +377,27 @@ export function HomeScreen() {
         <button className="flex flex-col items-center gap-0.5 py-1 px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_home_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
-          <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>Start</span>
+          <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>{t.home.navStart}</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_quiz_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
-          <span className="text-[10px] font-medium">Quiz</span>
+          <span className="text-[10px] font-medium">{t.home.navQuiz}</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_play_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
-          <span className="text-[10px] font-medium">Spielen</span>
+          <span className="text-[10px] font-medium">{t.home.navPlay}</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_rank_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
-          <span className="text-[10px] font-medium">Rangliste</span>
+          <span className="text-[10px] font-medium">{t.home.navRank}</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_profile_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
-          <span className="text-[10px] font-medium">Profil</span>
+          <span className="text-[10px] font-medium">{t.home.navProfile}</span>
         </button>
       </nav>
     </div>

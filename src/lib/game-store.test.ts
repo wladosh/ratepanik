@@ -5,7 +5,9 @@ import {
   calculateOrderItPoints,
   calculatePickCorrectPoints,
   generateBlockModes,
+  NUMBER_GUESS_FIRST_POINTS,
   numberGuessScoringPool,
+  scoreNumberGuessAnswers,
 } from "./game-store";
 
 const ALLOWED_MODES = new Set([
@@ -19,15 +21,49 @@ describe("calculateNumberGuessPoints", () => {
   it("awards 0 points for last place (rank === totalPlayers)", () => {
     expect(calculateNumberGuessPoints(4, 4)).toBe(0);
     expect(calculateNumberGuessPoints(3, 3)).toBe(0);
+    expect(calculateNumberGuessPoints(2, 2)).toBe(0);
   });
 
-  it("awards 300 points for rank 1 of 4", () => {
-    expect(calculateNumberGuessPoints(1, 4)).toBe(300);
+  it("halves points for each worse rank: 400, 200, 100, 0", () => {
+    expect(calculateNumberGuessPoints(1, 4)).toBe(NUMBER_GUESS_FIRST_POINTS);
+    expect(calculateNumberGuessPoints(2, 4)).toBe(200);
+    expect(calculateNumberGuessPoints(3, 4)).toBe(100);
+    expect(calculateNumberGuessPoints(1, 2)).toBe(NUMBER_GUESS_FIRST_POINTS);
   });
 
   it("uses max(players, answers) so timeout scoring matches a full round", () => {
     expect(numberGuessScoringPool(4, 2)).toBe(4);
-    expect(calculateNumberGuessPoints(1, numberGuessScoringPool(4, 2))).toBe(300);
+    expect(calculateNumberGuessPoints(1, numberGuessScoringPool(4, 2))).toBe(
+      NUMBER_GUESS_FIRST_POINTS,
+    );
+  });
+});
+
+describe("scoreNumberGuessAnswers", () => {
+  it("gives both players first-place points when they guess the same", () => {
+    const scored = scoreNumberGuessAnswers(
+      [
+        { id: "a", numericAnswer: 10 },
+        { id: "b", numericAnswer: 10 },
+      ],
+      10,
+      2,
+    );
+    expect(scored.map((s) => s.points).sort((x, y) => y - x)).toEqual([400, 400]);
+  });
+
+  it("gives only the closer guess points in a 2-player round", () => {
+    const scored = scoreNumberGuessAnswers(
+      [
+        { id: "a", numericAnswer: 9 },
+        { id: "b", numericAnswer: 1 },
+      ],
+      10,
+      2,
+    );
+    const byId = Object.fromEntries(scored.map((s) => [s.id, s.points]));
+    expect(byId.a).toBe(400);
+    expect(byId.b).toBe(0);
   });
 });
 

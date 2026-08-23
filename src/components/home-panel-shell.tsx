@@ -1,6 +1,9 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n-context";
+
 export function BackButton({ onBack }: { onBack: () => void }) {
+  const { t } = useI18n();
   return (
     <button
       type="button"
@@ -11,7 +14,7 @@ export function BackButton({ onBack }: { onBack: () => void }) {
         backdropFilter: "blur(8px)",
         boxShadow: "0 2px 8px rgba(42,42,74,0.10)",
       }}
-      aria-label="Zurück"
+      aria-label={t.common.back}
     >
       <svg
         viewBox="0 0 24 24"

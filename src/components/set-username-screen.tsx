@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
 interface SetUsernameScreenProps {
-  onClaimed: () => void;
+  onClaimed: () => void | Promise<unknown>;
   claimUsername: (username: string) => Promise<{ ok: boolean; error?: string }>;
   checkUsername: (username: string) => Promise<{ available: boolean; error?: string | null }>;
   defaultName?: string;
@@ -83,12 +83,16 @@ export function SetUsernameScreen({
     setSubmitting(true);
     setError(null);
 
-    const result = await claimUsername(trimmed);
-
-    if (result.ok) {
-      onClaimed();
-    } else {
-      setError(result.error ?? "Fehler beim Speichern");
+    try {
+      const result = await claimUsername(trimmed);
+      if (result.ok) {
+        await onClaimed();
+      } else {
+        setError(result.error ?? "Fehler beim Speichern");
+      }
+    } catch {
+      setError("Fehler beim Speichern");
+    } finally {
       setSubmitting(false);
     }
   }

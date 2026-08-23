@@ -52,11 +52,16 @@ export function useProfile(user: User | null): UseProfileReturn {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username }),
       });
-      const data = await res.json();
+      let data: { ok?: boolean; error?: string };
+      try {
+        data = await res.json();
+      } catch {
+        return { ok: false, error: "Speichern fehlgeschlagen" };
+      }
       if (data.ok) {
         await fetchProfile();
       }
-      return data;
+      return { ok: data.ok === true, error: data.error };
     },
     [fetchProfile]
   );

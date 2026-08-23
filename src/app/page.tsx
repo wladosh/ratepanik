@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from "@/lib/auth-context";
+import { useI18n, LoadingPulse } from "@/lib/i18n-context";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { LandingScreen } from "@/components/landing-screen";
@@ -20,6 +21,7 @@ function hasActiveGameSession(): boolean {
 }
 
 function HomeContent() {
+  const { t } = useI18n();
   const { user, isAuthenticated, isGuest, loading, needsUsername, needsAvatarOnboarding, refetchProfile, markAvatarOnboardingDone } = useAuth();
   const { claimUsername, checkUsername } = useProfile(user);
   const searchParams = useSearchParams();
@@ -34,7 +36,7 @@ function HomeContent() {
         style={{ background: "var(--rp-bg-hero)" }}
       >
         <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
-          Laden...
+          {t.common.loading}
         </div>
       </div>
     );
@@ -100,18 +102,7 @@ function HomeContent() {
 
 export default function Home() {
   return (
-    <Suspense
-      fallback={
-        <div
-          className="flex flex-1 items-center justify-center"
-          style={{ background: "var(--rp-bg-hero)" }}
-        >
-          <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
-            Laden...
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<LoadingPulse />}>
       <HomeContent />
     </Suspense>
   );

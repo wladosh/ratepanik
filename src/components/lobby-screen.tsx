@@ -7,7 +7,7 @@ import { LobbySettingsPanel } from "@/components/lobby-settings";
 import { startBlockedReason } from "@/lib/room-settings";
 import { generateBlockModes } from "@/lib/game-store";
 import { emptyPromptPoolReason } from "@/lib/content";
-import { copyJoinLink } from "@/lib/join-link";
+import { copyJoinLink, shareOrCopyJoinLink } from "@/lib/join-link";
 
 function getAvatarSrc(index: number) {
   return AVATAR_POOL[index % AVATAR_POOL.length];
@@ -39,6 +39,17 @@ function CopyIcon({ className }: { className?: string }) {
   );
 }
 
+function ShareIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" />
+    </svg>
+  );
+}
+
 function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor">
@@ -50,6 +61,7 @@ function PeopleIcon({ className, style }: { className?: string; style?: React.CS
 export function LobbyScreen() {
   const game = useGame();
   const [copied, setCopied] = useState(false);
+  const [shareToast, setShareToast] = useState<string | null>(null);
 
   const playersSorted = [...game.players].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -66,6 +78,16 @@ export function LobbyScreen() {
       if (!ok) return;
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
+    });
+  }, [game.room?.code]);
+
+  const handleShare = useCallback(() => {
+    if (!game.room?.code) return;
+    void shareOrCopyJoinLink(game.room.code).then((result) => {
+      if (result === "failed") return;
+      const msg = result === "shared" ? "Einladung geteilt" : "Link kopiert";
+      setShareToast(msg);
+      setTimeout(() => setShareToast(null), 2500);
     });
   }, [game.room?.code]);
 
@@ -111,12 +133,12 @@ export function LobbyScreen() {
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col min-h-0 px-5 pb-6">
-        {copied && (
+        {(shareToast || copied) && (
           <div
             className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
             style={{ background: "var(--rp-purple)" }}
           >
-            Link kopiert
+            {shareToast ?? "Link kopiert"}
           </div>
         )}
         {/* Back button */}
@@ -144,6 +166,17 @@ export function LobbyScreen() {
               {game.room?.code}
             </span>
             <button
+              onClick={handleShare}
+              className="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-all active:scale-95"
+              style={{
+                background: "var(--rp-peach)",
+                color: "#fff",
+              }}
+            >
+              <ShareIcon className="w-3.5 h-3.5" />
+              Teilen
+            </button>
+            <button
               onClick={handleCopy}
               className="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-all active:scale-95"
               style={{
@@ -152,7 +185,7 @@ export function LobbyScreen() {
               }}
             >
               <CopyIcon className="w-3.5 h-3.5" />
-              {copied ? "Kopiert" : "Link kopieren"}
+              {copied ? "Kopiert" : "Link"}
             </button>
           </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n-context";
 import { useRef, type CSSProperties } from "react";
 import Image from "next/image";
 import gsap from "gsap";
@@ -20,6 +21,7 @@ const CONFETTI = [
 ] as const;
 
 export function LandingHero() {
+  const { t } = useI18n();
   const rootRef = useRef<HTMLElement>(null);
   const celebrationRef = useRef<gsap.core.Timeline | null>(null);
 
@@ -204,7 +206,7 @@ export function LandingHero() {
           type="button"
           className={styles.trophyButton}
           onClick={celebrate}
-          aria-label="Pokal feiern lassen"
+          aria-label={t.landing.trophyAria}
         >
           <span className={styles.trophyFloat} data-trophy-float>
             <span className={styles.trophyReact} data-trophy-react>
@@ -231,7 +233,7 @@ export function LandingHero() {
       </div>
 
       <p className={styles.tagline} data-tagline>
-        Wer falsch liegt, lebt gefährlich.
+        {t.landing.tagline}
       </p>
     </section>
   );

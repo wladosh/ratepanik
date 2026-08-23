@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n-context";
 import { useRouter } from "next/navigation";
 import { LandingHero } from "@/components/landing-hero";
 
 export function LandingScreen({ initialCode }: { initialCode?: string }) {
+  const { t } = useI18n();
   const { isAuthenticated } = useAuth();
   const router = useRouter();
   const sanitized = initialCode
@@ -23,7 +25,7 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
   async function handleJoin() {
     const trimmed = code.trim();
     if (trimmed.length !== 6) {
-      setError("Code muss genau 6 Zeichen haben.");
+      setError(t.landing.codeError);
       return;
     }
     setLoading(true);
@@ -34,7 +36,7 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
       const supabase = createBrowserSupabase();
       const { error: authError } = await supabase.auth.signInAnonymously();
       if (authError) {
-        setError("Verbindungsfehler. Bitte versuche es erneut.");
+        setError(t.landing.connectionError);
         setLoading(false);
         return;
       }
@@ -74,8 +76,8 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-bold text-[var(--rp-text)]">Als Gast beitreten</h2>
-              <p className="text-sm text-[var(--rp-text-secondary)]">Du hast einen Raum-Code?</p>
+              <h2 className="text-lg font-bold text-[var(--rp-text)]">{t.landing.guestTitle}</h2>
+              <p className="text-sm text-[var(--rp-text-secondary)]">{t.landing.guestSubtitle}</p>
             </div>
           </div>
 
@@ -125,14 +127,14 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
               boxShadow: code.length === 6 ? "0 4px 16px rgba(255, 138, 113, 0.35)" : "none",
             }}
           >
-            {loading ? "Tritt bei…" : "Beitreten"}
+            {loading ? t.landing.joining : t.landing.join}
           </button>
         </div>
 
         {/* Divider */}
         <div className="w-full flex items-center gap-4 mb-6">
           <div className="flex-1 h-px bg-[var(--rp-border)]" />
-          <span className="text-sm text-[var(--rp-text-secondary)] font-medium">oder</span>
+          <span className="text-sm text-[var(--rp-text-secondary)] font-medium">{t.common.or}</span>
           <div className="flex-1 h-px bg-[var(--rp-border)]" />
         </div>
 
@@ -149,7 +151,7 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
               <path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
             </svg>
-            Registrieren
+            {t.landing.register}
           </button>
           <button
             onClick={() => router.push(code.length === 6 ? `/auth/login?join=${code}` : "/auth/login")}
@@ -163,7 +165,7 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
               <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/>
             </svg>
-            Anmelden
+            {t.landing.login}
           </button>
         </div>
 
@@ -175,7 +177,7 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
           >
             ✓
           </span>
-          <span>Als Gast brauchst du nur den Code vom Host.</span>
+          <span>{t.landing.footer}</span>
         </div>
       </div>
     </div>
