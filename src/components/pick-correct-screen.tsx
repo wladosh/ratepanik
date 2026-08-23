@@ -8,16 +8,11 @@ import type { PickCorrectPayload } from "@/lib/content";
 
 const ANSWER_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
-const ANSWER_STYLES = [
-  { border: "var(--rp-purple-soft)", bg: "rgba(139, 124, 255, 0.06)", label: "var(--rp-purple)" },
-  { border: "var(--rp-peach)",       bg: "rgba(255, 138, 113, 0.06)", label: "var(--rp-peach)" },
-  { border: "var(--rp-mint)",        bg: "rgba(111, 207, 178, 0.06)", label: "var(--rp-mint)" },
-  { border: "var(--rp-sky)",         bg: "rgba(126, 182, 255, 0.06)", label: "var(--rp-sky)" },
-  { border: "var(--rp-yellow)",      bg: "rgba(255, 214, 107, 0.06)", label: "var(--rp-yellow)" },
-  { border: "var(--rp-pink)",        bg: "rgba(255, 122, 182, 0.06)", label: "var(--rp-pink)" },
-  { border: "var(--rp-purple)",      bg: "rgba(139, 124, 255, 0.06)", label: "var(--rp-purple)" },
-  { border: "var(--rp-peach-deep)",  bg: "rgba(245, 107, 82, 0.06)",  label: "var(--rp-peach-deep)" },
-];
+const CARD_STYLE = {
+  border: "var(--rp-border)",
+  bg: "var(--rp-surface)",
+  label: "var(--rp-text-secondary)",
+};
 
 function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
@@ -137,15 +132,14 @@ export function PickCorrectScreen() {
           {payload.cards.map((card, i) => {
             const tapped = tappedIndices.has(i);
             const result = turnResults.get(i);
-            const style = ANSWER_STYLES[i % ANSWER_STYLES.length];
             const isCorrect = result?.is_correct;
-            const isRevealed = tapped;
 
-            let borderColor = style.border;
-            let bgColor = style.bg;
+            let borderColor = CARD_STYLE.border;
+            let bgColor = CARD_STYLE.bg;
             let opacity = "1";
+            let boxShadow = "none";
 
-            if (isRevealed) {
+            if (tapped && result) {
               if (isCorrect) {
                 borderColor = "var(--rp-success)";
                 bgColor = "rgba(61, 204, 138, 0.1)";
@@ -154,6 +148,9 @@ export function PickCorrectScreen() {
                 bgColor = "rgba(255, 92, 122, 0.06)";
                 opacity = "0.6";
               }
+            } else if (tapped) {
+              borderColor = "var(--rp-purple)";
+              boxShadow = "0 0 0 3px var(--rp-purple-soft)";
             }
 
             return (
@@ -166,6 +163,7 @@ export function PickCorrectScreen() {
                   background: bgColor,
                   borderRadius: "var(--rp-radius-md)",
                   border: `2px solid ${borderColor}`,
+                  boxShadow,
                   opacity,
                 }}
               >
@@ -173,14 +171,14 @@ export function PickCorrectScreen() {
                 <span
                   className="w-9 h-9 flex items-center justify-center rounded-full text-sm font-bold shrink-0"
                   style={{
-                    background: isRevealed
+                    background: tapped && result
                       ? isCorrect ? "var(--rp-success)" : "var(--rp-danger)"
                       : "var(--rp-bg-elevated)",
-                    color: isRevealed ? "white" : style.label,
-                    boxShadow: isRevealed ? "none" : "0 2px 6px rgba(42, 42, 74, 0.08)",
+                    color: tapped && result ? "white" : CARD_STYLE.label,
+                    boxShadow: tapped && result ? "none" : "0 2px 6px rgba(42, 42, 74, 0.08)",
                   }}
                 >
-                  {isRevealed
+                  {tapped && result
                     ? isCorrect ? "✓" : "✗"
                     : ANSWER_LABELS[i]}
                 </span>

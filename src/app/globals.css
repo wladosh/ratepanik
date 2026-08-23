@@ -11,6 +11,7 @@
 :root {
   --rp-bg: #FFF8F5;
   --rp-bg-elevated: #FFFFFF;
+  --rp-surface: #FFFFFF;
   --rp-bg-hero: linear-gradient(160deg, #E8F4FF 0%, #FFE8F3 45%, #FFF3D6 100%);
   --rp-purple: #8B7CFF;
   --rp-purple-soft: #C9C0FF;
