@@ -65,23 +65,26 @@ export function NumberGuessScreen() {
       }}
     >
       <div className="flex-1 flex flex-col px-4 pb-5">
-        {/* Header pills */}
+        {/* Header pills — left gutter clears the 44×44 exit button */}
         <div className="flex items-center justify-between mt-2 mb-4">
-          <span
-            className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
-            style={{
-              background: "var(--rp-bg-elevated)",
-              color: "var(--rp-text-secondary)",
-              boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
-            }}
-          >
-            Frage <span style={{ color: "var(--rp-peach)" }}>{blockNum}</span>/{totalBlocks}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-11 shrink-0" aria-hidden="true" />
+            <span
+              className="inline-flex items-center gap-1.5 h-8 px-4 rounded-full text-sm font-semibold"
+              style={{
+                background: "var(--rp-bg-elevated)",
+                color: "var(--rp-text-secondary)",
+                boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
+              }}
+            >
+              Frage <span style={{ color: "var(--rp-peach)" }}>{blockNum}</span>/{totalBlocks}
             {roundsTotal > 1 && (
               <span className="ml-1 text-xs opacity-60">
                 &middot; Runde {roundNum}/{roundsTotal}
               </span>
             )}
-          </span>
+            </span>
+          </div>
 
           <div className="flex items-center gap-2">
             <TimerPill timerSeconds={game.currentBlock?.timer_seconds} startedAt={game.currentBlock?.started_at} />

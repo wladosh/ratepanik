@@ -90,7 +90,7 @@ export function Game() {
   const isMatchPhase = MATCH_PHASES.includes(game.phase);
 
   return (
-    <>
+    <div className="relative flex flex-1 flex-col">
       {game.disconnected && (
         <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-amber-500 px-5 py-3 text-center shadow-xl animate-fade-in">
           <p className="font-bold text-white text-sm">Verbindung verloren.</p>
@@ -104,10 +104,20 @@ export function Game() {
         </div>
       )}
 
+      {game.notice && (
+        <div
+          className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          style={{ background: "var(--rp-success)" }}
+          role="status"
+        >
+          {game.notice}
+        </div>
+      )}
+
       {isMatchPhase && (
         <button
           onClick={() => setShowLeaveConfirm(true)}
-          className="fixed top-3 left-3 z-40 flex items-center justify-center w-9 h-9 rounded-full transition-all active:scale-90"
+          className="absolute top-3 left-3 z-40 flex items-center justify-center min-w-11 min-h-11 w-11 h-11 rounded-full transition-all active:scale-90"
           style={{
             background: "rgba(255,255,255,0.75)",
             backdropFilter: "blur(8px)",
@@ -176,6 +186,6 @@ export function Game() {
             return <HomeScreen />;
         }
       })()}
-    </>
+    </div>
   );
 }

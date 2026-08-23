@@ -61,6 +61,7 @@ interface GameContextValue {
   myPlayerId: string | null;
   isHost: boolean;
   error: string | null;
+  notice: string | null;
   loading: boolean;
   restoring: boolean;
   disconnected: boolean;
@@ -133,6 +134,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [themeOptions, setThemeOptions] = useState<Theme[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -284,6 +286,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     return () => clearTimeout(t);
   }, [error]);
 
+  useEffect(() => {
+    if (!notice) return;
+    const t = setTimeout(() => setNotice(null), 5000);
+    return () => clearTimeout(t);
+  }, [notice]);
+
   // --- realtime subscription ---
 
   const subscribeToRoom = useCallback((roomId: string) => {
@@ -324,7 +332,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
                 const leftPlayer = prev.find((p) => p.id === leftPlayerId);
                 if (leftPlayer) {
                   queueMicrotask(() =>
-                    setError(`${leftPlayer.display_name} hat das Spiel verlassen.`)
+                    setNotice(`${leftPlayer.display_name} hat das Spiel verlassen.`)
                   );
                 }
               }
@@ -1369,6 +1377,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     setPrompts([]);
     setThemeOptions([]);
     setError(null);
+    setNotice(null);
     lastStateKeyRef.current = "";
     clearSession();
 
@@ -1392,6 +1401,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     myPlayerId,
     isHost,
     error,
+    notice,
     loading,
     restoring,
     disconnected,
