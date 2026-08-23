@@ -117,7 +117,7 @@ export function SettingsPanel({ onBack }: { onBack: () => void }) {
           )}
         </section>
 
-        <div className="mt-auto pt-8 pb-2">
+        <div className="mt-6 pt-2">
           <button
             type="button"
             onClick={() => void handleLogout()}

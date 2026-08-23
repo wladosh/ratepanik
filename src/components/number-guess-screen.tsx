@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useState } from "react";
 import type { NumberGuessPayload } from "@/lib/content";
+import { PlayerSchleimi } from "@/components/player-schleimi";
 import { useGame } from "@/lib/game-context";
 import { MODE_NUMBER_GUESS_256 } from "@/lib/rp-assets";
 import { AnswerWaitingPanel } from "./answer-waiting-panel";
@@ -11,9 +12,7 @@ import { MatchPlayShell } from "./match-play-shell";
 import { MatchStatusHeader } from "./match-status-header";
 import styles from "./number-guess-screen.module.css";
 import { QuestionStage } from "./question-stage";
-import { QuestionTimerBar } from "./question-timer-bar";
 import { TimerPill } from "./timer-pill";
-import { WaitingFooter } from "./waiting-footer";
 
 interface PromptDraft {
   promptId: string;
@@ -53,11 +52,6 @@ export function NumberGuessScreen() {
   const hasAnswered = game.phase === "number_guess_waiting";
   const waiting = hasAnswered || localSubmission !== null;
 
-  const localAnswerIsPending =
-    localSubmission !== null &&
-    !game.roundAnswers.some((answer) => answer.player_id === game.myPlayerId);
-  const answeredCount =
-    game.roundAnswers.length + (localAnswerIsPending ? 1 : 0);
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
   const totalBlocks = game.room?.total_blocks ?? 4;
   const roundNum = (game.currentBlock?.current_round ?? 0) + 1;
@@ -101,19 +95,10 @@ export function NumberGuessScreen() {
     );
   }
 
-  const timer =
-    !waiting && game.questionDeadlineMs != null ? (
-      <QuestionTimerBar
-        key={`${game.currentBlock?.id ?? "block"}:${game.currentBlock?.current_round ?? 0}`}
-        deadlineMs={game.questionDeadlineMs}
-        durationMs={game.questionTimerMs ?? undefined}
-      />
-    ) : undefined;
-
   const participants = game.players.map((player) => ({
     id: player.id,
     name: player.display_name,
-    avatar: game.getAvatar(player.id),
+    avatar: <PlayerSchleimi playerId={player.id} size={28} />,
     answered:
       (player.id === game.myPlayerId && localSubmission !== null) ||
       game.roundAnswers.some((answer) => answer.player_id === player.id),
@@ -123,15 +108,6 @@ export function NumberGuessScreen() {
     <MatchPlayShell
       ariaLabel="Zahlenraten"
       contentClassName={styles.screenContent}
-      footer={
-        waiting ? (
-          <WaitingFooter
-            answered={answeredCount}
-            total={game.players.length}
-            mode="number_guess"
-          />
-        ) : undefined
-      }
     >
       <MatchStatusHeader
         current={blockNum}
@@ -145,8 +121,9 @@ export function NumberGuessScreen() {
         }
         timer={
           <TimerPill
-            timerSeconds={game.currentBlock?.timer_seconds}
-            startedAt={game.currentBlock?.started_at}
+            timerSeconds={game.questionTimerMs != null ? game.questionTimerMs / 1000 : game.currentBlock?.timer_seconds}
+            deadlineMs={game.questionDeadlineMs}
+            hideWhenExpired
           />
         }
       />
@@ -179,7 +156,6 @@ export function NumberGuessScreen() {
             priority
           />
         }
-        timer={timer}
       />
 
       {!waiting ? (

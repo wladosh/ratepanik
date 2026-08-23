@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FindLiePayload } from "@/lib/content";
+import { PlayerSchleimi } from "@/components/player-schleimi";
 import { useGame } from "@/lib/game-context";
 import { AnswerWaitingPanel } from "./answer-waiting-panel";
 import { MatchPlayShell } from "./match-play-shell";
@@ -9,7 +10,6 @@ import { MatchStatusHeader } from "./match-status-header";
 import { QuestionStage } from "./question-stage";
 import { QuestionTimerBar } from "./question-timer-bar";
 import { TimerPill } from "./timer-pill";
-import { WaitingFooter } from "./waiting-footer";
 import styles from "./find-lie-screen.module.css";
 
 const LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -62,11 +62,6 @@ export function FindLieScreen() {
   }
 
   const waiting = hasAnswered || submitted;
-  const localAnswerIsPending =
-    submitted &&
-    !game.roundAnswers.some((answer) => answer.player_id === game.myPlayerId);
-  const answeredCount =
-    game.roundAnswers.length + (localAnswerIsPending ? 1 : 0);
   const showQuestionTimer =
     !waiting &&
     game.questionDeadlineMs != null &&
@@ -74,7 +69,7 @@ export function FindLieScreen() {
   const participants = game.players.map((player) => ({
     id: player.id,
     name: player.display_name,
-    avatar: game.getAvatar(player.id),
+    avatar: <PlayerSchleimi playerId={player.id} size={28} />,
     answered:
       (player.id === game.myPlayerId && submitted) ||
       game.roundAnswers.some((answer) => answer.player_id === player.id),
@@ -86,20 +81,12 @@ export function FindLieScreen() {
     <MatchPlayShell
       ariaLabel="Lüge finden"
       contentClassName={styles.content}
-      footer={
-        waiting ? (
-          <WaitingFooter
-            answered={answeredCount}
-            total={game.players.length}
-            mode="find_lie"
-          />
-        ) : undefined
-      }
     >
       <MatchStatusHeader
         current={blockNum}
         total={totalBlocks}
         mode="find_lie"
+        questionLabel="Block"
         timer={
           showQuestionTimer ? (
             <TimerPill
@@ -115,7 +102,7 @@ export function FindLieScreen() {
         question={prompt.prompt}
         headingId="find-lie-question"
         ariaLabel="Aufgabe: Finde die Lüge"
-        eyebrow="Eine Aussage flunkert"
+        eyebrow="Welche Aussage ist falsch?"
         eyebrowIcon="🕵️"
         accentColor="#b83f79"
         accentBackground="rgba(255, 122, 182, 0.15)"
@@ -137,7 +124,6 @@ export function FindLieScreen() {
 
       {!waiting ? (
         <div className={styles.statementList} aria-labelledby="find-lie-question">
-          <p className={styles.instruction}>Welche Aussage ist erfunden?</p>
           {statements.map((statement, index) => (
             <button
               key={index}
@@ -151,9 +137,6 @@ export function FindLieScreen() {
                 {LABELS[index] ?? index + 1}
               </span>
               <span className={styles.statementText}>{statement}</span>
-              <span className={styles.pickCue} aria-hidden="true">
-                Lüge?
-              </span>
             </button>
           ))}
         </div>

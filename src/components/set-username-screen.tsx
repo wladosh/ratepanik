@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useI18n } from "@/lib/i18n-context";
+import { usernameCheckMessage } from "@/lib/match-ui";
 
 interface SetUsernameScreenProps {
   onClaimed: () => void | Promise<unknown>;
@@ -15,6 +17,7 @@ export function SetUsernameScreen({
   checkUsername,
   defaultName = "",
 }: SetUsernameScreenProps) {
+  const { t } = useI18n();
   const prefillValid = defaultName.trim().length >= 3;
   const [name, setName] = useState(defaultName);
   const [error, setError] = useState<string | null>(null);
@@ -26,15 +29,15 @@ export function SetUsernameScreen({
   const trimmed = name.trim();
 
   useEffect(() => {
-    const t = defaultName.trim();
-    if (t.length < 3) return;
+    const prefill = defaultName.trim();
+    if (prefill.length < 3) return;
 
     const timer = setTimeout(async () => {
-      const result = await checkUsername(t);
+      const result = await checkUsername(prefill);
       setChecking(false);
       setAvailable(result.available);
       if (!result.available && result.error) {
-        setError(result.error);
+        setError(usernameCheckMessage(t, result.error));
       }
     }, 300);
 
@@ -46,13 +49,13 @@ export function SetUsernameScreen({
   const handleNameChange = useCallback(
     (value: string) => {
       setName(value);
-      const t = value.trim();
+      const next = value.trim();
 
       if (debounceRef.current) clearTimeout(debounceRef.current);
 
-      if (t.length < 3) {
+      if (next.length < 3) {
         setAvailable(null);
-        setError(t.length > 0 ? "Name zu kurz (min. 3 Zeichen)" : null);
+        setError(next.length > 0 ? t.signup.nameTooShort : null);
         setChecking(false);
         return;
       }
@@ -62,21 +65,21 @@ export function SetUsernameScreen({
       setAvailable(null);
 
       debounceRef.current = setTimeout(async () => {
-        const result = await checkUsername(t);
+        const result = await checkUsername(next);
         setChecking(false);
         setAvailable(result.available);
         if (!result.available && result.error) {
-          setError(result.error);
+          setError(usernameCheckMessage(t, result.error));
         }
       }, 400);
     },
-    [checkUsername]
+    [checkUsername, t]
   );
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (trimmed.length < 3) {
-      setError("Name zu kurz (min. 3 Zeichen)");
+      setError(t.signup.nameTooShort);
       return;
     }
 

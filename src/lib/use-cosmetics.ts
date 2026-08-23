@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useI18n } from "@/lib/i18n-context";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import type { DbCosmeticItem, DbLootboxDef, DbUserLoadout } from "@/lib/supabase";
 import {
@@ -91,6 +92,7 @@ function emptyLoadoutFromRows(rows: DbUserLoadout[] | null): LoadoutMap {
 }
 
 export function useCosmetics(userId: string | null) {
+  const { t } = useI18n();
   const [catalog, setCatalog] = useState<CosmeticItemView[]>(stubCatalog);
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [loadout, setLoadout] = useState<LoadoutMap>(EMPTY_LOADOUT);
@@ -186,13 +188,13 @@ export function useCosmetics(userId: string | null) {
         p_slot: slot,
         p_item_id: itemId,
       });
-      if (error) return { ok: false as const, error: error.message };
+      if (error) return { ok: false as const, error: t.cosmetics.equipFailed };
       const result = data as { ok?: boolean; error?: string; item_id?: string | null };
-      if (!result?.ok) return { ok: false as const, error: result?.error ?? "Anziehen fehlgeschlagen" };
+      if (!result?.ok) return { ok: false as const, error: t.cosmetics.equipFailed };
       setLoadout((prev) => ({ ...prev, [slot]: result.item_id ?? null }));
       return { ok: true as const, itemId: result.item_id ?? null };
     },
-    [],
+    [t.cosmetics.equipFailed],
   );
 
   const equippedItems = useMemo(() => {

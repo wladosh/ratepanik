@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -10,6 +10,7 @@ import { HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
 import { HomePanel, type HomePanelId } from "@/components/home-panels";
 import { SchleimiPreview } from "@/components/schleimi-preview";
 import { useCosmetics } from "@/lib/use-cosmetics";
+import { guestLayers } from "@/lib/schleimi-layers";
 import { dailyPlayStreakDays } from "@/lib/daily-play-streak";
 import { HomeDashboardCards } from "@/components/home-dashboard-cards";
 import { useI18n } from "@/lib/i18n-context";
@@ -107,7 +108,18 @@ export function HomeScreen() {
   const { catalog: achievementCatalog, unlocked: achievementUnlocked, loaded: achievementsLoaded } =
     useAchievements(user && !isGuest ? user.id : null);
   const { games: matchGames } = useMatchStats(user && !isGuest ? user.id : null);
-  const { equippedItems } = useCosmetics(user && !isGuest ? user.id : null);
+  const { equippedItems, refetch: refetchCosmetics } = useCosmetics(
+    user && !isGuest ? user.id : null,
+  );
+  const headerLayers = isGuest ? guestLayers(user?.id ?? "guest") : equippedItems;
+  const prevPanelRef = useRef<HomePanelId | null>(null);
+  useEffect(() => {
+    if (prevPanelRef.current && !panel) {
+      void refetchCosmetics();
+      void refetchProfile();
+    }
+    prevPanelRef.current = panel;
+  }, [panel, refetchCosmetics, refetchProfile]);
   const [friendCountResult, setFriendCountResult] = useState<{ userId: string; count: number } | null>(null);
   const friendCount =
     user && !isGuest && friendCountResult?.userId === user.id
@@ -158,11 +170,8 @@ export function HomeScreen() {
     }
     setJoinError(null);
     const playerName = displayName || generateGuestName();
-    await game.joinRoom(trimmedCode, playerName);
-  }
-
-  function handleToast() {
-    showToast(t.common.soon);
+    const err = await game.joinRoom(trimmedCode, playerName);
+    if (err) setJoinError(err);
   }
 
   if (authLoading) {
@@ -199,14 +208,14 @@ export function HomeScreen() {
       {/* ── Toast overlay ──────────────────────── */}
       {toastMsg && (
         <div
-          className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          className="rp-shell-banner rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
           style={{ background: "var(--rp-purple)" }}
         >
           {toastMsg}
         </div>
       )}
 
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-8">
         {/* ── Header ──────────────────────────────── */}
         <header className="py-4">
           <div className="flex items-center gap-3">
@@ -219,7 +228,7 @@ export function HomeScreen() {
               aria-label={t.cosmetics.customizeAria}
             >
               <span
-                className="block overflow-hidden rounded-full"
+                className="block overflow-hidden rounded-[16px]"
                 style={{
                   width: 48,
                   height: 48,
@@ -227,7 +236,7 @@ export function HomeScreen() {
                   boxShadow: "var(--rp-shadow-card)",
                 }}
               >
-                <SchleimiPreview layers={equippedItems} size={48} label={displayName} />
+                <SchleimiPreview layers={headerLayers} size={48} label={displayName} />
               </span>
               {!isGuest && xpProgress && (
                 <span
@@ -391,24 +400,36 @@ export function HomeScreen() {
           <img src="/rp/rp_nav_home_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
           <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>{t.home.navStart}</span>
         </button>
-        <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
+        <button
+          onClick={() => setPanel("shop")}
+          className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/rp/rp_nav_quiz_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
+          <img src="/rp/rp_nav_quiz_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
           <span className="text-[10px] font-medium">{t.home.navQuiz}</span>
         </button>
-        <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
+        <button
+          onClick={() => document.getElementById("join-title")?.scrollIntoView({ behavior: "smooth" })}
+          className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/rp/rp_nav_play_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
+          <img src="/rp/rp_nav_play_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
           <span className="text-[10px] font-medium">{t.home.navPlay}</span>
         </button>
-        <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
+        <button
+          onClick={() => setPanel("achievements")}
+          className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/rp/rp_nav_rank_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
+          <img src="/rp/rp_nav_rank_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
           <span className="text-[10px] font-medium">{t.home.navRank}</span>
         </button>
-        <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
+        <button
+          onClick={() => setPanel("settings")}
+          className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]"
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/rp/rp_nav_profile_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
+          <img src="/rp/rp_nav_profile_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
           <span className="text-[10px] font-medium">{t.home.navProfile}</span>
         </button>
       </nav>

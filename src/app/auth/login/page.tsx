@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useI18n, LoadingPulse } from "@/lib/i18n-context";
 import { mapAuthError, type AuthErrorInfo } from "@/lib/auth-errors";
 import { AuthErrorBanner } from "@/components/auth-error-banner";
+import { PasswordField } from "@/components/password-field";
 
 function LoginContent() {
   const { t } = useI18n();
@@ -135,34 +136,18 @@ function LoginContent() {
                 e.currentTarget.style.boxShadow = "none";
               }}
             />
-            <input
-              type="password"
+            <PasswordField
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={setPassword}
               placeholder={t.login.password}
-              required
               minLength={6}
-              className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 text-sm font-medium transition-all focus:outline-none"
-              style={{
-                borderColor: "var(--rp-border)",
-                background: "#FAFAFA",
-                color: "var(--rp-text)",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "var(--rp-border)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
             />
             <button
               type="submit"
               disabled={loading}
               className="w-full h-[52px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-50"
               style={{
-                background: "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-purple-soft) 100%)",
+                background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
               }}
             >
               {t.login.submit}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { PlayerSchleimi } from "@/components/player-schleimi";
 import { useGame } from "@/lib/game-context";
 import type { FindLiePayload } from "@/lib/content";
 import { calculateFindLiePoints } from "@/lib/game-store";
@@ -54,6 +55,12 @@ export function FindLieRevealScreen() {
           }}
         >
           <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--rp-text-secondary)" }}>
+            Die Frage
+          </p>
+          <p className="text-sm font-bold mt-1 leading-snug" style={{ color: "var(--rp-text)" }}>
+            {prompt.prompt}
+          </p>
+          <p className="text-xs font-semibold uppercase tracking-wider mt-3" style={{ color: "var(--rp-text-secondary)" }}>
             Die Lüge war
           </p>
           <p className="text-lg font-bold mt-2 leading-snug" style={{ color: "var(--rp-peach)" }}>
@@ -77,7 +84,9 @@ export function FindLieRevealScreen() {
                     : "1px solid var(--rp-border)",
                 }}
               >
-                <span className="text-2xl">{entry.player ? game.getAvatar(entry.player.id) : ""}</span>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center">
+                  {entry.player ? <PlayerSchleimi playerId={entry.player.id} size={36} /> : null}
+                </span>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold truncate" style={{ color: "var(--rp-text)" }}>
                     {entry.player?.display_name}

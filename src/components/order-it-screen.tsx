@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { OrderItPayload } from "@/lib/content";
+import { PlayerSchleimi } from "@/components/player-schleimi";
 import { useGame } from "@/lib/game-context";
 import { MODE_ORDER_IT_256 } from "@/lib/rp-assets";
 import { AnswerWaitingPanel } from "./answer-waiting-panel";
@@ -12,7 +13,6 @@ import { OrderItSortable, type OrderItItem } from "./order-it-sortable";
 import { QuestionStage } from "./question-stage";
 import { QuestionTimerBar } from "./question-timer-bar";
 import { TimerPill } from "./timer-pill";
-import { WaitingFooter } from "./waiting-footer";
 import styles from "./order-it-screen.module.css";
 
 function shuffleEntries(items: string[], correctOrder: number[]): OrderItItem[] {
@@ -72,11 +72,6 @@ export function OrderItScreen() {
   }
 
   const waiting = hasAnswered || submitted;
-  const localAnswerIsPending =
-    submitted &&
-    !game.roundAnswers.some((answer) => answer.player_id === game.myPlayerId);
-  const answeredCount =
-    game.roundAnswers.length + (localAnswerIsPending ? 1 : 0);
   const showQuestionTimer =
     !waiting &&
     game.questionDeadlineMs != null &&
@@ -84,7 +79,7 @@ export function OrderItScreen() {
   const participants = game.players.map((player) => ({
     id: player.id,
     name: player.display_name,
-    avatar: game.getAvatar(player.id),
+    avatar: <PlayerSchleimi playerId={player.id} size={28} />,
     answered:
       (player.id === game.myPlayerId && submitted) ||
       game.roundAnswers.some((answer) => answer.player_id === player.id),
@@ -94,20 +89,12 @@ export function OrderItScreen() {
     <MatchPlayShell
       ariaLabel="Reihenfolge sortieren"
       contentClassName={styles.content}
-      footer={
-        waiting ? (
-          <WaitingFooter
-            answered={answeredCount}
-            total={game.players.length}
-            mode="order_it"
-          />
-        ) : undefined
-      }
     >
       <MatchStatusHeader
         current={blockNum}
         total={totalBlocks}
         mode="order_it"
+        questionLabel="Block"
         timer={
           showQuestionTimer ? (
             <TimerPill
@@ -174,9 +161,6 @@ export function OrderItScreen() {
                 Karte halten und verschieben
               </p>
             </div>
-            <span className={styles.dragChip} aria-hidden="true">
-              ↕ Ziehen
-            </span>
           </div>
           <OrderItSortable items={entries} onChange={setEntries} />
           <button

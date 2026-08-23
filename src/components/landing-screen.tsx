@@ -90,9 +90,9 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
                 setError(null);
               }}
               onKeyDown={(e) => e.key === "Enter" && handleJoin()}
-              placeholder="C O D E"
+            placeholder="ABC123"
               maxLength={6}
-              className="w-full h-[52px] rounded-2xl border-2 px-5 text-lg font-bold tracking-[0.25em] text-center text-[var(--rp-text)] placeholder:text-gray-300 placeholder:tracking-[0.3em] placeholder:font-medium transition-all focus:outline-none"
+              className="w-full h-[52px] rounded-2xl border-2 px-5 text-lg font-bold tracking-[0.18em] text-center text-[var(--rp-text)] placeholder:text-gray-400 placeholder:tracking-[0.12em] placeholder:font-medium transition-all focus:outline-none"
               style={{
                 borderColor: error ? "var(--rp-danger)" : "var(--rp-border)",
                 background: "#FAFAFA",

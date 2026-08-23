@@ -21,11 +21,11 @@ export function questionTimerMsForMode(mode: string | undefined | null): number 
 export function modeLabelDe(mode: string | undefined | null): string {
   switch (mode) {
     case "number_guess":
-      return "Zahlenraten";
+      return "Schätzen";
     case "pick_correct":
-      return "Passendes wählen";
+      return "Passend";
     case "find_lie":
-      return "Die Lüge";
+      return "Lüge";
     case "order_it":
       return "Reihenfolge";
     default:

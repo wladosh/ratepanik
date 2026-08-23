@@ -1,19 +1,28 @@
 "use client";
 
+import { PlayerSchleimi } from "@/components/player-schleimi";
+import { PlayerNameRow } from "@/components/player-name-row";
 import { useGame } from "@/lib/game-context";
 import { modeEmoji, modeLabelDe } from "@/lib/game-store";
+import { SCOREBOARD_LEAD_COPY, competitionRanks, placeGlyph, scoreboardLeadKind } from "@/lib/match-ui";
+import { useI18n } from "@/lib/i18n-context";
 
 export function BlockScoreboardScreen() {
   const game = useGame();
+  const { locale } = useI18n();
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
   const totalBlocks = game.room?.total_blocks ?? 4;
   const isLastBlock = blockNum >= totalBlocks;
 
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
+  const ranks = competitionRanks(sortedPlayers.map((player) => player.score));
   const modeLabel = modeLabelDe(game.currentBlock?.mode);
   const leader = sortedPlayers[0];
   const leaderIsMe = leader?.id === game.myPlayerId;
-  const rankBadges = ["👑", "🥈", "🥉"];
+  const leadKind = scoreboardLeadKind(
+    sortedPlayers.map((player) => player.score),
+    leaderIsMe,
+  );
 
   return (
     <div
@@ -98,7 +107,11 @@ export function BlockScoreboardScreen() {
               border: "1px solid rgba(255, 176, 112, 0.28)",
               boxShadow: "0 18px 40px rgba(112, 76, 61, 0.13)",
             }}
-            aria-label={`${leader.display_name} führt mit ${leader.score} Punkten`}
+            aria-label={
+              leadKind === "open" || leadKind === "tie"
+                ? `Gleichstand bei ${leader.score} Punkten`
+                : `${leader.display_name} führt mit ${leader.score} Punkten`
+            }
           >
             <div
               className="pointer-events-none absolute -right-7 -top-10 h-28 w-28 rounded-full"
@@ -108,31 +121,33 @@ export function BlockScoreboardScreen() {
             <div className="relative flex items-center gap-4">
               <div className="relative shrink-0">
                 <span
-                  className="flex h-[74px] w-[74px] items-center justify-center rounded-[24px] text-[42px]"
+                  className="flex h-[74px] w-[74px] items-center justify-center rounded-[24px]"
                   style={{
                     background: "rgba(255, 255, 255, 0.82)",
                     boxShadow: "0 10px 24px rgba(112, 76, 61, 0.12)",
                   }}
                 >
-                  {game.getAvatar(leader.id)}
+                  <PlayerSchleimi playerId={leader.id} size={64} />
                 </span>
-                <span
-                  className="absolute -right-2 -top-3 flex h-8 w-8 rotate-6 items-center justify-center rounded-xl text-lg"
-                  style={{
-                    background: "#FFF4BD",
-                    boxShadow: "0 5px 12px rgba(187, 137, 35, 0.18)",
-                  }}
-                  aria-hidden="true"
-                >
-                  👑
-                </span>
+                {leadKind === "you" || leadKind === "them" ? (
+                  <span
+                    className="absolute -right-2 -top-3 flex h-8 w-8 rotate-6 items-center justify-center rounded-xl text-lg"
+                    style={{
+                      background: "#FFF4BD",
+                      boxShadow: "0 5px 12px rgba(187, 137, 35, 0.18)",
+                    }}
+                    aria-hidden="true"
+                  >
+                    👑
+                  </span>
+                ) : null}
               </div>
               <div className="min-w-0 flex-1">
                 <p
                   className="mb-1 text-[11px] font-extrabold uppercase tracking-[0.13em]"
                   style={{ color: "var(--rp-peach-deep)" }}
                 >
-                  {leaderIsMe ? "Du führst!" : "Aktuell vorn"}
+                  {SCOREBOARD_LEAD_COPY[locale][leadKind]}
                 </p>
                 <p className="truncate text-xl font-black" style={{ color: "var(--rp-text)" }}>
                   {leader.display_name}
@@ -167,7 +182,9 @@ export function BlockScoreboardScreen() {
         </div>
 
         <div className="mb-5 space-y-2.5">
-          {sortedPlayers.map((player, i) => (
+          {sortedPlayers.map((player, i) => {
+            const rank = ranks[i] ?? i + 1;
+            return (
             <div
               key={player.id}
               className="animate-fade-in flex items-center gap-3 px-3.5 py-3"
@@ -191,24 +208,25 @@ export function BlockScoreboardScreen() {
               <span
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black"
                 style={{
-                  background: i === 0 ? "#FFF4BD" : "var(--rp-bg-muted)",
-                  color: i === 0 ? "#A87513" : "var(--rp-text-secondary)",
+                  background:
+                    leadKind === "open" || rank !== 1
+                      ? "var(--rp-bg-muted)"
+                      : "#FFF4BD",
+                  color:
+                    leadKind === "open" || rank !== 1
+                      ? "var(--rp-text-secondary)"
+                      : "#A87513",
                 }}
               >
-                {rankBadges[i] ?? i + 1}
+                {leadKind === "open" ? "=" : placeGlyph(rank, "crown")}
               </span>
-              <span className="text-[26px]">{game.getAvatar(player.id)}</span>
-              <span className="min-w-0 flex-1 truncate font-bold" style={{ color: "var(--rp-text)" }}>
-                {player.display_name}
-                {player.id === game.myPlayerId && (
-                  <span
-                    className="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase"
-                    style={{ background: "var(--rp-purple-soft)", color: "var(--rp-purple)" }}
-                  >
-                    Du
-                  </span>
-                )}
-              </span>
+              <PlayerSchleimi playerId={player.id} size={36} />
+              <PlayerNameRow
+                className="flex-1"
+                name={player.display_name}
+                isMe={player.id === game.myPlayerId}
+                youLabel={locale === "en" ? "You" : "Du"}
+              />
               <div className="text-right">
                 <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
                   {player.score}
@@ -218,7 +236,8 @@ export function BlockScoreboardScreen() {
                 </span>
               </div>
             </div>
-          ))}
+              );
+            })}
         </div>
 
         {game.isHost ? (

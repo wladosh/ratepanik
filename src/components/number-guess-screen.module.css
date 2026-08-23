@@ -195,7 +195,9 @@
 .submit:disabled {
   box-shadow: none;
   cursor: not-allowed;
-  opacity: 0.42;
+  opacity: 0.78;
+  color: #fff;
+  background: linear-gradient(135deg, #5b90d4 0%, #3f66c4 100%);
 }
 
 .submittedGuess {

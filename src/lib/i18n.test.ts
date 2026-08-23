@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { interpolate, parseLocale } from "./i18n";
+import { interpolate, messages, parseLocale } from "./i18n";
 
 describe("parseLocale", () => {
   it("accepts english and defaults to german", () => {
@@ -16,5 +16,13 @@ describe("interpolate", () => {
     expect(interpolate("Level {level} · {games} games", { level: 3, games: 12 })).toBe(
       "Level 3 · 12 games",
     );
+  });
+});
+
+describe("locale copy", () => {
+  it("keeps signup confirm copy free of internals", () => {
+    expect(messages.de.signup.confirmBody).not.toMatch(/Supabase|Testkonto/i);
+    expect(messages.en.signup.confirmBody).not.toMatch(/Supabase|test account/i);
+    expect(messages.en.signup.confirmHint).not.toMatch(/test account/i);
   });
 });

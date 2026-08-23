@@ -225,9 +225,9 @@ export function LandingHero() {
       </div>
 
       <div className={styles.wordmark}>
-        <h1 id="ratepanik-title" className={styles.title} aria-label="Ratepanik">
+        <h1 id="ratepanik-title" className={styles.title} aria-label="RatePanik">
           <span className={styles.rate} data-word aria-hidden="true">Rate</span>
-          <span className={styles.panik} data-word aria-hidden="true">panik</span>
+          <span className={styles.panik} data-word aria-hidden="true">Panik</span>
         </h1>
         <span className={styles.swoosh} aria-hidden="true" />
       </div>

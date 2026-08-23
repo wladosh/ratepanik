@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import type { DbFriendProfile, DbFriendship } from "@/lib/supabase";
+import { friendErrorCopy } from "@/lib/match-ui";
 
 const PROFILE_EMBED =
   "id, username, avatar_id, last_seen_at, friend_code";
@@ -100,9 +101,9 @@ export function useFriends(userId: string | null): UseFriendsReturn {
       const { data, error } = await supabase.rpc("request_friend", {
         identifier: identifier.trim(),
       });
-      if (error) return { ok: false, error: error.message };
+      if (error) return { ok: false, error: friendErrorCopy(error.message, "de") };
       const result = data as RpcResult;
-      if (!result?.ok) return { ok: false, error: result?.error ?? "Fehler" };
+      if (!result?.ok) return { ok: false, error: friendErrorCopy(result?.error ?? "Fehler", "de") };
       await refetch();
       return { ok: true };
     },
@@ -116,9 +117,9 @@ export function useFriends(userId: string | null): UseFriendsReturn {
         friendship_id: id,
         accept,
       });
-      if (error) return { ok: false, error: error.message };
+      if (error) return { ok: false, error: friendErrorCopy(error.message, "de") };
       const result = data as RpcResult;
-      if (!result?.ok) return { ok: false, error: result?.error ?? "Fehler" };
+      if (!result?.ok) return { ok: false, error: friendErrorCopy(result?.error ?? "Fehler", "de") };
       await refetch();
       return { ok: true };
     },
@@ -131,9 +132,9 @@ export function useFriends(userId: string | null): UseFriendsReturn {
       const { data, error } = await supabase.rpc("remove_friend", {
         friendship_id: id,
       });
-      if (error) return { ok: false, error: error.message };
+      if (error) return { ok: false, error: friendErrorCopy(error.message, "de") };
       const result = data as RpcResult;
-      if (!result?.ok) return { ok: false, error: result?.error ?? "Fehler" };
+      if (!result?.ok) return { ok: false, error: friendErrorCopy(result?.error ?? "Fehler", "de") };
       await refetch();
       return { ok: true };
     },

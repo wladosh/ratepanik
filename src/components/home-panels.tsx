@@ -45,8 +45,8 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
     return (
       <PanelShell title={t.home.stats} onBack={onBack}>
         <EmptyCard
-          headline="Stats brauchen ein Konto"
-          body="Als Gast speichern wir keine XP, Spiele oder Siege. Melde dich an, dann zählen die Matches hier."
+          headline={t.home.connectAccount}
+          body={t.settings.guestHint}
         />
         <Link
           href="/auth/login"
@@ -55,7 +55,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
             background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
           }}
         >
-          Anmelden
+          {t.landing.login}
         </Link>
       </PanelShell>
     );
@@ -66,22 +66,22 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 
   const rows: { label: string; value: string }[] = [
     { label: "Level", value: String(xp.level) },
-    { label: "XP gesamt", value: String(profile.xp) },
-    { label: "XP in diesem Level", value: `${xp.current} / ${xp.needed}` },
-    { label: "Hirncoins", value: String(profile.hirncoins) },
-    { label: "Spiele beendet", value: games === null ? "…" : String(games) },
-    { label: "Siege", value: wins === null ? "…" : String(wins) },
-    { label: "Tage-Streak", value: streakDays === null ? "Bald" : String(streakDays) },
+    { label: t.home.statsXpTotal, value: String(profile.xp) },
+    { label: t.home.statsXpInLevel, value: `${xp.current} / ${xp.needed}` },
+    { label: t.cosmetics.hirncoins, value: String(profile.hirncoins) },
+    { label: t.home.statsGames, value: games === null ? "…" : String(games) },
+    { label: t.home.statsWins, value: wins === null ? "…" : String(wins) },
+    { label: t.home.statsStreak, value: streakDays === null ? t.common.soon : String(streakDays) },
   ];
 
   return (
     <PanelShell title={t.home.stats} onBack={onBack}>
       {games === 0 && (
         <div className="mb-4">
-          <EmptyCard
-            headline="Noch keine Spiele"
-            body="Level, XP und Hirncoins kommen aus echten Matches. Spiel eine Runde, dann füllen sich die Zahlen."
-          />
+            <EmptyCard
+              headline={t.home.statsEmptyHeadline}
+              body={t.home.statsEmptyBody}
+            />
         </div>
       )}
       <ul className="space-y-2">
@@ -114,7 +114,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
         className="mt-4 text-xs leading-relaxed px-1"
         style={{ color: "var(--rp-text-secondary)" }}
       >
-        Nur echte Match-Daten. Level schaltet noch nichts frei.
+        {t.home.statsDisclaimer}
       </p>
     </PanelShell>
   );
@@ -185,7 +185,7 @@ function AchievementsPanel({ onBack }: { onBack: () => void }) {
                     className="text-xs"
                     style={{ color: isOn ? "var(--rp-purple)" : "var(--rp-text-secondary)" }}
                   >
-                    {isOn ? ACHIEVEMENT_UNLOCKED_COPY : "Noch nicht"}
+                    {isOn ? ACHIEVEMENT_UNLOCKED_COPY : t.home.locked}
                   </p>
                 </div>
               </li>

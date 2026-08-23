@@ -1,7 +1,8 @@
 "use client";
 
-import { RARITY_LABEL_DE, type CosmeticRarity } from "@/lib/schleimi-catalog";
-import { RARITY_UX_PILL, SCHLEIMI_UX_COPY } from "@/lib/schleimi-ux";
+import type { CosmeticRarity } from "@/lib/schleimi-catalog";
+import { RARITY_UX_PILL } from "@/lib/schleimi-ux";
+import { useI18n } from "@/lib/i18n-context";
 
 const ORDER: CosmeticRarity[] = ["gewoehnlich", "selten", "legendaer"];
 
@@ -15,7 +16,14 @@ export function ChancenRow({
   selten: number;
   legendaer: number;
 }) {
+  const { t } = useI18n();
   const values: Record<CosmeticRarity, number> = { gewoehnlich, selten, legendaer };
+  const rarityName = (rarity: CosmeticRarity) =>
+    rarity === "selten"
+      ? t.cosmetics.raritySelten
+      : rarity === "legendaer"
+        ? t.cosmetics.rarityLegendaer
+        : t.cosmetics.rarityGewoehnlich;
 
   return (
     <div>
@@ -23,7 +31,7 @@ export function ChancenRow({
         className="mb-2 text-center text-[11px] font-bold uppercase tracking-wider"
         style={{ color: "var(--rp-text-secondary)" }}
       >
-        {SCHLEIMI_UX_COPY.chances}
+        {t.cosmetics.chances}
       </p>
       <ul className="flex flex-wrap items-center justify-center gap-1.5">
         {ORDER.map((rarity) => {
@@ -40,7 +48,7 @@ export function ChancenRow({
                 paddingLeft: tone.cap ? 11 : 8,
               }}
             >
-              {values[rarity]}% {RARITY_LABEL_DE[rarity]}
+              {values[rarity]}% {rarityName(rarity)}
             </li>
           );
         })}

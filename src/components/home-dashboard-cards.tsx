@@ -7,8 +7,8 @@ import Image from "next/image";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import type { HomePanelId } from "@/components/home-panels";
+import { DecorSchleimi } from "@/components/player-schleimi";
 import {
-  AVATAR_POOL,
   BADGE_FIRST_WIN_128,
   HOME_CREATE_ROOM_256,
   LOOT_BOX_RARE_128,
@@ -46,10 +46,10 @@ function ArrowMark() {
   );
 }
 
-function ChampionCard() {
+function ChampionCard({ onCreate }: { onCreate: () => void }) {
   const { t } = useI18n();
   return (
-    <section className={styles.championCard} data-home-card aria-labelledby="champion-title">
+    <button type="button" onClick={onCreate} className={styles.championCard} data-home-card aria-labelledby="champion-title">
       <span className={styles.heroGlow} aria-hidden="true" />
       <span className={styles.heroRing} aria-hidden="true" />
       <span className={`${styles.spark} ${styles.sparkOne}`} aria-hidden="true" />
@@ -78,14 +78,15 @@ function ChampionCard() {
           priority
         />
       </div>
-    </section>
+    </button>
   );
 }
 
 function CreateRoomCard({
   loading,
+  isGuest,
   onCreate,
-}: Pick<HomeDashboardCardsProps, "loading" | "onCreate">) {
+}: Pick<HomeDashboardCardsProps, "loading" | "isGuest" | "onCreate">) {
   const { t } = useI18n();
   return (
     <button
@@ -95,14 +96,27 @@ function CreateRoomCard({
       className={styles.createCard}
       data-home-card
     >
-      <span className={styles.createGlow} aria-hidden="true" />
       <span className={styles.createCopy}>
-        <span className={styles.actionKicker}>{t.home.createKicker}</span>
-        <strong>{loading ? t.home.createLoading : t.home.createTitle}</strong>
-        <span>{t.home.createBody}</span>
+        <span className={styles.actionKicker}>
+          {isGuest ? t.home.createKickerGuest : t.home.createKicker}
+        </span>
+        <strong>
+          {loading
+            ? t.home.createLoading
+            : isGuest
+              ? t.home.createTitleGuest
+              : t.home.createTitle}
+        </strong>
+        <span>{isGuest ? t.home.createBodyGuest : t.home.createBody}</span>
       </span>
       <span className={styles.hostAsset} data-feature-asset aria-hidden="true">
-        <Image src={HOME_CREATE_ROOM_256} alt="" width={96} height={96} />
+        <Image
+          src={HOME_CREATE_ROOM_256}
+          alt=""
+          width={96}
+          height={96}
+          unoptimized
+        />
       </span>
       <ArrowMark />
     </button>
@@ -119,7 +133,7 @@ function JoinRoomCard({
   HomeDashboardCardsProps,
   "roomCode" | "joinError" | "loading" | "onJoin" | "onCodeChange"
 >) {
-  const canJoin = roomCode.trim().length === 6 && !loading;
+  const canJoin = !loading;
   const { t } = useI18n();
 
   return (
@@ -134,8 +148,10 @@ function JoinRoomCard({
           <h2 id="join-title">{t.home.joinTitle}</h2>
         </div>
         <div className={styles.joinAvatars} aria-hidden="true">
-          {AVATAR_POOL.slice(1, 4).map((src, index) => (
-            <Image key={src} src={src} alt="" width={36} height={36} style={{ zIndex: 3 - index }} />
+          {["join-a", "join-b", "join-c"].map((seed, index) => (
+            <span key={seed} style={{ zIndex: 3 - index }}>
+              <DecorSchleimi seed={seed} size={34} />
+            </span>
           ))}
         </div>
       </div>
@@ -169,7 +185,7 @@ function JoinRoomCard({
           disabled={!canJoin}
           className={styles.joinButton}
         >
-          {loading ? "…" : t.home.joinButton}
+          {loading ? t.common.loading : t.home.joinButton}
         </button>
       </div>
 
@@ -183,8 +199,10 @@ function JoinRoomCard({
 function FriendsAsset() {
   return (
     <span className={`${styles.featureAsset} ${styles.friendAsset}`} data-feature-asset aria-hidden="true">
-      {AVATAR_POOL.slice(0, 3).map((src, index) => (
-        <Image key={src} src={src} alt="" width={52} height={52} style={{ zIndex: 3 - index }} />
+      {["friend-a", "friend-b", "friend-c"].map((seed, index) => (
+        <span key={seed} style={{ zIndex: 3 - index }}>
+          <DecorSchleimi seed={seed} size={47} />
+        </span>
       ))}
     </span>
   );
@@ -256,9 +274,11 @@ function FeatureGrid({
           ? t.home.friendOne
           : interpolate(t.home.friendsMany, { n: friendCount });
 
-  const statsMeta = isGuest || level === null
+  const statsMeta = isGuest
     ? t.home.connectAccount
-    : matchGames && matchGames > 0
+    : level === null
+      ? t.home.loadingMeta
+      : matchGames && matchGames > 0
       ? interpolate(t.home.levelGames, { level, games: matchGames })
       : interpolate(t.home.levelOnly, { level });
 
@@ -331,15 +351,20 @@ export function HomeDashboardCards(props: HomeDashboardCardsProps) {
         return;
       }
 
-      gsap.from("[data-home-card]", {
-        opacity: 0,
-        y: 22,
-        scale: 0.975,
-        duration: 0.62,
-        stagger: 0.07,
-        ease: "power3.out",
-        clearProps: "transform",
-      });
+      gsap.fromTo(
+        "[data-home-card]",
+        { opacity: 0, y: 22, scale: 0.975 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.62,
+          stagger: 0.07,
+          ease: "power3.out",
+          overwrite: "auto",
+          clearProps: "transform",
+        },
+      );
 
       gsap.to("[data-feature-asset]", {
         y: -4,
@@ -356,8 +381,12 @@ export function HomeDashboardCards(props: HomeDashboardCardsProps) {
 
   return (
     <div ref={rootRef}>
-      <ChampionCard />
-      <CreateRoomCard loading={props.loading} onCreate={props.onCreate} />
+      <ChampionCard onCreate={props.onCreate} />
+      <CreateRoomCard
+        loading={props.loading}
+        isGuest={props.isGuest}
+        onCreate={props.onCreate}
+      />
       <JoinRoomCard
         roomCode={props.roomCode}
         joinError={props.joinError}

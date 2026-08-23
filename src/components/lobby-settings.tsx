@@ -17,15 +17,17 @@ import {
   type ThemeMix,
   type TimerSeconds,
 } from "@/lib/room-settings";
+import { useI18n } from "@/lib/i18n-context";
 
 function StandardMark({ on }: { on: boolean }) {
+  const { t } = useI18n();
   if (!on) return null;
   return (
     <span
-      className="ml-1 text-[9px] font-bold uppercase tracking-wider"
+      className="text-[9px] font-bold uppercase tracking-wider"
       style={{ color: "var(--rp-purple)" }}
     >
-      Standard
+      {t.lobby.standard}
     </span>
   );
 }
@@ -55,7 +57,7 @@ function Segmented<T extends string | number>({
             type="button"
             disabled={off}
             onClick={() => onChange(opt.value)}
-            className="min-h-11 px-3 rounded-full text-xs font-bold transition-all active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
+            className="min-h-11 px-3 rounded-full text-xs font-bold whitespace-nowrap transition-all active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
             style={{
               background: selected ? "var(--rp-purple)" : "var(--rp-bg-muted)",
               color: selected ? "#fff" : "var(--rp-text)",
@@ -175,6 +177,7 @@ export function LobbySettingsPanel({
   occupiedSeats: number;
   onChange: (patch: Partial<RoomSettings>) => void;
 }) {
+  const { t } = useI18n();
   const [themes, setThemes] = useState<Theme[]>([]);
   const [poolEmpty, setPoolEmpty] = useState<string | null>(null);
 
@@ -199,7 +202,7 @@ export function LobbySettingsPanel({
   );
 
   if (!isHost) {
-    const chips = settingsSummaryChips(settings, themeNames);
+    const chips = settingsSummaryChips(settings, themeNames, t);
     return (
       <div className="flex flex-wrap gap-1.5 mb-3">
         {chips.map((chip) => (
@@ -223,24 +226,24 @@ export function LobbySettingsPanel({
 
   return (
     <div className="mb-3">
-      <Section title="Inhalt">
+      <Section title={t.lobby.sectionContent}>
         <div>
-          <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-            Themenmix
+          <p className="text-sm font-bold mb-1.5 flex items-center gap-1.5 flex-wrap" style={{ color: "var(--rp-text)" }}>
+            {t.lobby.themeMix}
             <StandardMark on={settings.themeMix === DEFAULT_ROOM_SETTINGS.themeMix} />
           </p>
           <Segmented<ThemeMix>
             value={settings.themeMix}
             onChange={(themeMix) => onChange({ themeMix })}
             options={[
-              { value: "random", label: "Zufall" },
-              { value: "manual", label: "Selbst wählen" },
+              { value: "random", label: t.lobby.themeRandom },
+              { value: "manual", label: t.lobby.themeManual },
             ]}
           />
           <p className="text-[10px] mt-1" style={{ color: "var(--rp-text-secondary)" }}>
             {settings.themeMix === "random"
-              ? "Wir würfeln aus allen aktiven Themen. Peinlichkeit inklusive."
-              : "Mindestens eins — sonst starten wir ins Leere."}
+              ? t.lobby.themeRandomHint
+              : t.lobby.themeManualHint}
           </p>
         </div>
 
@@ -248,7 +251,7 @@ export function LobbySettingsPanel({
             <div className="flex flex-wrap gap-1.5">
               {themes.length === 0 ? (
                 <p className="text-[10px]" style={{ color: "var(--rp-text-secondary)" }}>
-                  Keine aktiven Themen. Fragemeister füttern, sonst würfeln wir ins Nichts.
+                  {t.lobby.noActiveThemes}
                 </p>
               ) : (
                 themes.map((theme) => {
@@ -263,7 +266,7 @@ export function LobbySettingsPanel({
                           : [...settings.themeIds, theme.id];
                         onChange({ themeIds });
                       }}
-                      className="min-h-11 px-3 rounded-full text-xs font-bold transition-all active:scale-[0.97]"
+                      className="min-h-11 px-3 rounded-full text-xs font-bold whitespace-nowrap transition-all active:scale-[0.97]"
                       style={{
                         background: on ? "var(--rp-peach)" : "var(--rp-bg-muted)",
                         color: on ? "#fff" : "var(--rp-text)",
@@ -279,44 +282,44 @@ export function LobbySettingsPanel({
 
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-            Spielmodi
+            {t.lobby.modes}
             <StandardMark on={settings.modeFilter === DEFAULT_ROOM_SETTINGS.modeFilter} />
           </p>
           <Segmented<ModeFilter>
             value={settings.modeFilter}
             onChange={(modeFilter) => onChange({ modeFilter })}
             options={[
-              { value: "all", label: "Alle" },
-              { value: "number_guess", label: "Schätzen" },
-              { value: "pick_correct", label: "Auswählen" },
-              { value: "find_lie", label: "Lüge" },
-              { value: "order_it", label: "Reihenfolge" },
+              { value: "all", label: t.lobby.modeAll },
+              { value: "number_guess", label: t.lobby.modeGuess },
+              { value: "pick_correct", label: t.lobby.modePick },
+              { value: "find_lie", label: t.lobby.modeLie },
+              { value: "order_it", label: t.lobby.modeOrder },
             ]}
           />
         </div>
 
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-            Schwierigkeit
+            {t.lobby.difficulty}
             <StandardMark on={settings.difficulty === DEFAULT_ROOM_SETTINGS.difficulty} />
           </p>
           <Segmented<DifficultyFilter>
             value={settings.difficulty}
             onChange={(difficulty) => onChange({ difficulty })}
             options={[
-              { value: "mix", label: "Mix" },
-              { value: "leicht", label: "Leicht" },
-              { value: "mittel", label: "Mittel" },
-              { value: "schwer", label: "Schwer" },
+              { value: "mix", label: t.lobby.diffMix },
+              { value: "leicht", label: t.lobby.diffEasy },
+              { value: "mittel", label: t.lobby.diffMid },
+              { value: "schwer", label: t.lobby.diffHard },
             ]}
           />
         </div>
       </Section>
 
-      <Section title="Form">
+      <Section title={t.lobby.sectionForm}>
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-            Blöcke
+            {t.lobby.blocks}
             <StandardMark on={settings.blocks === DEFAULT_ROOM_SETTINGS.blocks} />
           </p>
           <Segmented<BlockCount>
@@ -330,7 +333,7 @@ export function LobbySettingsPanel({
         </div>
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-            Fragen pro Block
+            {t.lobby.questionsPerBlock}
             <StandardMark on={settings.questionsPerBlock === DEFAULT_ROOM_SETTINGS.questionsPerBlock} />
           </p>
           <Segmented<QuestionsPerBlock>
@@ -342,19 +345,19 @@ export function LobbySettingsPanel({
             }))}
           />
           <p className="text-[10px] mt-1" style={{ color: "var(--rp-text-secondary)" }}>
-            Gilt für Schätzfragen. Kartenwahl bleibt eine Runde pro Block — sonst wird uns schwindelig.
+            {t.lobby.questionsHint}
           </p>
         </div>
       </Section>
 
-      <Section title="Tempo">
+      <Section title={t.lobby.sectionTempo}>
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-            Fragedauer
+            {t.lobby.questionDuration}
             <StandardMark on={settings.timerSeconds === DEFAULT_ROOM_SETTINGS.timerSeconds} />
           </p>
           <p className="text-[10px] mb-1.5" style={{ color: "var(--rp-text-secondary)" }}>
-            Gleicher Balken für alle, synced über started_at. Immer an.
+            {t.lobby.timerHint}
           </p>
           <Segmented<TimerSeconds>
             value={settings.timerSeconds}
@@ -367,10 +370,10 @@ export function LobbySettingsPanel({
         </div>
       </Section>
 
-      <Section title="Raum">
+      <Section title={t.lobby.sectionRoom}>
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
-            Max. Spieler
+            {t.lobby.maxPlayers}
             <StandardMark on={settings.maxPlayers === DEFAULT_ROOM_SETTINGS.maxPlayers} />
           </p>
           <Segmented<MaxPlayers>
@@ -384,15 +387,15 @@ export function LobbySettingsPanel({
           />
         </div>
         <ToggleRow
-          label="Gäste erlaubt"
-          hint="Ohne Konto mitspielen. Aus = nur Angemeldete."
+          label={t.lobby.guestsAllowed}
+          hint={t.lobby.guestsHint}
           checked={settings.allowGuests}
           standard={settings.allowGuests === DEFAULT_ROOM_SETTINGS.allowGuests}
           onChange={(allowGuests) => onChange({ allowGuests })}
         />
         <ToggleRow
-          label="Start wenn voll"
-          hint="Sobald die letzte Person rein ist, geht’s los. Kein Gnadenmoment."
+          label={t.lobby.autoStart}
+          hint={t.lobby.autoStartHint}
           checked={settings.autoStart}
           standard={settings.autoStart === DEFAULT_ROOM_SETTINGS.autoStart}
           onChange={(autoStart) => onChange({ autoStart })}
@@ -401,7 +404,7 @@ export function LobbySettingsPanel({
 
       {(blocked || poolEmpty) && (
         <p className="text-xs font-medium px-1 mb-1" style={{ color: "var(--rp-danger)" }}>
-          {blocked ?? poolEmpty}
+          {blocked ? t.lobby.noThemes : poolEmpty ? t.game.emptyPool : null}
         </p>
       )}
     </div>

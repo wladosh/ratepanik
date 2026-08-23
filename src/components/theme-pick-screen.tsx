@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { DecorSchleimi, PlayerSchleimi } from "@/components/player-schleimi";
 import { useGame } from "@/lib/game-context";
 import { themeArtSrc, themeEmoji } from "@/lib/rp-assets";
 import { AnswerWaitingPanel } from "./answer-waiting-panel";
@@ -73,14 +74,18 @@ export function ThemePickScreen() {
             ✦
           </span>
           <div className={styles.pickerAvatar} aria-hidden="true">
-            {picker ? game.getAvatar(picker.id) : "✨"}
+            {picker ? (
+              <PlayerSchleimi playerId={picker.id} size={56} />
+            ) : (
+              <DecorSchleimi seed="theme-pick" size={56} />
+            )}
           </div>
           <div className={styles.introCopy}>
             <p className={styles.eyebrow}>
               {game.isThemePicker ? "Du entscheidest" : `${pickerName} entscheidet`}
             </p>
             <h1 id="theme-pick-title" className={styles.title}>
-              Wählt euer Thema
+              {game.isThemePicker ? "Wähl dein Thema" : `${pickerName} wählt`}
             </h1>
             <p className={styles.subtitle}>
               {game.isThemePicker
@@ -166,11 +171,6 @@ export function ThemePickScreen() {
         ) : (
           <AnswerWaitingPanel
             className={styles.spectatorPanel}
-            artwork={
-              <span className={styles.waitingAvatar} aria-hidden="true">
-                {picker ? game.getAvatar(picker.id) : "🤔"}
-              </span>
-            }
             title={`${pickerName} wählt gerade`}
             description="Das nächste Thema erscheint gleich für alle."
           >

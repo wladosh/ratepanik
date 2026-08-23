@@ -7,7 +7,6 @@ import { useI18n } from "@/lib/i18n-context";
 import { useCosmetics } from "@/lib/use-cosmetics";
 import {
   COSMETIC_SLOTS,
-  SLOT_LABEL_DE,
   type CosmeticSlot,
 } from "@/lib/schleimi-catalog";
 import { CosmeticTileArt, SchleimiPreview } from "@/components/schleimi-preview";
@@ -97,7 +96,13 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
                 boxShadow: "var(--rp-shadow-card)",
               }}
             >
-              {SLOT_LABEL_DE[id]}
+              {id === "body_tint"
+                ? t.cosmetics.slotBodyTint
+                : id === "face"
+                  ? t.cosmetics.slotFace
+                  : id === "hat"
+                    ? t.cosmetics.slotHat
+                    : t.cosmetics.slotExtra}
             </button>
           );
         })}

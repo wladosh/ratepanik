@@ -2,9 +2,10 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import type { CosmeticRarity } from "@/lib/schleimi-catalog";
+import { interpolate } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-context";
 import {
   RARITY_UX_SOFT,
-  SCHLEIMI_UX_COPY,
   markRevealSeen,
   prefersReducedMotion,
   shouldSkipReveal,
@@ -38,6 +39,7 @@ export function SchleimiRevealStage({
   onWear: () => void;
   onKeepShopping: () => void;
 }) {
+  const { t } = useI18n();
   const skip = shouldSkipReveal() || prefersReducedMotion();
   const [beat, setBeat] = useState<RevealBeat>(skip ? "item" : "shake");
 
@@ -68,7 +70,7 @@ export function SchleimiRevealStage({
       aria-labelledby="schleimi-reveal-title"
       style={{
         background: "rgba(42, 42, 74, 0.55)",
-        backdropFilter: "blur(8px)",
+        backdropFilter: "blur(3px)",
       }}
     >
       {beat !== "item" && (
@@ -80,7 +82,7 @@ export function SchleimiRevealStage({
           }}
           className="absolute right-5 top-5 min-h-11 text-sm font-semibold text-white/90"
         >
-          {SCHLEIMI_UX_COPY.skip}
+          {t.cosmetics.skip}
         </button>
       )}
 
@@ -110,8 +112,8 @@ export function SchleimiRevealStage({
             </h2>
             <p className="text-sm font-semibold" style={{ color: "var(--rp-text)" }}>
               {duplicate
-                ? SCHLEIMI_UX_COPY.dropDupe.replace("{n}", String(consolationHc))
-                : SCHLEIMI_UX_COPY.dropNew}
+                ? interpolate(t.cosmetics.dropDupe, { n: consolationHc })
+                : t.cosmetics.dropNew}
             </p>
           </div>
         )}
@@ -127,7 +129,7 @@ export function SchleimiRevealStage({
                   "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
               }}
             >
-              {SCHLEIMI_UX_COPY.wear}
+              {t.cosmetics.equip}
             </button>
             <button
               type="button"
@@ -135,7 +137,7 @@ export function SchleimiRevealStage({
               className="h-11 text-sm font-semibold"
               style={{ color: "var(--rp-text-secondary)" }}
             >
-              {SCHLEIMI_UX_COPY.keepShopping}
+              {t.cosmetics.keepShopping}
             </button>
           </div>
         )}

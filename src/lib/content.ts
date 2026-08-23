@@ -182,7 +182,7 @@ export async function countPromptsForFilter(opts: {
 export async function emptyPromptPoolReason(
   settings: RoomSettings,
   modes: PlayableMode[],
-): Promise<string | null> {
+): Promise<"empty_pool" | null> {
   const uniqueModes = Array.from(new Set(modes));
   const themeIds =
     settings.themeMix === "manual" ? settings.themeIds : undefined;
@@ -194,7 +194,7 @@ export async function emptyPromptPoolReason(
       difficulty: settings.difficulty,
     });
     if (n === 0) {
-      return "Mit dem Filter bleibt der Fragenkasten leer. Mach locker oder Fragemeister füttern.";
+      return "empty_pool";
     }
   }
   return null;
@@ -232,7 +232,6 @@ export async function prepareBlockTheme(
         theme_options: [themes[0].id],
         theme_id: themes[0].id,
         prompt_ids: fetched.map((p) => p.id),
-        started_at: new Date().toISOString(),
       })
       .eq("id", blockId);
     if (error) {

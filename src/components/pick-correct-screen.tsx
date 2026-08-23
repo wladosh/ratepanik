@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
+import { PlayerSchleimi } from "@/components/player-schleimi";
 import { MODE_PICK_CORRECT_256 } from "@/lib/rp-assets";
 import type { PickCorrectPayload } from "@/lib/content";
 import { MatchPlayShell } from "./match-play-shell";
@@ -107,6 +108,8 @@ export function PickCorrectScreen() {
       <MatchStatusHeader
         current={blockNum}
         total={totalBlocks}
+        mode="pick_correct"
+        questionLabel="Block"
         timer={
           showQuestionTimer ? (
             <TimerPill
@@ -186,7 +189,11 @@ export function PickCorrectScreen() {
         aria-atomic="true"
       >
         <span className={styles.turnIcon}>
-          <PeopleIcon />
+          {activePlayer ? (
+            <PlayerSchleimi playerId={activePlayer.id} size={32} />
+          ) : (
+            <PeopleIcon />
+          )}
         </span>
         <span className={styles.turnCopy}>
           <strong>
@@ -198,7 +205,7 @@ export function PickCorrectScreen() {
           </strong>
           <span>
             {game.isMyTurn
-              ? "Tippe auf eine noch verdeckte Karte."
+              ? "Tippe auf eine Karte, die noch niemand gewählt hat."
               : "Die Karten öffnen sich Zug für Zug."}
           </span>
         </span>
@@ -221,7 +228,7 @@ export function PickCorrectScreen() {
             ? `${isCorrect ? "Richtig" : "Falsch"}${tappedBy ? `, gewählt von ${tappedBy}` : ""}`
             : canTap
               ? "Noch nicht gewählt"
-              : "Noch verdeckt";
+              : "Noch frei";
 
           return (
             <button
@@ -244,7 +251,7 @@ export function PickCorrectScreen() {
                     {tappedBy ? <small>{tappedBy}</small> : null}
                   </>
                 ) : (
-                  <span aria-hidden="true">{canTap ? "Wählen" : "Verdeckt"}</span>
+                  <span aria-hidden="true">{canTap ? "Wählen" : "Frei"}</span>
                 )}
               </span>
             </button>

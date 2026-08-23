@@ -8,6 +8,7 @@ import type { OpenLootboxSuccess } from "@/lib/use-cosmetics";
 import { CosmeticTileArt } from "@/components/schleimi-preview";
 import { RarityBadge } from "@/components/rarity-badge";
 import type { CosmeticItemView } from "@/lib/use-cosmetics";
+import { useI18n } from "@/lib/i18n-context";
 
 type Phase = "closed" | "open" | "item";
 
@@ -26,6 +27,7 @@ export function LootboxReveal({
   onDismiss: () => void;
   onCustomize: () => void;
 }) {
+  const { t } = useI18n();
   const [phase, setPhase] = useState<Phase>("closed");
 
   useEffect(() => {
@@ -43,8 +45,8 @@ export function LootboxReveal({
     <div
       className="absolute inset-0 z-40 flex flex-col items-center justify-center px-5"
       style={{
-        background: "rgba(42, 42, 74, 0.55)",
-        backdropFilter: "blur(8px)",
+        background: "rgba(42, 42, 74, 0.32)",
+        backdropFilter: "blur(2px)",
       }}
     >
       <div
@@ -105,7 +107,7 @@ export function LootboxReveal({
                   "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
               }}
             >
-              Anziehen
+              {t.cosmetics.equip}
             </button>
             <button
               type="button"
@@ -113,7 +115,7 @@ export function LootboxReveal({
               className="h-11 text-sm font-semibold"
               style={{ color: "var(--rp-text-secondary)" }}
             >
-              Weiter shoppen
+              {t.cosmetics.keepShopping}
             </button>
           </div>
         )}

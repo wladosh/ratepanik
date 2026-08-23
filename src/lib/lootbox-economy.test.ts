@@ -101,6 +101,8 @@ describe("schleimi catalog seed", () => {
       expect(sql).toContain(`'${id}'`);
     }
     expect(sql).toContain("open_lootbox");
+    expect(sql).toContain("set_config('ratepanik.grant_economy'");
+    expect(sql).toContain("is_anonymous");
     expect(sql).toContain("Shop umgestellt");
   });
 });

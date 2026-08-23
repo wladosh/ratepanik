@@ -8,7 +8,8 @@ import { useGame } from "@/lib/game-context";
 import { useFriends } from "@/lib/use-friends";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { shareOrCopyJoinLink } from "@/lib/join-link";
-import { avatarSrc } from "@/lib/rp-assets";
+import { parseFriendCodePayload } from "@/lib/match-ui";
+import { UserSchleimi } from "@/components/player-schleimi";
 import type { DbFriendProfile } from "@/lib/supabase";
 import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
 
@@ -29,14 +30,7 @@ function formatPresence(lastSeenAt: string | null): { label: string; online: boo
 
 function FriendAvatar({ profile }: { profile: DbFriendProfile }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={avatarSrc(profile.avatar_id)}
-      alt=""
-      width={40}
-      height={40}
-      className="w-10 h-10 rounded-full object-cover shrink-0"
-    />
+    <UserSchleimi userId={profile.id} seed={profile.id} size={40} label={profile.username} />
   );
 }
 
@@ -67,8 +61,9 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
     if (!user || isGuest) return;
     if (profile?.friend_code) return;
     const supabase = createBrowserSupabase();
-    void supabase.rpc("ensure_friend_code").then(({ data }) => {
-      const code = (data as { friend_code?: string } | null)?.friend_code;
+    void supabase.rpc("ensure_friend_code").then(({ data, error }) => {
+      if (error) return;
+      const code = parseFriendCodePayload(data);
       if (code) setFriendCode(code);
     });
   }, [user, isGuest, profile?.friend_code]);
@@ -77,7 +72,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
     e.preventDefault();
     const ident = query.trim();
     if (!ident) {
-      setFormError("Name oder Code eingeben");
+      setFormError(t.friends.addPlaceholder);
       return;
     }
     setBusy(true);
@@ -85,20 +80,20 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
     const result = await addFriend(ident);
     setBusy(false);
     if (!result.ok) {
-      setFormError(result.error ?? "Fehler");
+      setFormError(result.error ?? t.friends.sent);
       return;
     }
     setQuery("");
-    showToast("Anfrage gesendet");
+    showToast(t.friends.sent);
   }
 
   async function handleCopyCode() {
     if (!friendCode) return;
     try {
       await navigator.clipboard.writeText(friendCode);
-      showToast("Code kopiert");
+      showToast(t.friends.copied);
     } catch {
-      showToast("Kopieren fehlgeschlagen");
+      showToast(t.friends.copyFailed);
     }
   }
 
@@ -126,7 +121,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
     return (
       <PanelShell title={t.home.friends} onBack={onBack}>
         <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
-          Laden…
+          {t.friends.loading}
         </p>
       </PanelShell>
     );
@@ -136,8 +131,8 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
     return (
       <PanelShell title={t.home.friends} onBack={onBack}>
         <EmptyCard
-          headline="Freunde brauchen ein Konto"
-          body="Als Gast gibt’s keine Freundesliste. Melde dich an, dann kannst du Freund:innen per Name oder Code hinzufügen."
+          headline={t.friends.needsAccountHeadline}
+          body={t.friends.needsAccountBody}
         />
         <Link
           href="/auth/login"
@@ -146,7 +141,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
             background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
           }}
         >
-          Anmelden
+          {t.landing.login}
         </Link>
       </PanelShell>
     );
@@ -156,7 +151,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
     <PanelShell title={t.home.friends} onBack={onBack}>
       {toast && (
         <div
-          className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          className="rp-shell-banner rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
           style={{ background: "var(--rp-purple)" }}
         >
           {toast}
@@ -176,7 +171,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
             className="text-[10px] font-bold uppercase tracking-wider"
             style={{ color: "var(--rp-purple)" }}
           >
-            Dein Code
+            {t.friends.yourCode}
           </p>
           <p
             className="text-lg font-black tracking-[0.18em]"
@@ -195,7 +190,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
             color: "var(--rp-purple)",
           }}
         >
-          Kopieren
+          {t.friends.copy}
         </button>
       </section>
 
@@ -205,7 +200,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
           className="block text-xs font-bold mb-1.5 px-1"
           style={{ color: "var(--rp-text-secondary)" }}
         >
-          Freund:in hinzufügen
+          {t.friends.addLabel}
         </label>
         <div className="flex gap-2">
           <input
@@ -215,7 +210,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
               setQuery(e.target.value);
               if (formError) setFormError(null);
             }}
-            placeholder="Username oder Code"
+            placeholder={t.friends.addPlaceholder}
             autoComplete="off"
             className="flex-1 h-11 rounded-xl border-2 px-3 text-sm font-medium text-[var(--rp-text)] placeholder:text-gray-300 focus:outline-none"
             style={{
@@ -231,7 +226,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
               background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
             }}
           >
-            Hinzufügen
+            {t.friends.add}
           </button>
         </div>
         {formError && (
@@ -345,12 +340,12 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
               className="text-xs font-bold uppercase tracking-wider mb-2 px-1"
               style={{ color: "var(--rp-text-secondary)" }}
             >
-              Freundesliste
+              {t.friends.listTitle}
             </h2>
             {friends.length === 0 ? (
               <EmptyCard
-                headline="Noch keine Freunde"
-                body="Schick deinen Code oder füg jemanden per Username hinzu. Zum Spielen reicht danach ein Link."
+                headline={t.friends.emptyHeadline}
+                body={t.friends.emptyBody}
               />
             ) : (
               <ul className="space-y-2">

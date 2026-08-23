@@ -42,16 +42,16 @@ export function PanelShell({
 }) {
   return (
     <div
-      className="flex flex-1 flex-col"
+      className="relative flex flex-1 flex-col"
       style={{
         background: "var(--rp-bg-hero)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
-      <header className="flex items-center gap-3 px-4 py-3">
+      <header className="relative flex items-center px-4 py-3">
         <BackButton onBack={onBack} />
         <h1
-          className="text-lg font-extrabold"
+          className="pointer-events-none absolute left-1/2 max-w-[60%] -translate-x-1/2 truncate text-center text-lg font-extrabold"
           style={{ color: "var(--rp-text)" }}
         >
           {title}

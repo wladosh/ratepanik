@@ -241,6 +241,17 @@
   animation: rp-box-shake 0.45s ease-in-out both;
 }
 
+.rp-shell-banner {
+  position: absolute;
+  top: calc(8px + var(--ps-notch-inset, 0px));
+  left: 50%;
+  z-index: 70;
+  width: calc(100% - 2rem);
+  max-width: 24rem;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
 /* ── Achievement Toast: reduced-motion → fade only ────── */
 @media (prefers-reduced-motion: reduce) {
   .achievement-toast-card {

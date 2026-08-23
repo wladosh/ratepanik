@@ -301,6 +301,10 @@ BEGIN
     RETURN jsonb_build_object('ok', false, 'error', 'Nicht angemeldet');
   END IF;
 
+  IF COALESCE((SELECT is_anonymous FROM auth.users WHERE id = _uid), false) THEN
+    RETURN jsonb_build_object('ok', false, 'error', 'Nicht angemeldet');
+  END IF;
+
   IF request_id IS NOT NULL THEN
     SELECT * INTO _existing
     FROM lootbox_opens o
@@ -323,6 +327,9 @@ BEGIN
   IF NOT FOUND THEN
     RETURN jsonb_build_object('ok', false, 'error', 'Kein Profil');
   END IF;
+
+  -- Bypass trg_profiles_protect_economy for this transaction (same as grant_match_rewards).
+  PERFORM set_config('ratepanik.grant_economy', '1', true);
 
   IF request_id IS NOT NULL THEN
     SELECT * INTO _existing
@@ -492,6 +499,8 @@ REVOKE ALL ON FUNCTION grant_schleimi_starter(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION lootbox_open_payload(cosmetic_items, boolean, integer, integer) FROM PUBLIC;
 REVOKE ALL ON FUNCTION open_lootbox(text, uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION equip_slot(text, text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION open_lootbox(text, uuid) FROM anon;
+REVOKE EXECUTE ON FUNCTION equip_slot(text, text) FROM anon;
 
 GRANT EXECUTE ON FUNCTION open_lootbox(text, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION equip_slot(text, text) TO authenticated;

@@ -13,8 +13,8 @@ describe("mapAuthError", () => {
     });
     expect(info.message).toBe(de.auth.rateLimit);
     expect(info.hint).toBe(de.auth.bypassHint);
-    expect(info.message).toMatch(/2/);
     expect(info.hint).toMatch(/Google/);
+    expect(`${info.message} ${info.hint}`).not.toMatch(/Supabase|Testkonto|test account/i);
   });
 
   it("maps unconfirmed email without suggesting an immediate resend", () => {

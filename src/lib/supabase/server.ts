@@ -1,5 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
+
+/** Cookie-less anon client — signup checks must not skip the signed-in user's own name. */
+export function createAnonServerSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { auth: { persistSession: false, autoRefreshToken: false } },
+  );
+}
 
 export async function createServerSupabase() {
   const cookieStore = await cookies();

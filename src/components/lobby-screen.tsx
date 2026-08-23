@@ -2,16 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useGame } from "@/lib/game-context";
-import { AVATAR_POOL } from "@/lib/rp-assets";
+import { PlayerSchleimi } from "@/components/player-schleimi";
 import { LobbySettingsPanel } from "@/components/lobby-settings";
 import { startBlockedReason } from "@/lib/room-settings";
 import { generateBlockModes } from "@/lib/game-store";
 import { emptyPromptPoolReason } from "@/lib/content";
 import { copyJoinLink, shareOrCopyJoinLink } from "@/lib/join-link";
-
-function getAvatarSrc(index: number) {
-  return AVATAR_POOL[index % AVATAR_POOL.length];
-}
+import { interpolate } from "@/lib/i18n";
+import { useI18n } from "@/lib/i18n-context";
 
 function CrownIcon({ className }: { className?: string }) {
   return (
@@ -60,6 +58,7 @@ function PeopleIcon({ className, style }: { className?: string; style?: React.CS
 
 export function LobbyScreen() {
   const game = useGame();
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
 
@@ -75,21 +74,29 @@ export function LobbyScreen() {
   const handleCopy = useCallback(() => {
     if (!game.room?.code) return;
     void copyJoinLink(game.room.code).then((ok) => {
-      if (!ok) return;
+      if (!ok) {
+        setShareToast(t.lobby.copyFailed);
+        setTimeout(() => setShareToast(null), 2500);
+        return;
+      }
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     });
-  }, [game.room?.code]);
+  }, [game.room?.code, t.lobby.copyFailed]);
 
   const handleShare = useCallback(() => {
     if (!game.room?.code) return;
     void shareOrCopyJoinLink(game.room.code).then((result) => {
-      if (result === "failed") return;
-      const msg = result === "shared" ? "Einladung geteilt" : "Link kopiert";
+      if (result === "failed") {
+        setShareToast(t.lobby.copyFailed);
+        setTimeout(() => setShareToast(null), 2500);
+        return;
+      }
+      const msg = result === "shared" ? t.lobby.shared : t.lobby.linkCopied;
       setShareToast(msg);
       setTimeout(() => setShareToast(null), 2500);
     });
-  }, [game.room?.code]);
+  }, [game.room?.code, t.lobby.copyFailed, t.lobby.shared, t.lobby.linkCopied]);
 
   const [poolEmpty, setPoolEmpty] = useState<string | null>(null);
 
@@ -115,7 +122,7 @@ export function LobbyScreen() {
 
   return (
     <div
-      className="flex flex-1 flex-col"
+      className="relative flex flex-1 flex-col"
       style={{
         background: "var(--rp-bg-hero)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
@@ -135,10 +142,10 @@ export function LobbyScreen() {
       <div className="relative z-10 flex-1 flex flex-col min-h-0 px-5 pb-6">
         {(shareToast || copied) && (
           <div
-            className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+            className="rp-shell-banner rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
             style={{ background: "var(--rp-purple)" }}
           >
-            {shareToast ?? "Link kopiert"}
+            {shareToast ?? t.lobby.linkCopied}
           </div>
         )}
         {/* Back button */}
@@ -147,7 +154,7 @@ export function LobbyScreen() {
           className="self-start inline-flex items-center min-h-11 min-w-11 -ml-2 px-2 mt-1 mb-1 text-sm font-medium transition-colors"
           style={{ color: "var(--rp-text-secondary)" }}
         >
-          &larr; Verlassen
+          &larr; {t.lobby.leave}
         </button>
 
         {/* Room code card */}
@@ -156,7 +163,7 @@ export function LobbyScreen() {
             className="text-xs font-semibold tracking-wider mb-1"
             style={{ color: "var(--rp-purple)" }}
           >
-            Raumcode
+            {t.lobby.roomCode}
           </span>
           <div className="flex items-center gap-3">
             <span
@@ -174,7 +181,7 @@ export function LobbyScreen() {
               }}
             >
               <ShareIcon className="w-3.5 h-3.5" />
-              Teilen
+              {t.lobby.share}
             </button>
             <button
               onClick={handleCopy}
@@ -185,7 +192,7 @@ export function LobbyScreen() {
               }}
             >
               <CopyIcon className="w-3.5 h-3.5" />
-              {copied ? "Kopiert" : "Link"}
+              {copied ? t.lobby.copied : t.lobby.copyLink}
             </button>
           </div>
 
@@ -196,14 +203,14 @@ export function LobbyScreen() {
               style={{ background: canStart ? "var(--rp-success)" : "var(--rp-yellow)" }}
             />
             <span className="text-sm font-semibold" style={{ color: "var(--rp-text)" }}>
-              {canStart ? "Host kann starten" : "Warten auf Spieler…"}
+              {canStart ? t.lobby.canStart : t.lobby.waitingPlayers}
             </span>
           </div>
         </div>
 
         {/* Player list */}
         <div className="space-y-2.5 mb-3">
-          {playersSorted.map((player, i) => (
+          {playersSorted.map((player) => (
             <div
               key={player.id}
               className="flex items-center gap-3 px-4 py-3 animate-fade-in"
@@ -213,19 +220,12 @@ export function LobbyScreen() {
                 boxShadow: "var(--rp-shadow-card)",
               }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={getAvatarSrc(i)}
-                alt={player.display_name}
-                width={48}
-                height={48}
-                className="w-12 h-12 rounded-full object-cover shrink-0"
-              />
-              <span className="flex-1 text-base font-bold" style={{ color: "var(--rp-text)" }}>
-                {player.display_name}
+              <PlayerSchleimi playerId={player.id} size={48} label={player.display_name} />
+              <span className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold" style={{ color: "var(--rp-text)" }}>
+                <span className="min-w-0 truncate">{player.display_name}</span>
                 {player.id === game.myPlayerId && (
-                  <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>
-                    (Du)
+                  <span className="shrink-0 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>
+                    {t.game.youBadge}
                   </span>
                 )}
               </span>
@@ -260,15 +260,15 @@ export function LobbyScreen() {
           <div>
             <p className="text-sm font-medium" style={{ color: "var(--rp-text)" }}>
               {game.players.length < 2
-                ? "Noch einer und es wird ungemütlich."
-                : game.players.length < 3
-                  ? "Noch einer und es wird ungemütlich."
-                  : `${game.players.length} Spieler bereit!`}
+                ? t.lobby.needOneMore
+                : game.players.length < game.roomSettings.maxPlayers
+                  ? interpolate(t.lobby.playersReadyStart, { n: game.players.length })
+                  : interpolate(t.lobby.playersReady, { n: game.players.length })}
             </p>
             <p className="text-xs" style={{ color: "var(--rp-text-secondary)" }}>
               {game.roomSettings.maxPlayers === 2
-                ? "2 Spieler, mehr Drama pro Kopf."
-                : `2–${game.roomSettings.maxPlayers} Spieler pro Runde`}
+                ? t.lobby.twoPlayerHint
+                : interpolate(t.lobby.rangeHint, { n: game.roomSettings.maxPlayers })}
             </p>
           </div>
         </div>
@@ -287,7 +287,7 @@ export function LobbyScreen() {
             }}
           >
             <PlayIcon className="w-7 h-7" />
-            Runde starten
+            {t.lobby.startRound}
           </button>
         ) : (
           <div
@@ -298,7 +298,7 @@ export function LobbyScreen() {
             }}
           >
             <p className="text-base font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-              Warten auf Host…
+              {t.lobby.waitHost}
             </p>
           </div>
         )}

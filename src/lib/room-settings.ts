@@ -1,3 +1,5 @@
+import { interpolate, type Messages } from "./i18n";
+
 export type PlayableMode =
   | "number_guess"
   | "pick_correct"
@@ -138,9 +140,9 @@ export function questionTimerMsFromBlock(
   return DEFAULT_ROOM_SETTINGS.timerSeconds * 1000;
 }
 
-export function startBlockedReason(settings: RoomSettings): string | null {
+export function startBlockedReason(settings: RoomSettings): "no_themes" | null {
   if (settings.themeMix === "manual" && settings.themeIds.length === 0) {
-    return "Wähl mindestens ein Thema — sonst würfeln wir ins Leere.";
+    return "no_themes";
   }
   return null;
 }
@@ -148,41 +150,46 @@ export function startBlockedReason(settings: RoomSettings): string | null {
 export function settingsSummaryChips(
   settings: RoomSettings,
   themeNames: Record<string, string>,
+  t: Messages,
 ): string[] {
   const chips: string[] = [];
 
   if (settings.themeMix === "random") {
-    chips.push("Themen: Zufall");
+    chips.push(t.lobby.chipThemesRandom);
   } else {
     const names = settings.themeIds
       .map((id) => themeNames[id])
       .filter(Boolean);
-    chips.push(names.length ? names.join(", ") : "Themen: selbst");
+    chips.push(names.length ? names.join(", ") : t.lobby.chipThemesManual);
   }
 
   chips.push(
     settings.modeFilter === "all"
-      ? "Alle Modi"
+      ? t.lobby.chipAllModes
       : settings.modeFilter === "number_guess"
-        ? "Nur Schätzfragen"
+        ? t.lobby.chipModeGuess
         : settings.modeFilter === "pick_correct"
-          ? "Nur Auswählen"
+          ? t.lobby.chipModePick
           : settings.modeFilter === "find_lie"
-            ? "Nur Lüge"
-            : "Nur Reihenfolge",
+            ? t.lobby.chipModeLie
+            : t.lobby.chipModeOrder,
   );
 
   chips.push(
     settings.difficulty === "mix"
-      ? "Mix"
-      : settings.difficulty.charAt(0).toUpperCase() + settings.difficulty.slice(1),
+      ? t.lobby.diffMix
+      : settings.difficulty === "leicht"
+        ? t.lobby.diffEasy
+        : settings.difficulty === "mittel"
+          ? t.lobby.diffMid
+          : t.lobby.diffHard,
   );
 
-  chips.push(`${settings.blocks} Blöcke`);
-  chips.push(`${settings.timerSeconds}s Timer`);
-  chips.push(`Max ${settings.maxPlayers}`);
-  chips.push(settings.allowGuests ? "Gäste ja" : "Keine Gäste");
-  if (settings.autoStart) chips.push("Start wenn voll");
+  chips.push(interpolate(t.lobby.chipBlocks, { n: settings.blocks }));
+  chips.push(interpolate(t.lobby.chipTimer, { n: settings.timerSeconds }));
+  chips.push(interpolate(t.lobby.chipMax, { n: settings.maxPlayers }));
+  chips.push(settings.allowGuests ? t.lobby.chipGuestsYes : t.lobby.chipGuestsNo);
+  if (settings.autoStart) chips.push(t.lobby.chipAutoStart);
 
   return chips;
 }

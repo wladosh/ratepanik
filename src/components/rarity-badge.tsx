@@ -1,9 +1,17 @@
 "use client";
 
-import { RARITY_LABEL_DE, type CosmeticRarity } from "@/lib/schleimi-catalog";
+import { useI18n } from "@/lib/i18n-context";
+import type { CosmeticRarity } from "@/lib/schleimi-catalog";
 import { RARITY_UX_PILL } from "@/lib/schleimi-ux";
 
+function rarityLabel(rarity: CosmeticRarity, t: ReturnType<typeof useI18n>["t"]): string {
+  if (rarity === "selten") return t.cosmetics.raritySelten;
+  if (rarity === "legendaer") return t.cosmetics.rarityLegendaer;
+  return t.cosmetics.rarityGewoehnlich;
+}
+
 export function RarityBadge({ rarity, compact }: { rarity: CosmeticRarity; compact?: boolean }) {
+  const { t } = useI18n();
   const tone = RARITY_UX_PILL[rarity];
   return (
     <span
@@ -18,7 +26,7 @@ export function RarityBadge({ rarity, compact }: { rarity: CosmeticRarity; compa
         letterSpacing: 0.2,
       }}
     >
-      {RARITY_LABEL_DE[rarity]}
+      {rarityLabel(rarity, t)}
     </span>
   );
 }

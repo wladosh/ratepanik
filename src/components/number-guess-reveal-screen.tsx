@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { PlayerSchleimi } from "@/components/player-schleimi";
 import { useGame } from "@/lib/game-context";
 import type { NumberGuessPayload } from "@/lib/content";
 import { numberGuessCorrectFromPayload, scoreNumberGuessAnswers } from "@/lib/game-store";
@@ -70,6 +71,18 @@ export function NumberGuessRevealScreen() {
           }}
         >
           <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--rp-text-secondary)" }}>
+            Die Frage
+          </p>
+          <p className="text-sm font-bold mt-1 leading-snug" style={{ color: "var(--rp-text)" }}>
+            {prompt.prompt}
+          </p>
+          {myRanked?.numeric_answer != null && (
+            <p className="text-xs mt-2" style={{ color: "var(--rp-text-secondary)" }}>
+              Deine Schätzung: {myRanked.numeric_answer.toLocaleString("de-DE")}
+              {payload?.unit ? ` ${payload.unit}` : ""}
+            </p>
+          )}
+          <p className="text-xs font-semibold uppercase tracking-wider mt-3" style={{ color: "var(--rp-text-secondary)" }}>
             Richtige Antwort
           </p>
           <p className="text-3xl font-black mt-1" style={{ color: "var(--rp-peach)" }}>
@@ -98,8 +111,8 @@ export function NumberGuessRevealScreen() {
                 <span className="w-8 text-center text-lg">
                   {RANK_MEDALS[entry.rank - 1] ?? `${entry.rank}.`}
                 </span>
-                <span className="text-2xl">
-                  {entry.player ? game.getAvatar(entry.player.id) : ""}
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center">
+                  {entry.player ? <PlayerSchleimi playerId={entry.player.id} size={36} /> : null}
                 </span>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold truncate" style={{ color: "var(--rp-text)" }}>
@@ -136,8 +149,7 @@ export function NumberGuessRevealScreen() {
           <div
             className="w-full py-4 text-center rounded-[var(--rp-radius-md)]"
             style={{
-              background: "rgba(139, 124, 255, 0.08)",
-              border: "2px dashed var(--rp-purple-soft)",
+              background: "rgba(139, 124, 255, 0.10)",
             }}
           >
             <p className="text-base font-semibold" style={{ color: "var(--rp-text-secondary)" }}>

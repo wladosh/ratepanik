@@ -1,12 +1,16 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Image from "next/image";
 import { useMemo, useState, useEffect, useRef, useSyncExternalStore } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useGame } from "@/lib/game-context";
+import { PlayerSchleimi } from "@/components/player-schleimi";
+import { PlayerNameRow } from "@/components/player-name-row";
 import { useAuth } from "@/lib/auth-context";
 import { xpProgressInLevel } from "@/lib/progression";
+import { allScoresTied, competitionRanks, placeGlyph } from "@/lib/match-ui";
 import {
   HIRNCOIN_ICON_48,
   XP_BADGE_48,
@@ -122,7 +126,16 @@ type FinalMood = {
   glow: string;
 };
 
-function getFinalMood(rank: number, playerCount: number): FinalMood {
+function getFinalMood(rank: number, playerCount: number, tied: boolean): FinalMood {
+  if (tied && playerCount > 1) {
+    return {
+      eyebrow: "Gleichstand",
+      title: "Unentschieden",
+      message: "Ihr liegt gleichauf. Nächste Runde entscheidet.",
+      accent: "var(--rp-purple)",
+      glow: "rgba(139, 124, 255, 0.28)",
+    };
+  }
   if (rank === 1) {
     return {
       eyebrow: "Sieg!",
@@ -161,15 +174,17 @@ function FinalHero({
   playerCount,
   score,
   avatar,
+  tied,
 }: {
   rank: number;
   playerCount: number;
   score: number;
-  avatar: string;
+  avatar: ReactNode;
+  tied?: boolean;
 }) {
   const heroRef = useRef<HTMLDivElement>(null);
-  const winner = rank === 1;
-  const mood = getFinalMood(rank, playerCount);
+  const winner = rank === 1 && !tied;
+  const mood = getFinalMood(rank, playerCount, tied === true);
 
   useGSAP(
     () => {
@@ -227,7 +242,7 @@ function FinalHero({
               priority
             />
           ) : (
-            <span className="text-[64px]" aria-hidden="true">
+            <span className="flex items-center justify-center" aria-hidden="true">
               {avatar}
             </span>
           )}
@@ -291,7 +306,11 @@ function FinalHero({
 function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
   const game = useGame();
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
-  const myRank = sortedPlayers.findIndex((p) => p.id === game.myPlayerId) + 1;
+  const scores = sortedPlayers.map((player) => player.score);
+  const ranks = competitionRanks(scores);
+  const myIndex = sortedPlayers.findIndex((p) => p.id === game.myPlayerId);
+  const myRank = ranks[myIndex] ?? 1;
+  const tied = allScoresTied(scores);
   const myPlayer = sortedPlayers.find((p) => p.id === game.myPlayerId);
 
   return (
@@ -302,10 +321,10 @@ function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
-      <ConfettiOverlay show={myRank === 1} />
+      <ConfettiOverlay show={myRank === 1 && !tied} />
       <span
         className="pointer-events-none absolute -left-20 top-40 h-52 w-52 rounded-full opacity-35 blur-3xl"
-        style={{ background: myRank === 1 ? "#FFE9A8" : "var(--rp-purple-soft)" }}
+        style={{ background: myRank === 1 && !tied ? "#FFE9A8" : "var(--rp-purple-soft)" }}
         aria-hidden="true"
       />
       <span
@@ -319,7 +338,8 @@ function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
           rank={Math.max(myRank, 1)}
           playerCount={sortedPlayers.length}
           score={myPlayer?.score ?? 0}
-          avatar={myPlayer ? game.getAvatar(myPlayer.id) : "🎯"}
+          avatar={myPlayer ? <PlayerSchleimi playerId={myPlayer.id} size={100} /> : null}
+          tied={tied}
         />
 
         <div className="mb-2 flex items-center justify-between px-1">
@@ -356,26 +376,18 @@ function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
               <span
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black"
                 style={{
-                  background: i === 0 ? "#FFF2B8" : "var(--rp-bg-muted)",
-                  color: i === 0 ? "#A87513" : "var(--rp-text-secondary)",
+                  background: (ranks[i] ?? i + 1) === 1 ? "#FFF2B8" : "var(--rp-bg-muted)",
+                  color: (ranks[i] ?? i + 1) === 1 ? "#A87513" : "var(--rp-text-secondary)",
                 }}
               >
-                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+                {placeGlyph(ranks[i] ?? i + 1)}
               </span>
-              <span className="text-[26px]">{game.getAvatar(player.id)}</span>
-              <div className="min-w-0 flex-1 text-left">
-                <p className="truncate font-bold" style={{ color: "var(--rp-text)" }}>
-                  {player.display_name}
-                  {player.id === game.myPlayerId && (
-                    <span
-                      className="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase"
-                      style={{ background: "var(--rp-purple-soft)", color: "var(--rp-purple)" }}
-                    >
-                      Du
-                    </span>
-                  )}
-                </p>
-              </div>
+              <PlayerSchleimi playerId={player.id} size={36} />
+              <PlayerNameRow
+                className="flex-1 text-left"
+                name={player.display_name}
+                isMe={player.id === game.myPlayerId}
+              />
               <div className="text-right">
                 <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
                   {player.score.toLocaleString("de-DE")}
@@ -415,7 +427,6 @@ function XpRow({
 }) {
   const newXp = previousXp + xpAwarded;
   const progress = xpProgressInLevel(newXp);
-  const displayXp = useCountUp(xpAwarded, 800, 500);
 
   return (
     <div
@@ -435,7 +446,7 @@ function XpRow({
             className="text-xl font-extrabold tabular-nums"
             style={{ color: "var(--rp-xp)" }}
           >
-            +{displayXp} XP
+            +{xpAwarded} XP
           </span>
         </div>
         <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: "var(--rp-xp-track)" }}>
@@ -449,7 +460,9 @@ function XpRow({
           />
         </div>
         <p className="text-[11px] mt-1 text-right tabular-nums" style={{ color: "var(--rp-text-secondary)" }}>
-          {progress.current} / {progress.needed}
+          {progress.current === 0 && xpAwarded > 0
+            ? `Level ${progress.level}! Nächste Stufe: 0 / ${progress.needed}`
+            : `${progress.current} / ${progress.needed}`}
         </p>
       </div>
     </div>
@@ -542,6 +555,7 @@ function Top3Section() {
     () => [...game.players].sort((a, b) => b.score - a.score).slice(0, 3),
     [game.players],
   );
+  const ranks = competitionRanks(top3.map((player) => player.score));
 
   if (top3.length === 0) return null;
 
@@ -559,21 +573,23 @@ function Top3Section() {
         Top 3 dieser Runde
       </h4>
       <div className="space-y-2">
-        {top3.map((player, i) => (
+        {top3.map((player, i) => {
+          const rank = ranks[i] ?? i + 1;
+          return (
           <div key={player.id} className="flex items-center gap-3">
             <span
               className="w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold text-white shrink-0"
-              style={{ background: PLACE_COLORS[i] }}
+              style={{ background: PLACE_COLORS[Math.min(rank, 3) - 1] }}
             >
-              {i + 1}
+              {rank}
             </span>
-            <span className="text-xl">{game.getAvatar(player.id)}</span>
-            <span className="flex-1 text-sm font-semibold truncate" style={{ color: "var(--rp-text)" }}>
-              {player.display_name}
-              {player.id === game.myPlayerId && (
-                <span className="text-xs font-normal ml-1" style={{ color: "var(--rp-text-secondary)" }}>(Du)</span>
-              )}
-            </span>
+            <PlayerSchleimi playerId={player.id} size={32} />
+            <PlayerNameRow
+              className="flex-1"
+              name={player.display_name}
+              isMe={player.id === game.myPlayerId}
+              youLabel="Du"
+            />
             <span
               className="text-sm font-bold tabular-nums px-2 py-0.5 rounded-lg"
               style={{ background: PLACE_BGS[i], color: PLACE_COLORS[i] }}
@@ -581,7 +597,8 @@ function Top3Section() {
               {player.score.toLocaleString("de-DE")} Punkte
             </span>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -592,7 +609,11 @@ function Top3Section() {
 function GuestEndScreen() {
   const game = useGame();
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
-  const myRank = sortedPlayers.findIndex((p) => p.id === game.myPlayerId) + 1;
+  const scores = sortedPlayers.map((player) => player.score);
+  const ranks = competitionRanks(scores);
+  const myIndex = sortedPlayers.findIndex((p) => p.id === game.myPlayerId);
+  const myRank = ranks[myIndex] ?? 1;
+  const tied = allScoresTied(scores);
   const myPlayer = sortedPlayers.find((p) => p.id === game.myPlayerId);
 
   return (
@@ -603,10 +624,10 @@ function GuestEndScreen() {
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
-      <ConfettiOverlay show={myRank === 1} />
+      <ConfettiOverlay show={myRank === 1 && !tied} />
       <span
         className="pointer-events-none absolute -left-20 top-40 h-52 w-52 rounded-full opacity-35 blur-3xl"
-        style={{ background: myRank === 1 ? "#FFE9A8" : "var(--rp-purple-soft)" }}
+        style={{ background: myRank === 1 && !tied ? "#FFE9A8" : "var(--rp-purple-soft)" }}
         aria-hidden="true"
       />
       <span
@@ -620,7 +641,8 @@ function GuestEndScreen() {
           rank={Math.max(myRank, 1)}
           playerCount={sortedPlayers.length}
           score={myPlayer?.score ?? 0}
-          avatar={myPlayer ? game.getAvatar(myPlayer.id) : "🎯"}
+          avatar={myPlayer ? <PlayerSchleimi playerId={myPlayer.id} size={100} /> : null}
+          tied={tied}
         />
 
         <div className="mb-2 flex items-center justify-between px-1">
@@ -658,26 +680,18 @@ function GuestEndScreen() {
               <span
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black"
                 style={{
-                  background: i === 0 ? "#FFF2B8" : "var(--rp-bg-muted)",
-                  color: i === 0 ? "#A87513" : "var(--rp-text-secondary)",
+                  background: (ranks[i] ?? i + 1) === 1 ? "#FFF2B8" : "var(--rp-bg-muted)",
+                  color: (ranks[i] ?? i + 1) === 1 ? "#A87513" : "var(--rp-text-secondary)",
                 }}
               >
-                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+                {placeGlyph(ranks[i] ?? i + 1)}
               </span>
-              <span className="text-[26px]">{game.getAvatar(player.id)}</span>
-              <div className="min-w-0 flex-1 text-left">
-                <p className="truncate font-bold" style={{ color: "var(--rp-text)" }}>
-                  {player.display_name}
-                  {player.id === game.myPlayerId && (
-                    <span
-                      className="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase"
-                      style={{ background: "var(--rp-purple-soft)", color: "var(--rp-purple)" }}
-                    >
-                      Du
-                    </span>
-                  )}
-                </p>
-              </div>
+              <PlayerSchleimi playerId={player.id} size={36} />
+              <PlayerNameRow
+                className="flex-1 text-left"
+                name={player.display_name}
+                isMe={player.id === game.myPlayerId}
+              />
               <div className="text-right">
                 <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
                   {player.score.toLocaleString("de-DE")}

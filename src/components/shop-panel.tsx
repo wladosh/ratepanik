@@ -8,7 +8,6 @@ import { useCosmetics, type OpenLootboxSuccess } from "@/lib/use-cosmetics";
 import { HIRNCOIN_ICON_20, LOOT_BOX_RARE_128 } from "@/lib/rp-assets";
 import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
 import { LootboxReveal } from "@/components/lootbox-reveal";
-import { RARITY_LABEL_DE } from "@/lib/schleimi-catalog";
 
 export function ShopPanel({
   onBack,
@@ -137,11 +136,11 @@ export function ShopPanel({
               className="mt-4 text-center text-xs leading-relaxed"
               style={{ color: "var(--rp-text-secondary)" }}
             >
-              {lootbox.weight_gewoehnlich} % {RARITY_LABEL_DE.gewoehnlich}
+              {lootbox.weight_gewoehnlich} % {t.cosmetics.rarityGewoehnlich}
               {" · "}
-              {lootbox.weight_selten} % {RARITY_LABEL_DE.selten}
+              {lootbox.weight_selten} % {t.cosmetics.raritySelten}
               {" · "}
-              {lootbox.weight_legendaer} % {RARITY_LABEL_DE.legendaer}
+              {lootbox.weight_legendaer} % {t.cosmetics.rarityLegendaer}
             </p>
             <button
               type="button"
@@ -154,7 +153,11 @@ export function ShopPanel({
                 opacity: busy || !canAfford ? 0.5 : 1,
               }}
             >
-              {busy ? t.cosmetics.opening : t.cosmetics.open}
+              {busy
+                ? t.cosmetics.opening
+                : canAfford
+                  ? t.cosmetics.open
+                  : t.cosmetics.notEnoughShort}
             </button>
             {!canAfford && (
               <p className="mt-3 text-center text-xs font-medium" style={{ color: "var(--rp-danger)" }}>

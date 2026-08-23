@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n-context";
 import { mapAuthError, type AuthErrorInfo } from "@/lib/auth-errors";
 import { AuthErrorBanner } from "@/components/auth-error-banner";
+import { usernameCheckMessage } from "@/lib/match-ui";
+import { PasswordField } from "@/components/password-field";
 
 export default function SignupPage() {
   const { t } = useI18n();
@@ -58,13 +60,13 @@ export default function SignupPage() {
         setNameChecking(false);
         setNameAvailable(data.available);
         if (!data.available && data.error) {
-          setNameError(data.error);
+          setNameError(usernameCheckMessage(t, data.error));
         }
       } catch {
         setNameChecking(false);
       }
     }, 400);
-  }, [t.signup.nameTooShort]);
+  }, [t]);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
@@ -341,31 +343,22 @@ export default function SignupPage() {
               e.currentTarget.style.boxShadow = "none";
             }}
           />
-          <input
-            type="password"
+          <PasswordField
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={setPassword}
             placeholder={t.signup.password}
-            required
             minLength={6}
-            className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 text-sm font-medium transition-all focus:outline-none"
-            style={{
-              borderColor: "var(--rp-border)",
-              background: "var(--rp-bg-elevated)",
-              color: "var(--rp-text)",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "var(--rp-border)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
+            autoComplete="new-password"
           />
           <button
             type="submit"
-            disabled={loading || nameAvailable === false || trimmedName.length < 3}
+            disabled={
+              loading ||
+              nameAvailable !== true ||
+              trimmedName.length < 3 ||
+              email.trim().length === 0 ||
+              password.length < 6
+            }
             className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40"
             style={{
               background:

@@ -102,7 +102,7 @@
 }
 
 .modePill {
-  max-width: 9rem;
+  max-width: 12.5rem;
   padding: 0 12px;
   color: var(--mode-color, var(--rp-purple));
   background: var(--mode-background, rgba(139, 124, 255, 0.1));
@@ -113,6 +113,7 @@
 .modeLabel {
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .questionStage {
@@ -241,8 +242,9 @@
   height: 32px;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   border: 2px solid transparent;
-  border-radius: 999px;
+  border-radius: 10px;
   opacity: 0.32;
   transition:
     opacity 180ms ease,

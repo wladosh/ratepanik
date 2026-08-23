@@ -12,6 +12,9 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserSupabase } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n-context";
+import { interpolate } from "@/lib/i18n";
+import { joinBlockedCopy } from "@/lib/match-ui";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type {
   DbRoom,
@@ -53,10 +56,19 @@ import {
 import { useAuth } from "./auth-context";
 import { useAchievementGrant } from "./use-achievement-grant";
 import { generateGuestName } from "./guest-name";
+import { useRoomLoadouts } from "./use-room-loadouts";
+import {
+  isVsIntroActive,
+  readVsIntroUntil,
+  stampVsIntroUntil,
+  type SchleimiLayerMap,
+} from "./schleimi-layers";
+import { isLiveQuestionPhase, shouldStampQuestionClock } from "./question-clock";
 
 export type GamePhase =
   | "home"
   | "lobby"
+  | "vs_intro"
   | "theme_pick"
   | "playing_loading"
   | "number_guess"
@@ -72,11 +84,6 @@ export type GamePhase =
   | "block_scoreboard"
   | "final";
 
-const AVATARS = [
-  "🦊", "🐻", "🐼", "🦁", "🐸", "🐵",
-  "🐷", "🐮", "🐔", "🦄", "🐲", "🐙",
-];
-
 interface GameContextValue {
   phase: GamePhase;
   room: DbRoom | null;
@@ -88,7 +95,7 @@ interface GameContextValue {
   loading: boolean;
   restoring: boolean;
   disconnected: boolean;
-  getAvatar: (playerId: string) => string;
+  getPlayerLayers: (playerId: string) => SchleimiLayerMap;
 
   // Block state
   blocks: DbMatchBlock[];
@@ -150,23 +157,11 @@ function generateRoomCode(): string {
   return code;
 }
 
-function joinBlockedMessage(
-  roomData: DbRoom,
-  playerCount: number,
-  joiningAsGuest: boolean,
-): string | null {
-  const s = parseRoomSettings(roomData.settings);
-  if (!s.allowGuests && joiningAsGuest) {
-    return "Der Host lässt keine Gäste rein. Kurz anmelden — dauert weniger als ein peinlicher Fakt.";
-  }
-  if (playerCount >= s.maxPlayers) {
-    return `Raum ist voll (max ${s.maxPlayers} Spieler)!`;
-  }
-  return null;
-}
-
 export function GameProvider({ children, joinCode }: { children: ReactNode; joinCode?: string }) {
   const { user, isGuest } = useAuth();
+  const { t } = useI18n();
+  const tRef = useRef(t);
+  tRef.current = t;
   const { tryUnlock } = useAchievementGrant();
   const router = useRouter();
   const supabase = useMemo(() => createBrowserSupabase(), []);
@@ -206,6 +201,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const [hostActionLock, setHostActionLock] = useState(false);
   const hostActionLockRef = useRef(false);
   const startGameLockRef = useRef(false);
+  const currentBlockRef = useRef<DbMatchBlock | null>(null);
+  const phaseRef = useRef<GamePhase>("home");
+  const currentPromptRef = useRef<Prompt | null>(null);
+  const isHostRef = useRef(false);
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const { getPlayerLayers } = useRoomLoadouts(players);
 
   // --- derived state ---
 
@@ -286,6 +287,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     if (room.status === "lobby") return "lobby";
     if (room.status === "finished") return "final";
 
+    if (isVsIntroActive(nowMs, readVsIntroUntil(room.settings))) return "vs_intro";
+
     if (room.theme_vote_active) return "theme_pick";
 
     if (!currentBlock) return "playing_loading";
@@ -336,7 +339,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     return "playing_loading";
-  }, [room, currentBlock, roundAnswers, players.length, myPlayerId, correctTurnsCount, restoring, revealHoldActive, roundTimedOut]);
+  }, [room, currentBlock, roundAnswers, players.length, myPlayerId, correctTurnsCount, restoring, revealHoldActive, roundTimedOut, nowMs]);
+
+  currentBlockRef.current = currentBlock;
+  phaseRef.current = phase;
+  currentPromptRef.current = currentPrompt;
+  isHostRef.current = isHost;
 
   // Canonical shared deadline — every client computes the same value from the
   // same DB-synced started_at timestamp.  No independent local clocks.
@@ -347,25 +355,21 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   const questionDeadlineMs = useMemo(() => {
     if (!currentBlock?.started_at || questionTimerMs == null) return null;
-    const isQuestionPhase =
-      phase === "number_guess" ||
-      phase === "number_guess_waiting" ||
-      phase === "pick_correct" ||
-      phase === "find_lie" ||
-      phase === "find_lie_waiting" ||
-      phase === "order_it" ||
-      phase === "order_it_waiting";
-    if (!isQuestionPhase) return null;
+    if (!isLiveQuestionPhase(phase)) return null;
     return new Date(currentBlock.started_at).getTime() + questionTimerMs;
   }, [currentBlock, phase, questionTimerMs]);
 
-  const getAvatar = useCallback(
-    (playerId: string) => {
-      const index = sortedPlayers.findIndex((p) => p.id === playerId);
-      return AVATARS[(index >= 0 ? index : 0) % AVATARS.length];
-    },
-    [sortedPlayers]
-  );
+  useEffect(() => {
+    if (room?.status !== "playing") return;
+    const until = readVsIntroUntil(room.settings);
+    if (until == null || Date.now() >= until) return;
+    const id = window.setInterval(() => {
+      const next = Date.now();
+      setNowMs(next);
+      if (next >= until) window.clearInterval(id);
+    }, 100);
+    return () => window.clearInterval(id);
+  }, [room?.status, room?.settings]);
 
   useEffect(() => { myPlayerIdRef.current = myPlayerId; }, [myPlayerId]);
 
@@ -423,7 +427,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
                 const leftPlayer = prev.find((p) => p.id === leftPlayerId);
                 if (leftPlayer) {
                   queueMicrotask(() =>
-                    setNotice(`${leftPlayer.display_name} hat das Spiel verlassen.`)
+                    setNotice(
+                      interpolate(tRef.current.game.playerLeft, {
+                        name: leftPlayer.display_name,
+                      }),
+                    )
                   );
                 }
               }
@@ -809,15 +817,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   useEffect(() => {
     if (!currentBlock?.started_at || currentBlock.is_complete) return;
 
-    const isQuestionPhase =
-      phase === "number_guess" ||
-      phase === "number_guess_waiting" ||
-      phase === "pick_correct" ||
-      phase === "find_lie" ||
-      phase === "find_lie_waiting" ||
-      phase === "order_it" ||
-      phase === "order_it_waiting";
-    if (!isQuestionPhase) return;
+    if (!isLiveQuestionPhase(phase)) return;
     if (questionTimerMs == null) return;
 
     const endMs =
@@ -849,6 +849,49 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     phase,
     questionTimerMs,
   ]);
+
+  useEffect(() => {
+    if (room?.status !== "playing") return;
+
+    const tick = () => {
+      const block = currentBlockRef.current;
+      if (
+        !block ||
+        !shouldStampQuestionClock({
+          isHost: isHostRef.current,
+          phase: phaseRef.current,
+          startedAt: block.started_at,
+          isComplete: block.is_complete,
+          hasPrompt: Boolean(currentPromptRef.current),
+        })
+      ) {
+        return;
+      }
+
+      void supabase
+        .from("match_blocks")
+        .update({ started_at: new Date().toISOString() })
+        .eq("id", block.id)
+        .is("started_at", null)
+        .select()
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (error) {
+            console.warn("question clock stamp failed:", error.message);
+            return;
+          }
+          if (data) {
+            setBlocks((prev) =>
+              prev.map((row) => (row.id === data.id ? data : row)),
+            );
+          }
+        });
+    };
+
+    tick();
+    const id = window.setInterval(tick, 250);
+    return () => window.clearInterval(id);
+  }, [room?.status, room?.id, supabase]);
 
   // --- session persistence ---
 
@@ -982,8 +1025,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       }
       return roomData.code as string;
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Fehler beim Erstellen des Raums";
-      setError(msg);
+      setError(t.game.createFailed);
       return null;
     } finally {
       setLoading(false);
@@ -1003,7 +1045,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         .single();
 
       if (roomErr || !roomData) {
-        const m = "Raum nicht gefunden. Prüfe den Code!";
+        const m = t.game.roomNotFound;
         setError(m);
         return m;
       }
@@ -1049,7 +1091,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       }
 
       if (roomData.status !== "lobby") {
-        const m = "Das Spiel läuft bereits!";
+        const m = t.game.alreadyStarted;
         setError(m);
         return m;
       }
@@ -1085,10 +1127,15 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
             .select()
             .eq("room_id", roomData.id);
 
-          const blocked = joinBlockedMessage(
-            roomData,
-            existingPlayers?.length ?? 0,
-            user?.is_anonymous === true || isGuest,
+          const s = parseRoomSettings(roomData.settings);
+          const blocked = joinBlockedCopy(
+            {
+              allowGuests: s.allowGuests,
+              joiningAsGuest: user?.is_anonymous === true || isGuest,
+              playerCount: existingPlayers?.length ?? 0,
+              maxPlayers: s.maxPlayers,
+            },
+            t,
           );
           if (blocked) {
             setError(blocked);
@@ -1120,10 +1167,15 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
           .select()
           .eq("room_id", roomData.id);
 
-        const blocked = joinBlockedMessage(
-          roomData,
-          existingPlayers?.length ?? 0,
-          freshUser?.is_anonymous === true,
+        const s = parseRoomSettings(roomData.settings);
+        const blocked = joinBlockedCopy(
+          {
+            allowGuests: s.allowGuests,
+            joiningAsGuest: freshUser?.is_anonymous === true,
+            playerCount: existingPlayers?.length ?? 0,
+            maxPlayers: s.maxPlayers,
+          },
+          t,
         );
         if (blocked) {
           setError(blocked);
@@ -1162,7 +1214,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       subscribeToRoom(roomData.id);
       return null;
     } catch (err: unknown) {
-      const m = err instanceof Error ? err.message : "Fehler beim Beitreten";
+      const m = t.game.joinFailed;
       setError(m);
       return m;
     } finally {
@@ -1195,14 +1247,14 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     const settings = parseRoomSettings(room.settings);
     const blocked = startBlockedReason(settings);
     if (blocked) {
-      setError(blocked);
+      setError(t.lobby.noThemes);
       return;
     }
 
     const modes = generateBlockModes(settings.blocks, settings.modeFilter);
     const empty = await emptyPromptPoolReason(settings, modes);
     if (empty) {
-      setError(empty);
+      setError(t.game.emptyPool);
       return;
     }
 
@@ -1224,7 +1276,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       .select();
 
     if (blocksErr) {
-      setError(blocksErr.message);
+      setError(t.game.roundStartFailed);
       return;
     }
 
@@ -1239,7 +1291,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         settings,
       );
       if (prepared === "empty") {
-        setError("Mit dem Filter bleibt der Fragenkasten leer. Mach locker oder Fragemeister füttern.");
+        setError(t.game.emptyPool);
         return;
       }
       themeVote = prepared === "vote";
@@ -1262,12 +1314,13 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         theme_vote_active: themeVote,
         current_question_index: 0,
         question_ids: [],
+        settings: stampVsIntroUntil(room.settings, players.length),
         updated_at: new Date().toISOString(),
       })
       .eq("id", room.id);
 
     if (upErr) {
-      setError(upErr.message);
+      setError(t.game.roundStartFailed);
       return;
     }
 
@@ -1340,7 +1393,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     if (fetchedPrompts.length === 0) {
-      const message = "Keine Fragen verfügbar. Bitte Fragemeister kontaktieren.";
+      const message = t.game.emptyPool;
       setError(message);
       throw new Error(message);
     }
@@ -1353,11 +1406,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       .update({
         theme_id: themeId,
         prompt_ids: promptIds,
-        started_at: new Date().toISOString(),
       })
       .eq("id", currentBlock.id);
     if (blockUpdateError) {
-      setError("Das Thema konnte nicht gespeichert werden. Bitte erneut versuchen.");
+      setError(t.game.themeSaveFailed);
       throw blockUpdateError;
     }
 
@@ -1370,10 +1422,13 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       })
       .eq("id", room.id);
     if (roomUpdateError) {
-      setError("Die Runde konnte nicht gestartet werden. Bitte erneut versuchen.");
+      setError(t.game.roundStartFailed);
       throw roomUpdateError;
     }
 
+    setRoom((prev) =>
+      prev ? { ...prev, theme_vote_active: false } : prev,
+    );
     setPrompts(fetchedPrompts);
   };
 
@@ -1394,7 +1449,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     });
 
     if (ansErr && ansErr.code !== "23505") {
-      setError("Konnte nicht senden. Nochmal tippen?");
+      setError(t.game.sendFailed);
       throw new Error(ansErr.message);
     }
   };
@@ -1416,7 +1471,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     });
 
     if (ansErr && ansErr.code !== "23505") {
-      setError("Konnte nicht senden. Nochmal tippen?");
+      setError(t.game.sendFailed);
       throw new Error(ansErr.message);
     }
   };
@@ -1438,7 +1493,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     });
 
     if (ansErr && ansErr.code !== "23505") {
-      setError("Konnte nicht senden. Nochmal tippen?");
+      setError(t.game.sendFailed);
       throw new Error(ansErr.message);
     }
   };
@@ -1462,7 +1517,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     });
 
     if (tapErr) {
-      setError("Konnte nicht senden. Nochmal tippen?");
+      setError(t.game.sendFailed);
     }
   };
 
@@ -1532,7 +1587,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         .from("match_blocks")
         .update({
           current_round: nextRound,
-          started_at: new Date().toISOString(),
+          started_at: null,
         })
         .eq("id", currentBlock.id);
     } else {
@@ -1595,7 +1650,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         settings,
       );
       if (prepared === "empty") {
-        setError("Mit dem Filter bleibt der Fragenkasten leer. Mach locker oder Fragemeister füttern.");
+        setError(t.game.emptyPool);
         return;
       }
       themeVote = prepared === "vote";
@@ -1631,11 +1686,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     if (err) {
       const m = err.message;
       if (/only_host_can_change_settings/i.test(m)) {
-        setError("Nur der Host darf an den Schrauben drehen.");
+        setError(t.game.hostOnlySettings);
       } else if (/settings_locked_after_start/i.test(m)) {
-        setError("Zu spät — die Runde läuft schon.");
+        setError(t.game.settingsLocked);
       } else {
-        setError("Einstellungen nicht gespeichert. Nochmal tippen?");
+        setError(t.game.settingsSaveFailed);
       }
       return;
     }
@@ -1780,7 +1835,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     loading,
     restoring,
     disconnected,
-    getAvatar,
+    getPlayerLayers,
     blocks,
     currentBlock,
     currentPrompt,

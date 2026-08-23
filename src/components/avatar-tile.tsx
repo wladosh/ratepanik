@@ -1,6 +1,7 @@
 "use client";
 
 import { AVATAR_BG, avatarSrc, type AvatarId } from "@/lib/rp-assets";
+import { useI18n } from "@/lib/i18n-context";
 
 export type AvatarTileState = "locked" | "owned" | "equipped" | "selected";
 
@@ -23,6 +24,7 @@ export function AvatarTile({
 }: AvatarTileProps) {
   const ring =
     state === "equipped" || state === "selected" ? "var(--rp-purple)" : "transparent";
+  const { t } = useI18n();
 
   return (
     <button
@@ -129,7 +131,7 @@ export function AvatarTile({
       )}
       {state === "owned" && (
         <span className="text-[10px] font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-          Anziehen
+          {t.cosmetics.equip}
         </span>
       )}
     </button>

@@ -3,6 +3,28 @@ export function joinUrl(code: string): string {
   return `${origin}/?join=${code}`;
 }
 
+export async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    try {
+      const el = document.createElement("textarea");
+      el.value = text;
+      el.setAttribute("readonly", "");
+      el.style.position = "fixed";
+      el.style.left = "-9999px";
+      document.body.appendChild(el);
+      el.select();
+      const ok = document.execCommand("copy");
+      document.body.removeChild(el);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
 export async function shareOrCopyJoinLink(
   code: string
 ): Promise<"shared" | "copied" | "failed"> {
@@ -21,19 +43,9 @@ export async function shareOrCopyJoinLink(
       }
     }
   }
-  try {
-    await navigator.clipboard.writeText(url);
-    return "copied";
-  } catch {
-    return "failed";
-  }
+  return (await copyText(url)) ? "copied" : "failed";
 }
 
 export async function copyJoinLink(code: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(joinUrl(code));
-    return true;
-  } catch {
-    return false;
-  }
+  return copyText(joinUrl(code));
 }

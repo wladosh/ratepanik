@@ -53,9 +53,6 @@ export function GuessConsole({
         <label className={styles.label} htmlFor={inputId}>
           Deine Schätzung
         </label>
-        <span className={styles.formatChip} id={helpId}>
-          12,5 oder 12.5
-        </span>
       </div>
 
       <div
@@ -115,7 +112,7 @@ export function GuessConsole({
             {visibleError}
           </span>
         ) : (
-          <span>{FORMAT_HELP}</span>
+          <span id={helpId}>{FORMAT_HELP}</span>
         )}
       </div>
 

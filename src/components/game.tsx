@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useGame, type GamePhase } from "@/lib/game-context";
 import { useAchievementUnlockWatcher } from "@/lib/use-achievement-unlock";
 import { usePresenceHeartbeat } from "@/lib/use-presence-heartbeat";
+import { useI18n } from "@/lib/i18n-context";
 import { HomeScreen } from "./home-screen";
 import { LobbyScreen } from "./lobby-screen";
 import { ThemePickScreen } from "./theme-pick-screen";
@@ -16,8 +17,10 @@ import { OrderItRevealScreen } from "./order-it-reveal-screen";
 import { PickCorrectScreen } from "./pick-correct-screen";
 import { BlockScoreboardScreen } from "./block-scoreboard-screen";
 import { FinalScreen } from "./final-screen";
+import { VsIntroScreen } from "./vs-intro-screen";
 
 const MATCH_PHASES: GamePhase[] = [
+  "vs_intro",
   "theme_pick",
   "number_guess",
   "number_guess_waiting",
@@ -39,10 +42,11 @@ function LeaveMatchDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center px-6"
-      style={{ background: "rgba(42, 42, 74, 0.45)", backdropFilter: "blur(4px)" }}
+      className="absolute inset-0 z-[60] flex items-center justify-center px-6"
+      style={{ background: "rgba(42, 42, 74, 0.28)", backdropFilter: "blur(2px)" }}
     >
       <div
         className="w-full max-w-xs p-6 text-center animate-fade-in"
@@ -57,13 +61,13 @@ function LeaveMatchDialog({
           className="text-lg font-bold mb-1"
           style={{ color: "var(--rp-text)" }}
         >
-          Match wirklich verlassen?
+          {t.game.leaveTitle}
         </h3>
         <p
           className="text-sm mb-5"
           style={{ color: "var(--rp-text-secondary)" }}
         >
-          Dein Fortschritt geht verloren und die anderen spielen ohne dich weiter.
+          {t.game.leaveBody}
         </p>
         <div className="flex gap-3">
           <button
@@ -75,7 +79,7 @@ function LeaveMatchDialog({
               background: "transparent",
             }}
           >
-            Abbrechen
+            {t.game.leaveCancel}
           </button>
           <button
             onClick={onConfirm}
@@ -84,7 +88,7 @@ function LeaveMatchDialog({
               background: "linear-gradient(135deg, var(--rp-danger) 0%, #E0445A 100%)",
             }}
           >
-            Verlassen
+            {t.game.leaveConfirm}
           </button>
         </div>
       </div>
@@ -94,6 +98,7 @@ function LeaveMatchDialog({
 
 export function Game() {
   const game = useGame();
+  const { t } = useI18n();
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   useAchievementUnlockWatcher(game.phase);
@@ -103,76 +108,14 @@ export function Game() {
 
   return (
     <div className="relative flex flex-1 flex-col">
-      {game.disconnected && (
-        <div className="absolute top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-amber-500 px-5 py-3 text-center shadow-xl animate-fade-in">
-          <p className="font-bold text-white text-sm">Verbindung verloren.</p>
-          <p className="text-white/90 text-xs mt-0.5">Verbindung wird wiederhergestellt…</p>
-        </div>
-      )}
-
-      {game.error && (
-        <div
-          className="absolute top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-red-500 px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
-          role="alert"
-        >
-          {game.error}
-        </div>
-      )}
-
-      {game.notice && (
-        <div
-          className="absolute top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
-          style={{ background: "var(--rp-success)" }}
-          role="status"
-        >
-          {game.notice}
-        </div>
-      )}
-
-      {isMatchPhase && (
-        <button
-          onClick={() => setShowLeaveConfirm(true)}
-          className="absolute top-3 left-3 z-40 flex items-center justify-center min-w-11 min-h-11 w-11 h-11 rounded-full transition-all active:scale-90"
-          style={{
-            background: "rgba(255,255,255,0.75)",
-            backdropFilter: "blur(8px)",
-            boxShadow: "0 2px 8px rgba(42,42,74,0.10)",
-            marginTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset, 0px))",
-          }}
-          aria-label="Match verlassen"
-        >
-          <svg
-            viewBox="0 0 24 24"
-            className="w-5 h-5"
-            fill="none"
-            stroke="var(--rp-text-secondary)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-            <polyline points="10 17 5 12 10 7" />
-            <line x1="5" y1="12" x2="15" y2="12" />
-          </svg>
-        </button>
-      )}
-
-      {showLeaveConfirm && (
-        <LeaveMatchDialog
-          onCancel={() => setShowLeaveConfirm(false)}
-          onConfirm={() => {
-            setShowLeaveConfirm(false);
-            void game.leaveRoom();
-          }}
-        />
-      )}
-
       {(() => {
         switch (game.phase) {
           case "home":
             return <HomeScreen />;
           case "lobby":
             return <LobbyScreen />;
+          case "vs_intro":
+            return <VsIntroScreen />;
           case "theme_pick":
             return <ThemePickScreen />;
           case "playing_loading":
@@ -182,7 +125,7 @@ export function Game() {
                 style={{ background: "var(--rp-bg-hero)" }}
               >
                 <div className="text-lg animate-pulse font-medium" style={{ color: "var(--rp-text-secondary)" }}>
-                  Spiel wird geladen…
+                  {t.game.playingLoading}
                 </div>
               </div>
             );
@@ -211,6 +154,70 @@ export function Game() {
             return <HomeScreen />;
         }
       })()}
+
+      {isMatchPhase && (
+        <button
+          onClick={() => setShowLeaveConfirm(true)}
+          className="absolute top-3 left-3 z-40 flex items-center justify-center min-w-11 min-h-11 w-11 h-11 rounded-full transition-all active:scale-90"
+          style={{
+            background: "rgba(255,255,255,0.75)",
+            backdropFilter: "blur(8px)",
+            boxShadow: "0 2px 8px rgba(42,42,74,0.10)",
+            marginTop: "calc(6px + var(--ps-notch-inset, 0px))",
+          }}
+          aria-label={t.game.leaveAria}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="w-5 h-5"
+            fill="none"
+            stroke="var(--rp-text-secondary)"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+            <polyline points="10 17 5 12 10 7" />
+            <line x1="5" y1="12" x2="15" y2="12" />
+          </svg>
+        </button>
+      )}
+
+      {game.disconnected && (
+        <div className="rp-shell-banner rounded-2xl bg-amber-500 px-5 py-3 text-center shadow-xl animate-fade-in">
+          <p className="font-bold text-white text-sm">{t.game.disconnectedTitle}</p>
+          <p className="text-white/90 text-xs mt-0.5">{t.game.disconnectedBody}</p>
+        </div>
+      )}
+
+      {game.error && (
+        <div
+          className="rp-shell-banner rounded-2xl bg-red-500 px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          role="alert"
+        >
+          {game.error}
+        </div>
+      )}
+
+      {game.notice && (
+        <div
+          className="rp-shell-banner rounded-2xl px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          style={{ background: "var(--rp-success)" }}
+          role="status"
+        >
+          {game.notice}
+        </div>
+      )}
+
+      {showLeaveConfirm && (
+        <LeaveMatchDialog
+          onCancel={() => setShowLeaveConfirm(false)}
+          onConfirm={() => {
+            setShowLeaveConfirm(false);
+            void game.leaveRoom();
+          }}
+        />
+      )}
     </div>
   );
 }

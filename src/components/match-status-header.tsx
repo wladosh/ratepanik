@@ -1,9 +1,11 @@
+"use client";
+
 import type { CSSProperties, ReactNode } from "react";
 import {
   modeEmoji,
-  modeLabelDe,
   type PlayableMode,
 } from "@/lib/game-store";
+import { useI18n } from "@/lib/i18n-context";
 import styles from "./match-play-foundation.module.css";
 
 type ModeStyle = CSSProperties & {
@@ -52,12 +54,24 @@ export function MatchStatusHeader({
   modeIcon,
   timer,
   trailing,
-  questionLabel = "Frage",
+  questionLabel,
   className,
 }: MatchStatusHeaderProps) {
+  const { t } = useI18n();
   const safeCurrent = Math.max(0, current);
   const safeTotal = Math.max(0, total);
-  const resolvedModeLabel = modeLabel ?? (mode ? modeLabelDe(mode) : "");
+  const resolvedQuestionLabel = questionLabel ?? t.lobby.blockLabel;
+  const resolvedModeLabel =
+    modeLabel ??
+    (mode === "number_guess"
+      ? t.lobby.modeGuess
+      : mode === "pick_correct"
+        ? t.lobby.modePick
+        : mode === "find_lie"
+          ? t.lobby.modeLie
+          : mode === "order_it"
+            ? t.lobby.modeOrder
+            : "");
   const resolvedModeIcon = modeIcon ?? (mode ? modeEmoji(mode) : null);
 
   return (
@@ -67,9 +81,9 @@ export function MatchStatusHeader({
       <div className={styles.statusLeading}>
         <span
           className={styles.statusPill}
-          aria-label={`${questionLabel} ${safeCurrent} von ${safeTotal}`}
+          aria-label={`${resolvedQuestionLabel} ${safeCurrent} ${t.lobby.of} ${safeTotal}`}
         >
-          <span aria-hidden="true">{questionLabel} </span>
+          <span aria-hidden="true">{resolvedQuestionLabel} </span>
           <span className={styles.statusCurrent} aria-hidden="true">
             {safeCurrent}
           </span>
