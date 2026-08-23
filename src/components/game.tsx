@@ -92,21 +92,24 @@ export function Game() {
   return (
     <div className="relative flex flex-1 flex-col">
       {game.disconnected && (
-        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-amber-500 px-5 py-3 text-center shadow-xl animate-fade-in">
+        <div className="absolute top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-amber-500 px-5 py-3 text-center shadow-xl animate-fade-in">
           <p className="font-bold text-white text-sm">Verbindung verloren.</p>
           <p className="text-white/90 text-xs mt-0.5">Verbindung wird wiederhergestellt…</p>
         </div>
       )}
 
       {game.error && (
-        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-red-500 px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in">
+        <div
+          className="absolute top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-red-500 px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          role="alert"
+        >
           {game.error}
         </div>
       )}
 
       {game.notice && (
         <div
-          className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          className="absolute top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
           style={{ background: "var(--rp-success)" }}
           role="status"
         >

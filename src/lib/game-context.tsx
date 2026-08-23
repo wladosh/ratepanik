@@ -1435,7 +1435,14 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       })
       .eq("id", room.id);
     if (err) {
-      setError(err.message);
+      const m = err.message;
+      if (/only_host_can_change_settings/i.test(m)) {
+        setError("Nur der Host darf an den Schrauben drehen.");
+      } else if (/settings_locked_after_start/i.test(m)) {
+        setError("Zu spät — die Runde läuft schon.");
+      } else {
+        setError("Einstellungen nicht gespeichert. Nochmal tippen?");
+      }
       return;
     }
     setRoom({ ...room, settings: next, total_blocks: next.blocks });
