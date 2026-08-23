@@ -21,8 +21,10 @@ interface AuthContextValue {
   profile: Profile | null;
   profileLoading: boolean;
   needsUsername: boolean;
+  needsAvatarOnboarding: boolean;
   signOut: () => Promise<void>;
   refetchProfile: () => Promise<void>;
+  markAvatarOnboardingDone: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [avatarOnboardingDismissed, setAvatarOnboardingDismissed] = useState(false);
   const supabase = createBrowserSupabase();
 
   const fetchProfile = useCallback(
@@ -51,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const { data } = await supabase
         .from("profiles")
-        .select("id, username, xp, level, hirncoins, avatar_id, created_at, updated_at")
+        .select("id, username, xp, level, hirncoins, avatar_id, avatar_onboarding_done, created_at, updated_at")
         .eq("id", userId)
         .single();
 
@@ -94,6 +97,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const canHost = isAuthenticated && !isGuest;
   const needsUsername = !profileLoading && !!user && !isGuest && !profile;
 
+  const needsAvatarOnboarding =
+    !profileLoading &&
+    !!user &&
+    !isGuest &&
+    !!profile &&
+    !profile.avatar_onboarding_done &&
+    !avatarOnboardingDismissed &&
+    (typeof window === "undefined" ||
+      !localStorage.getItem(`rp_avatar_onboarding_${user.id}`));
+
+  const markAvatarOnboardingDone = useCallback(() => {
+    setAvatarOnboardingDismissed(true);
+  }, []);
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -111,8 +128,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         profileLoading,
         needsUsername,
+        needsAvatarOnboarding,
         signOut,
         refetchProfile: fetchProfile,
+        markAvatarOnboardingDone,
       }}
     >
       {children}

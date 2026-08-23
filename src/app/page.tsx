@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { LandingScreen } from "@/components/landing-screen";
 import { SetUsernameScreen } from "@/components/set-username-screen";
+import { AvatarOnboardingScreen } from "@/components/avatar-onboarding-screen";
 import { GameProvider } from "@/lib/game-context";
 import { Game } from "@/components/game";
 import { useProfile } from "@/lib/use-profile";
@@ -19,7 +20,7 @@ function hasActiveGameSession(): boolean {
 }
 
 function HomeContent() {
-  const { user, isAuthenticated, isGuest, loading, needsUsername, refetchProfile } = useAuth();
+  const { user, isAuthenticated, isGuest, loading, needsUsername, needsAvatarOnboarding, refetchProfile, markAvatarOnboardingDone } = useAuth();
   const { claimUsername, checkUsername } = useProfile(user);
   const searchParams = useSearchParams();
   const joinCode = searchParams.get("join") ?? undefined;
@@ -74,6 +75,18 @@ function HomeContent() {
         claimUsername={claimUsername}
         checkUsername={checkUsername}
         defaultName={defaultName}
+      />
+    );
+  }
+
+  if (needsAvatarOnboarding && user) {
+    return (
+      <AvatarOnboardingScreen
+        userId={user.id}
+        onDone={async () => {
+          markAvatarOnboardingDone();
+          await refetchProfile();
+        }}
       />
     );
   }
