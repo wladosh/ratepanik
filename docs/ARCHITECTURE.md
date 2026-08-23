@@ -244,14 +244,13 @@ themes (8 seeded rows)
 - Results without Q&A spoilers
 - Content schema (themes seeded, prompts empty for Fragemeister)
 
-**Schema allows but NOT built (Phase C):**
-- Lootboxen (on hold)
-- Additional modes (`find_lie`, `order_it` — schema supports them)
+**Schema allows but NOT built:**
+- Additional box tiers / pity / match-end box drops
 
 **Built after Phase A:**
 - XP / Level / Hirncoins / Achievements (Phase B)
 - Freunde: request/accept via username or friend_code, last-seen presence, invite by copying `/?join=CODE` (no chat)
-- Shop: static avatar catalog (`default_01`–`06`), `user_cosmetics` ownership, `purchase_avatar` / `equip_avatar` (equip owned only)
+- Shop: Schleimi lootbox (`lootbox_basic`), `cosmetic_items` catalog, `user_cosmetics` ownership, `user_loadout` slots, `open_lootbox` / `equip_slot` (RPC-only economy)
 
 ---
 

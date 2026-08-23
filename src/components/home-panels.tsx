@@ -15,9 +15,16 @@ import { useMatchStats } from "@/lib/use-match-stats";
 import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
 import { FriendsPanel } from "@/components/friends-panel";
 import { ShopPanel } from "@/components/shop-panel";
+import { SchleimiCustomizePanel } from "@/components/schleimi-customize-panel";
 import { SettingsPanel } from "@/components/settings-panel";
 
-export type HomePanelId = "friends" | "stats" | "achievements" | "shop" | "settings";
+export type HomePanelId =
+  | "friends"
+  | "stats"
+  | "achievements"
+  | "shop"
+  | "customize"
+  | "settings";
 
 function StatsPanel({ onBack }: { onBack: () => void }) {
   const { t } = useI18n();
@@ -193,9 +200,11 @@ function AchievementsPanel({ onBack }: { onBack: () => void }) {
 export function HomePanel({
   id,
   onBack,
+  onNavigate,
 }: {
   id: HomePanelId;
   onBack: () => void;
+  onNavigate: (panel: HomePanelId) => void;
 }) {
   switch (id) {
     case "friends":
@@ -205,7 +214,11 @@ export function HomePanel({
     case "achievements":
       return <AchievementsPanel onBack={onBack} />;
     case "shop":
-      return <ShopPanel onBack={onBack} />;
+      return (
+        <ShopPanel onBack={onBack} onCustomize={() => onNavigate("customize")} />
+      );
+    case "customize":
+      return <SchleimiCustomizePanel onBack={onBack} />;
     case "settings":
       return <SettingsPanel onBack={onBack} />;
   }
