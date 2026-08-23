@@ -4,35 +4,42 @@ import { useState } from "react";
 import { QUESTION_TIMER_MS } from "@/lib/game-store";
 
 interface QuestionTimerBarProps {
-  startedAt: string;
+  /** Server-driven deadline (epoch ms) — identical for every client. */
+  deadlineMs: number;
   durationMs?: number;
 }
 
 /**
- * Countdown bar synced to a server-side timestamp.
+ * Countdown bar synced to a shared server-driven deadline.
  *
- * The CSS animation is offset by a negative `animationDelay` equal to the
- * already-elapsed time so that late-joining clients see the correct position.
+ * Every client computes the same `deadlineMs` from the DB-synced
+ * `match_blocks.started_at` + `QUESTION_TIMER_MS`, so the bar position
+ * is consistent across the room — no independent local clocks.
+ *
+ * The CSS animation uses a negative `animationDelay` equal to already-elapsed
+ * time so late-joining clients see the correct fill width instantly.
  * Remount via `key` when the round/block changes to reset.
  */
 export function QuestionTimerBar({
-  startedAt,
+  deadlineMs,
   durationMs = QUESTION_TIMER_MS,
 }: QuestionTimerBarProps) {
-  // Capture elapsed once on mount (stable across re-renders).
+  // Capture remaining time once on mount — stable across re-renders.
   // Parent should change `key` when the round resets.
-  const [initialElapsed] = useState(
-    () => Math.max(0, Date.now() - new Date(startedAt).getTime()),
+  const [initialRemaining] = useState(() =>
+    Math.max(0, deadlineMs - Date.now()),
   );
 
-  if (initialElapsed >= durationMs) return null;
+  if (initialRemaining <= 0) return null;
+
+  const elapsed = durationMs - initialRemaining;
 
   return (
     <div
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={durationMs}
-      aria-valuenow={Math.max(0, durationMs - initialElapsed)}
+      aria-valuenow={Math.round(initialRemaining)}
       aria-label="Verbleibende Zeit"
       style={{
         width: "100%",
@@ -51,7 +58,7 @@ export function QuestionTimerBar({
           background: "var(--rp-peach)",
           transformOrigin: "left center",
           animation: `rp-timer-shrink ${durationMs}ms linear forwards`,
-          animationDelay: `-${initialElapsed}ms`,
+          animationDelay: `-${elapsed}ms`,
           willChange: "transform",
         }}
       />

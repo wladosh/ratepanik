@@ -105,7 +105,7 @@ export function NumberGuessScreen() {
             background: "var(--rp-bg-elevated)",
             borderRadius: "var(--rp-radius-lg)",
             boxShadow: "var(--rp-shadow-card)",
-            marginBottom: (!hasAnswered && !submitted && game.currentBlock?.started_at) ? 0 : 20,
+            marginBottom: (!hasAnswered && !submitted && game.questionDeadlineMs != null) ? 0 : 20,
           }}
         >
           <h2
@@ -127,10 +127,10 @@ export function NumberGuessScreen() {
         </div>
 
         {/* Countdown bar — hidden once submitted / answered */}
-        {!hasAnswered && !submitted && game.currentBlock?.started_at && (
+        {!hasAnswered && !submitted && game.questionDeadlineMs != null && (
           <QuestionTimerBar
-            key={`${game.currentBlock.id}:${game.currentBlock.current_round}`}
-            startedAt={game.currentBlock.started_at}
+            key={`${game.currentBlock!.id}:${game.currentBlock!.current_round}`}
+            deadlineMs={game.questionDeadlineMs}
             durationMs={QUESTION_TIMER_MS}
           />
         )}

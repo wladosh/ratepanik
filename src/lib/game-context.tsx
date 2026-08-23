@@ -83,6 +83,9 @@ interface GameContextValue {
   themePickerPlayerId: string | null;
   isThemePicker: boolean;
 
+  // Question timer — shared deadline derived from server timestamp
+  questionDeadlineMs: number | null;
+
   // Actions
   createRoom: (hostName: string, hostUserId: string) => Promise<void>;
   joinRoom: (code: string, displayName: string) => Promise<string | null>;
@@ -242,6 +245,18 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
     return "playing_loading";
   }, [room, currentBlock, roundAnswers, players.length, myPlayerId, correctTurnsCount, restoring]);
+
+  // Canonical shared deadline — every client computes the same value from the
+  // same DB-synced started_at timestamp.  No independent local clocks.
+  const questionDeadlineMs = useMemo(() => {
+    if (!currentBlock?.started_at) return null;
+    const isQuestionPhase =
+      phase === "number_guess" ||
+      phase === "number_guess_waiting" ||
+      phase === "pick_correct";
+    if (!isQuestionPhase) return null;
+    return new Date(currentBlock.started_at).getTime() + QUESTION_TIMER_MS;
+  }, [currentBlock?.started_at, phase]);
 
   const getAvatar = useCallback(
     (playerId: string) => {
@@ -1359,6 +1374,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     isMyTurn,
     themePickerPlayerId,
     isThemePicker,
+    questionDeadlineMs,
     createRoom,
     joinRoom,
     leaveRoom,

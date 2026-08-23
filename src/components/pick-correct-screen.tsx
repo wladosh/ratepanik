@@ -124,7 +124,7 @@ export function PickCorrectScreen() {
             background: "var(--rp-bg-elevated)",
             borderRadius: "var(--rp-radius-lg)",
             boxShadow: "var(--rp-shadow-card)",
-            marginBottom: game.currentBlock?.started_at ? 0 : 16,
+            marginBottom: game.questionDeadlineMs != null ? 0 : 16,
           }}
         >
           <h2
@@ -136,10 +136,10 @@ export function PickCorrectScreen() {
         </div>
 
         {/* Countdown bar — visible for the entire pick_correct round */}
-        {game.currentBlock?.started_at && (
+        {game.questionDeadlineMs != null && (
           <QuestionTimerBar
-            key={game.currentBlock.id}
-            startedAt={game.currentBlock.started_at}
+            key={game.currentBlock!.id}
+            deadlineMs={game.questionDeadlineMs}
             durationMs={QUESTION_TIMER_MS}
           />
         )}
