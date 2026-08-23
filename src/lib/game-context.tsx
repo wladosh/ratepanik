@@ -592,6 +592,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
       saveSession(roomData.id, playerData.id);
       subscribeToRoom(roomData.id);
+
+      // first_room achievement — fire-and-forget, validated server-side
+      void supabase.rpc("try_unlock_achievement", {
+        p_achievement_id: "first_room",
+      });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Fehler beim Erstellen des Raums";
       setError(msg);
