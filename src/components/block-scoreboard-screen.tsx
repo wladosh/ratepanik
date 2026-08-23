@@ -1,6 +1,7 @@
 "use client";
 
 import { useGame } from "@/lib/game-context";
+import { modeEmoji, modeLabelDe } from "@/lib/game-store";
 
 export function BlockScoreboardScreen() {
   const game = useGame();
@@ -10,12 +11,7 @@ export function BlockScoreboardScreen() {
 
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
 
-  const modeLabel =
-    game.currentBlock?.mode === "number_guess"
-      ? "Zahlenraten"
-      : game.currentBlock?.mode === "pick_correct"
-        ? "Passendes wählen"
-        : "";
+  const modeLabel = modeLabelDe(game.currentBlock?.mode);
 
   return (
     <div
@@ -36,7 +32,7 @@ export function BlockScoreboardScreen() {
           Nach Block {blockNum} von {totalBlocks}
         </p>
         <p className="mb-6 text-center text-xs" style={{ color: "var(--rp-text-secondary)" }}>
-          {game.currentBlock?.mode === "number_guess" ? "\u{1F522}" : "\u{1F0CF}"} {modeLabel}
+          {modeEmoji(game.currentBlock?.mode)} {modeLabel}
         </p>
 
         {/* Podium for top 3 */}

@@ -1,8 +1,13 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useGame } from "@/lib/game-context";
 import { AVATAR_POOL } from "@/lib/rp-assets";
+import { LobbySettingsPanel } from "@/components/lobby-settings";
+import { startBlockedReason } from "@/lib/room-settings";
+import { generateBlockModes } from "@/lib/game-store";
+import { emptyPromptPoolReason } from "@/lib/content";
+import { copyJoinLink } from "@/lib/join-link";
 
 function getAvatarSrc(index: number) {
   return AVATAR_POOL[index % AVATAR_POOL.length];
@@ -44,6 +49,7 @@ function PeopleIcon({ className, style }: { className?: string; style?: React.CS
 
 export function LobbyScreen() {
   const game = useGame();
+  const [copied, setCopied] = useState(false);
 
   const playersSorted = [...game.players].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -56,10 +62,34 @@ export function LobbyScreen() {
 
   const handleCopy = useCallback(() => {
     if (!game.room?.code) return;
-    navigator.clipboard.writeText(game.room.code).catch(() => {});
+    void copyJoinLink(game.room.code).then((ok) => {
+      if (!ok) return;
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
   }, [game.room?.code]);
 
-  const canStart = game.players.length >= 2;
+  const [poolEmpty, setPoolEmpty] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const modes = generateBlockModes(
+      game.roomSettings.blocks,
+      game.roomSettings.modeFilter,
+    );
+    void emptyPromptPoolReason(game.roomSettings, modes).then((reason) => {
+      if (!cancelled) setPoolEmpty(reason);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [game.roomSettings]);
+
+  const canStart =
+    game.players.length >= 2 &&
+    game.players.length <= game.roomSettings.maxPlayers &&
+    !startBlockedReason(game.roomSettings) &&
+    !poolEmpty;
 
   return (
     <div
@@ -80,7 +110,15 @@ export function LobbyScreen() {
         <div className="absolute top-[12%] left-[60%] w-1 h-3 rounded-full opacity-30 -rotate-12" style={{ background: "var(--rp-mint)" }} />
       </div>
 
-      <div className="relative z-10 flex-1 flex flex-col px-5 pb-6">
+      <div className="relative z-10 flex-1 flex flex-col min-h-0 px-5 pb-6">
+        {copied && (
+          <div
+            className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+            style={{ background: "var(--rp-purple)" }}
+          >
+            Link kopiert
+          </div>
+        )}
         {/* Back button */}
         <button
           onClick={() => void game.leaveRoom()}
@@ -114,7 +152,7 @@ export function LobbyScreen() {
               }}
             >
               <CopyIcon className="w-3.5 h-3.5" />
-              Kopieren
+              {copied ? "Kopiert" : "Link kopieren"}
             </button>
           </div>
 
@@ -131,7 +169,7 @@ export function LobbyScreen() {
         </div>
 
         {/* Player list */}
-        <div className="flex-1 space-y-2.5 mb-4">
+        <div className="space-y-2.5 mb-3">
           {playersSorted.map((player, i) => (
             <div
               key={player.id}
@@ -174,6 +212,15 @@ export function LobbyScreen() {
           ))}
         </div>
 
+        <div className="flex-1 overflow-y-auto -mx-1 px-1 min-h-0">
+          <LobbySettingsPanel
+            settings={game.roomSettings}
+            isHost={game.isHost}
+            occupiedSeats={game.players.length}
+            onChange={(patch) => void game.updateRoomSettings(patch)}
+          />
+        </div>
+
         {/* Micro hint */}
         <div className="flex items-center gap-2.5 mb-4 px-1">
           <PeopleIcon className="w-6 h-6 shrink-0" style={{ color: "var(--rp-purple-soft)" }} />
@@ -186,7 +233,9 @@ export function LobbyScreen() {
                   : `${game.players.length} Spieler bereit!`}
             </p>
             <p className="text-xs" style={{ color: "var(--rp-text-secondary)" }}>
-              2–4 Spieler pro Runde
+              {game.roomSettings.maxPlayers === 2
+                ? "2 Spieler, mehr Drama pro Kopf."
+                : `2–${game.roomSettings.maxPlayers} Spieler pro Runde`}
             </p>
           </div>
         </div>

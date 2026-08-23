@@ -40,6 +40,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (user.is_anonymous) {
+    return NextResponse.json(
+      { ok: false, error: "Als Gast nicht möglich" },
+      { status: 403 }
+    );
+  }
+
   const { data, error } = await supabase.rpc("claim_username", {
     desired_username: trimmed,
   });

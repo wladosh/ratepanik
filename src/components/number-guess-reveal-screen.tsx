@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
 import type { NumberGuessPayload } from "@/lib/content";
-import { calculateNumberGuessPoints } from "@/lib/game-store";
+import { calculateNumberGuessPoints, numberGuessScoringPool } from "@/lib/game-store";
 
 const RANK_MEDALS = ["\u{1F947}", "\u{1F948}", "\u{1F949}", "4."];
 
@@ -26,7 +26,10 @@ export function NumberGuessRevealScreen() {
       .map((a, i) => ({
         ...a,
         rank: i + 1,
-        points: calculateNumberGuessPoints(i + 1, game.roundAnswers.length),
+        points: calculateNumberGuessPoints(
+          i + 1,
+          numberGuessScoringPool(game.players.length, game.roundAnswers.length),
+        ),
       }));
   }, [game.roundAnswers, game.players, correctAnswer]);
 
@@ -114,7 +117,8 @@ export function NumberGuessRevealScreen() {
         {game.isHost ? (
           <button
             onClick={() => void game.advanceFromReveal()}
-            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97]"
+            disabled={game.hostActionLock}
+            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-60"
             style={{
               background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
               boxShadow: "0 6px 20px rgba(255, 138, 113, 0.35)",

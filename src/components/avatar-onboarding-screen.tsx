@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { AVATAR_IDS, avatarSrc, type AvatarId } from "@/lib/rp-assets";
+import { AVATAR_IDS, type AvatarId } from "@/lib/rp-assets";
 import { createBrowserSupabase } from "@/lib/supabase/client";
+import { AvatarTile } from "@/components/avatar-tile";
 
 interface AvatarOnboardingScreenProps {
   userId: string;
@@ -25,9 +26,8 @@ export function AvatarOnboardingScreen({
       setSaveState("saving");
       try {
         const supabase = createBrowserSupabase();
-        const { data, error } = await supabase.rpc("update_own_profile", {
-          new_avatar_id: avatarId,
-          new_avatar_onboarding_done: true,
+        const { data, error } = await supabase.rpc("grant_onboarding_avatar", {
+          item_id: avatarId,
         });
 
         if (error) throw error;
@@ -102,84 +102,18 @@ export function AvatarOnboardingScreen({
             transition: "opacity 200ms ease",
           }}
         >
-          {AVATAR_IDS.map((id) => {
-            const isSelected = selected === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                aria-label={`Avatar ${id}`}
-                aria-pressed={isSelected}
-                onClick={() => { setSaveState("idle"); setSelected(id); }}
-                className="relative mx-auto flex items-center justify-center"
-                style={{
-                  width: 88,
-                  height: 88,
-                  borderRadius: "50%",
-                  padding: 3,
-                  background: isSelected
-                    ? "var(--rp-purple)"
-                    : "transparent",
-                  transition: "background 200ms ease, transform 150ms ease",
-                  transform: isSelected ? "scale(1.05)" : "scale(1)",
-                }}
-              >
-                {/* Inner circle with avatar image */}
-                <div
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    borderRadius: "50%",
-                    overflow: "hidden",
-                    background: avatarBg(id),
-                    border: isSelected
-                      ? "2px solid #fff"
-                      : "2px solid transparent",
-                  }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={avatarSrc(id, 256)}
-                    alt={`Avatar ${id}`}
-                    width={128}
-                    height={128}
-                    className="w-full h-full object-cover"
-                    draggable={false}
-                  />
-                </div>
-
-                {/* Checkmark badge */}
-                {isSelected && (
-                  <span
-                    className="absolute flex items-center justify-center"
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: "50%",
-                      background: "var(--rp-purple)",
-                      border: "2px solid #fff",
-                      bottom: 2,
-                      right: 2,
-                    }}
-                    aria-hidden="true"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width={12}
-                      height={12}
-                      fill="none"
-                      stroke="#fff"
-                      strokeWidth={3.5}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </span>
-                )}
-              </button>
-            );
-          })}
+          {AVATAR_IDS.map((id) => (
+            <AvatarTile
+              key={id}
+              id={id}
+              state={selected === id ? "selected" : "owned"}
+              disabled={saving}
+              onClick={() => {
+                setSaveState("idle");
+                setSelected(id);
+              }}
+            />
+          ))}
         </div>
 
         {/* Error message */}
@@ -234,16 +168,4 @@ export function AvatarOnboardingScreen({
       </div>
     </div>
   );
-}
-
-function avatarBg(id: AvatarId): string {
-  const bgs: Record<AvatarId, string> = {
-    default_01: "#FFF0E8",
-    default_02: "#EDE6FF",
-    default_03: "#FFE8F0",
-    default_04: "#E8F5E8",
-    default_05: "#FFF5E8",
-    default_06: "#E0EEFF",
-  };
-  return bgs[id];
 }
