@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useGame } from "@/lib/game-context";
 import { AVATAR_POOL } from "@/lib/rp-assets";
+import { copyJoinLink } from "@/lib/join-link";
 
 function getAvatarSrc(index: number) {
   return AVATAR_POOL[index % AVATAR_POOL.length];
@@ -44,6 +45,7 @@ function PeopleIcon({ className, style }: { className?: string; style?: React.CS
 
 export function LobbyScreen() {
   const game = useGame();
+  const [copied, setCopied] = useState(false);
 
   const playersSorted = [...game.players].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -56,7 +58,11 @@ export function LobbyScreen() {
 
   const handleCopy = useCallback(() => {
     if (!game.room?.code) return;
-    navigator.clipboard.writeText(game.room.code).catch(() => {});
+    void copyJoinLink(game.room.code).then((ok) => {
+      if (!ok) return;
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    });
   }, [game.room?.code]);
 
   const canStart = game.players.length >= 2;
@@ -81,6 +87,14 @@ export function LobbyScreen() {
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col px-5 pb-6">
+        {copied && (
+          <div
+            className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+            style={{ background: "var(--rp-purple)" }}
+          >
+            Link kopiert
+          </div>
+        )}
         {/* Back button */}
         <button
           onClick={() => void game.leaveRoom()}
@@ -114,7 +128,7 @@ export function LobbyScreen() {
               }}
             >
               <CopyIcon className="w-3.5 h-3.5" />
-              Kopieren
+              {copied ? "Kopiert" : "Link kopieren"}
             </button>
           </div>
 

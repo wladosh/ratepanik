@@ -6,7 +6,7 @@
 > Owner: Wladislaw · Koordination: Stabschef · Umsetzung: Dev · Content: Fragemeister · UI: UX
 
 **Stand:** 2026-08-23  
-**Status:** Phase B GO — Progression-Schema angelegt; UI + Grant-Logik folgen in nächsten PRs.
+**Status:** Phase B — Progression live; Freunde-MVP (Liste, Last-seen, Join-Link) folgt dem Home-Panel.
 
 ---
 
@@ -89,7 +89,7 @@ Beispiele: exakter Zahlenraten-Treffer; erster Match-Sieg; 3 Matches mit Freunde
 ---
 
 ## 6. Freunde & Social
-Freunde hinzufügen; Lobby per Raumcode (MVP); später Freundes-Invites.
+Registrierte Spieler:innen können Freund:innen per **Username** oder **Freundecode** anfragen (Annehmen/Ablehnen). Die Liste zeigt Online (Last-seen < 2 Min.) oder zuletzt gesehen. **Einladen** erstellt eine Lobby und kopiert `/?join=CODE` (kein Chat, keine Push-Invites). Gäste sehen nur den Login-Hinweis.
 
 ---
 
@@ -131,7 +131,7 @@ Next.js App Router; Supabase rooms/players/answers + Realtime (PR #2). Auth/Prog
 ## 12. MVP-Phasen
 **A Core:** Auth, Host-Regel, Lobby 2–4, Engine Zahlenraten+Passendes wählen, Ergebnis, Themenwahl, Content-Seed.
 **B Progression:** XP/Level, Hirncoins, Achievements live, Avatar starter.
-**C Collect/Social:** Lootboxen, Cosmetics, Freunde, mehr Modi.
+**C Collect:** Lootboxen, Cosmetics, mehr Modi.
 
 ---
 

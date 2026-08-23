@@ -98,6 +98,25 @@ export interface DbProfile {
   avatar_id: string;
   avatar_onboarding_done: boolean;
   current_streak?: number;
+  friend_code?: string;
+  last_seen_at?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbFriendProfile {
+  id: string;
+  username: string;
+  avatar_id: string;
+  last_seen_at: string | null;
+  friend_code: string;
+}
+
+export interface DbFriendship {
+  id: string;
+  requester_id: string;
+  addressee_id: string;
+  status: "pending" | "accepted";
   created_at: string;
   updated_at: string;
 }

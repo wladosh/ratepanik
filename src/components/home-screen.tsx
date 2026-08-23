@@ -8,6 +8,7 @@ import { generateGuestName } from "@/lib/guest-name";
 import { xpProgressInLevel } from "@/lib/progression";
 import { avatarSrc, HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
 import { HomePanel, type HomePanelId } from "@/components/home-panels";
+import { createBrowserSupabase } from "@/lib/supabase/client";
 
 function GearIcon({ className }: { className?: string }) {
   return (
@@ -50,6 +51,26 @@ export function HomeScreen() {
   const [joinError, setJoinError] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [panel, setPanel] = useState<HomePanelId | null>(null);
+  const [friendCount, setFriendCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user || isGuest) {
+      setFriendCount(null);
+      return;
+    }
+    const supabase = createBrowserSupabase();
+    let cancelled = false;
+    void supabase
+      .from("friendships")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "accepted")
+      .then(({ count }) => {
+        if (!cancelled) setFriendCount(count ?? 0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, isGuest]);
 
   const xpProgress = useMemo(() => {
     if (!profile) return null;
@@ -413,7 +434,17 @@ export function HomeScreen() {
             </div>
             <div className="text-left">
               <span className="text-sm font-bold text-[var(--rp-text)]">Freunde</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Bald</p>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">
+                {isGuest
+                  ? "Anmelden"
+                  : friendCount === null
+                    ? "…"
+                    : friendCount === 0
+                      ? "Hinzufügen"
+                      : friendCount === 1
+                        ? "1 Freund"
+                        : `${friendCount} Freunde`}
+              </p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M9 5l7 7-7 7" />

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useGame, type GamePhase } from "@/lib/game-context";
 import { useAchievementUnlockWatcher } from "@/lib/use-achievement-unlock";
+import { usePresenceHeartbeat } from "@/lib/use-presence-heartbeat";
 import { HomeScreen } from "./home-screen";
 import { LobbyScreen } from "./lobby-screen";
 import { ThemePickScreen } from "./theme-pick-screen";
@@ -86,6 +87,7 @@ export function Game() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   useAchievementUnlockWatcher(game.phase);
+  usePresenceHeartbeat();
 
   const isMatchPhase = MATCH_PHASES.includes(game.phase);
 

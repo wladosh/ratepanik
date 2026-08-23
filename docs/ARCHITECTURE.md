@@ -244,12 +244,13 @@ themes (8 seeded rows)
 - Results without Q&A spoilers
 - Content schema (themes seeded, prompts empty for Fragemeister)
 
-**Schema allows but NOT built (Phase B/C):**
-- XP / Level / Währung (columns can be added later)
-- Achievements (e.g. exact-hit badge — `distance` column is ready)
-- Lootboxen / Cosmetics / Avatar
-- Freunde / Social
+**Schema allows but NOT built (Phase C):**
+- Lootboxen / Cosmetics shop
 - Additional modes (`find_lie`, `order_it` — schema supports them)
+
+**Built after Phase A:**
+- XP / Level / Hirncoins / Achievements (Phase B)
+- Freunde: request/accept via username or friend_code, last-seen presence, invite by copying `/?join=CODE` (no chat)
 
 ---
 

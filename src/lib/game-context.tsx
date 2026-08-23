@@ -91,7 +91,7 @@ interface GameContextValue {
   questionDeadlineMs: number | null;
 
   // Actions
-  createRoom: (hostName: string, hostUserId: string) => Promise<void>;
+  createRoom: (hostName: string, hostUserId: string) => Promise<string | null>;
   joinRoom: (code: string, displayName: string) => Promise<string | null>;
   leaveRoom: () => Promise<void>;
   startGame: () => Promise<void>;
@@ -790,7 +790,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   // --- actions ---
 
-  const createRoom = async (hostName: string, hostUserId: string) => {
+  const createRoom = async (hostName: string, hostUserId: string): Promise<string | null> => {
     setLoading(true);
     setError(null);
     try {
@@ -835,9 +835,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       subscribeToRoom(roomData.id);
 
       void tryUnlock("first_room");
+      return roomData.code as string;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Fehler beim Erstellen des Raums";
       setError(msg);
+      return null;
     } finally {
       setLoading(false);
     }
