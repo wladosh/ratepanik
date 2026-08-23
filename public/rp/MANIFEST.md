@@ -162,3 +162,4 @@ to 256 CSS pixels.
 - Loot box rarity: common (cream), uncommon (green), rare (blue), epic (purple), legendary (gold).
 - Images served via Next.js `public/` directory at path `/rp/<filename>`.
 - `_128@2x` and `_256` are identical 256px renders (convenience aliases).
+- Schleimi mascot pack (base, one lootbox SKU, 44 slot cosmetics): see [`schleimi/MANIFEST.json`](schleimi/MANIFEST.json).
