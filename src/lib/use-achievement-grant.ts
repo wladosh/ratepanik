@@ -3,6 +3,7 @@
 import { useRef, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { createBrowserSupabase } from "@/lib/supabase/client";
+import { parseDailyPlayRpc } from "@/lib/daily-play-streak";
 import type { AchievementId } from "@/lib/rp-assets";
 
 /**
@@ -11,7 +12,7 @@ import type { AchievementId } from "@/lib/rp-assets";
  * Guests are rejected by the RPC (no-op here for safety too).
  */
 export function useAchievementGrant() {
-  const { user, isGuest } = useAuth();
+  const { user, isGuest, refetchProfile } = useAuth();
   const inflight = useRef<Set<string>>(new Set());
 
   const tryUnlock = useCallback(
@@ -22,9 +23,12 @@ export function useAchievementGrant() {
 
       try {
         const supabase = createBrowserSupabase();
-        await supabase.rpc("try_unlock_achievement", {
+        const { error } = await supabase.rpc("try_unlock_achievement", {
           p_achievement_id: achievementId,
         });
+        if (error) {
+          console.warn(`Achievement unlock failed (${achievementId}):`, error.message);
+        }
       } catch (err) {
         console.warn(`Achievement unlock failed (${achievementId}):`, err);
       } finally {
@@ -39,14 +43,21 @@ export function useAchievementGrant() {
 
     try {
       const supabase = createBrowserSupabase();
-      const { data } = await supabase.rpc("record_daily_play");
-      if (data?.ok && data.streak >= 3) {
+      const { data, error } = await supabase.rpc("record_daily_play");
+      if (error) {
+        console.warn("record_daily_play failed:", error.message);
+        return;
+      }
+      const parsed = parseDailyPlayRpc(data);
+      const profileRow = await refetchProfile();
+      const streak = parsed.streak ?? profileRow?.current_streak ?? null;
+      if (parsed.ok && streak != null && streak >= 3) {
         await tryUnlock("streak_3");
       }
     } catch (err) {
       console.warn("record_daily_play failed:", err);
     }
-  }, [user, isGuest, tryUnlock]);
+  }, [user, isGuest, tryUnlock, refetchProfile]);
 
   return { tryUnlock, recordDailyPlay };
 }

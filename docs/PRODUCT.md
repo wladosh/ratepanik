@@ -61,6 +61,7 @@ Sichtbar / erreichbar:
 - Level (Start: **1**) + XP-Fortschritt
 - Avatar-Vorschau
 - Hirncoins-Stand
+- **Streak** — Kalendertage mit abgeschlossenem Match (`profiles.current_streak`, gleiche Logik wie Erfolg `streak_3`). Home zeigt die echte Zahl; **Bald**, wenn der Wert nicht gespeichert ist. Kein Fake-Flammen-Fortschritt.
 - **Spiel erstellen** / **Spiel beitreten**
 - Freunde
 - Lootbox-Shop / Inventar / Cosmetics anziehen
@@ -84,6 +85,7 @@ Verdienen: Match-Ende (Sieg > Platz 2 > …). Ausgeben: **Lootboxen**.
 
 ### 5.4 Achievements
 Beispiele: exakter Zahlenraten-Treffer; erster Match-Sieg; 3 Matches mit Freunden; Passendes-wählen ohne Fehler; Streak exakter Treffer.
+**Tages-Streak:** `record_daily_play()` zählt Kalendertage mit Match-Ende (`current_streak`). Erfolg `streak_3` bei ≥ 3 — nicht dasselbe wie `exact_streak_3` (Hellseher).
 **UX:** Badge sofort nach Trigger mit Animation; am Ende zusätzlich listen.
 
 ---

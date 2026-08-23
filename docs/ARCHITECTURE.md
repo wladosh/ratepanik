@@ -258,5 +258,6 @@ themes (8 seeded rows)
 - `mode` is stored as `text` (not Postgres enum) for forward compatibility
 - `prompts.payload` is `jsonb` — validated at application level per mode
 - Realtime uses Postgres Changes (not Broadcast) for consistency
+- Daily play streak: `profiles.current_streak` / `last_played_date`, written by `record_daily_play()` at match end. Home must not fake a 0 when the column is missing.
 - PR #2's `rooms`/`players`/`answers` tables are preserved; this migration only ADDs columns
 - No force-push to main; draft PR only

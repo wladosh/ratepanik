@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { ACHIEVEMENTS, type AchievementId } from "@/lib/rp-assets";
 import { xpProgressInLevel } from "@/lib/progression";
+import { dailyPlayStreakDays } from "@/lib/daily-play-streak";
 
 export type HomePanelId = "friends" | "stats" | "achievements" | "shop";
 
@@ -200,7 +201,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
   }
 
   const xp = xpProgressInLevel(profile.xp);
-  const streak = profile.current_streak ?? 0;
+  const streakDays = dailyPlayStreakDays(profile);
 
   const rows: { label: string; value: string }[] = [
     { label: "Level", value: String(xp.level) },
@@ -208,7 +209,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
     { label: "Hirncoins", value: String(profile.hirncoins) },
     { label: "Spiele beendet", value: games === null ? "…" : String(games) },
     { label: "Siege", value: wins === null ? "…" : String(wins) },
-    { label: "Tage-Streak", value: String(streak) },
+    { label: "Tage-Streak", value: streakDays === null ? "Bald" : String(streakDays) },
   ];
 
   return (

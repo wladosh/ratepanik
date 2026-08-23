@@ -82,8 +82,6 @@ export function FinalScreen() {
             updated_at: new Date().toISOString(),
           })
           .eq("id", userId);
-
-        await refetchProfile();
       } else {
         const { data: existingReward } = await supabase
           .from("match_rewards")
@@ -103,9 +101,11 @@ export function FinalScreen() {
     } catch (err) {
       console.error("Failed to grant match rewards:", err);
     } finally {
+      await recordDailyPlay();
+      await refetchProfile();
       setReady(true);
     }
-  }, [roomId, userId, placement, profileXp, profileLevel, profileHirncoins, myScore, playerCount, refetchProfile, supabase]);
+  }, [roomId, userId, placement, profileXp, profileLevel, profileHirncoins, myScore, playerCount, recordDailyPlay, refetchProfile, supabase]);
 
   useEffect(() => {
     if (grantedRef.current || !roomId || !userId || isGuest) return;
@@ -119,12 +119,11 @@ export function FinalScreen() {
     achievementsCheckedRef.current = true;
 
     (async () => {
-      await recordDailyPlay();
       if (placement === 1 && myScore > 0) {
         await tryUnlock("first_win");
       }
     })();
-  }, [roomId, userId, isGuest, placement, myScore, recordDailyPlay, tryUnlock]);
+  }, [roomId, userId, isGuest, placement, myScore, tryUnlock]);
 
   // Auto-advance from scoreboard to rewards after a brief pause
   useEffect(() => {

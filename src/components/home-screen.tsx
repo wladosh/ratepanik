@@ -8,6 +8,7 @@ import { generateGuestName } from "@/lib/guest-name";
 import { xpProgressInLevel } from "@/lib/progression";
 import { avatarSrc, HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
 import { HomePanel, type HomePanelId } from "@/components/home-panels";
+import { dailyPlayStreakCopy, dailyPlayStreakDays } from "@/lib/daily-play-streak";
 
 function GearIcon({ className }: { className?: string }) {
   return (
@@ -20,17 +21,56 @@ function GearIcon({ className }: { className?: string }) {
 
 const FALLBACK_AVATAR = "/rp/rp_avatar_default_01_128@2x.png";
 
+function StreakCard({
+  days,
+  loading,
+}: {
+  days: number | null;
+  loading: boolean;
+}) {
+  const label = loading ? "…" : days === null ? "Bald" : String(days);
+  const copy = loading
+    ? "Kalendertage in Folge gespielt."
+    : dailyPlayStreakCopy(days);
+
+  return (
+    <div
+      className="flex items-center gap-3 p-4 mb-4"
+      style={{
+        background: "var(--rp-bg-elevated)",
+        borderRadius: "var(--rp-radius-md)",
+        boxShadow: "var(--rp-shadow-card)",
+      }}
+    >
+      <span className="text-2xl" role="img" aria-label="Feuer">
+        🔥
+      </span>
+      <div className="flex-1">
+        <h4 className="text-sm font-bold text-[var(--rp-text)]">Streak</h4>
+        <p className="text-[10px] text-[var(--rp-text-secondary)]">{copy}</p>
+      </div>
+      <span
+        className={`min-w-9 h-9 px-1.5 flex items-center justify-center rounded-full font-bold ${
+          loading || days === null ? "text-xs" : "text-base"
+        }`}
+        style={{ background: "#FFF0F0", color: "var(--rp-danger)" }}
+      >
+        {label}
+      </span>
+    </div>
+  );
+}
+
 export function HomeScreen() {
   const game = useGame();
-  const { user, canHost, isGuest, signOut, loading: authLoading, profile, refetchProfile } = useAuth();
+  const { user, canHost, isGuest, signOut, loading: authLoading, profile, profileLoading, refetchProfile } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    if (user && !isGuest) {
-      refetchProfile();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!user || isGuest) return;
+    void refetchProfile();
+  }, [user, isGuest, refetchProfile]);
 
   const displayName =
     profile?.username ||
@@ -38,6 +78,7 @@ export function HomeScreen() {
     user?.user_metadata?.full_name ||
     user?.email?.split("@")[0] ||
     "Spieler";
+  const streakDays = dailyPlayStreakDays(profile);
 
   const initialJoinCode = useMemo(() => {
     const raw = searchParams.get("join");
@@ -487,32 +528,12 @@ export function HomeScreen() {
           </button>
         </div>
 
-        {/* ── Streak card ─────────────────────────── */}
+        {/* ── Streak card (calendar-day play streak, same as streak_3) ── */}
         {!isGuest && (
-          <div
-            className="flex items-center gap-3 p-4 mb-4"
-            style={{
-              background: "var(--rp-bg-elevated)",
-              borderRadius: "var(--rp-radius-md)",
-              boxShadow: "var(--rp-shadow-card)",
-            }}
-          >
-            <span className="text-2xl" role="img" aria-label="Feuer">🔥</span>
-            <div className="flex-1">
-              <h4 className="text-sm font-bold text-[var(--rp-text)]">Streak</h4>
-              <p className="text-[10px] text-[var(--rp-text-secondary)]">
-                {(profile?.current_streak ?? 0) >= 3
-                  ? "Kalendertage in Folge gespielt."
-                  : "Spiele an 3 Tagen in Folge für den Streak-Erfolg."}
-              </p>
-            </div>
-            <span
-              className="w-9 h-9 flex items-center justify-center rounded-full text-base font-bold"
-              style={{ background: "#FFF0F0", color: "var(--rp-danger)" }}
-            >
-              {profile?.current_streak ?? 0}
-            </span>
-          </div>
+          <StreakCard
+            days={streakDays}
+            loading={profileLoading && streakDays === null}
+          />
         )}
       </div>
 
