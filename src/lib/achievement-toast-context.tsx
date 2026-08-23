@@ -20,8 +20,17 @@ interface AchievementToastContextValue {
   enqueue: (achievementId: AchievementId) => void;
 }
 
+interface AchievementToastInternalState {
+  current: ToastItem | null;
+  visible: boolean;
+  dismiss: () => void;
+}
+
 const AchievementToastContext =
   createContext<AchievementToastContextValue | null>(null);
+
+const AchievementToastStateContext =
+  createContext<AchievementToastInternalState | null>(null);
 
 export function useAchievementToast(): AchievementToastContextValue {
   const ctx = useContext(AchievementToastContext);
@@ -109,45 +118,39 @@ export function AchievementToastProvider({ children }: { children: ReactNode }) 
     };
   }, []);
 
+  const state: AchievementToastInternalState = { current, visible, dismiss };
+
   return (
     <AchievementToastContext.Provider value={{ enqueue }}>
-      {children}
-      {current && (
-        <AchievementToastOverlay
-          achievementId={current.achievementId}
-          visible={visible}
-          onDismiss={dismiss}
-        />
-      )}
+      <AchievementToastStateContext.Provider value={state}>
+        {children}
+      </AchievementToastStateContext.Provider>
     </AchievementToastContext.Provider>
   );
 }
 
-interface AchievementToastOverlayProps {
-  achievementId: AchievementId;
-  visible: boolean;
-  onDismiss: () => void;
-}
+/**
+ * Renders the active achievement toast. Mount this inside the PhoneShell's
+ * .ps-screen container so the toast clips to the phone frame on desktop.
+ */
+export function AchievementToastSlot() {
+  const state = useContext(AchievementToastStateContext);
+  if (!state || !state.current) return null;
 
-function AchievementToastOverlay({
-  achievementId,
-  visible,
-  onDismiss,
-}: AchievementToastOverlayProps) {
-  const meta = ACHIEVEMENTS[achievementId];
+  const meta = ACHIEVEMENTS[state.current.achievementId];
   if (!meta) return null;
 
   return (
     <div
       className="achievement-toast-container"
       style={{
-        position: "fixed",
+        position: "absolute",
         top: 0,
         left: 0,
         right: 0,
         zIndex: 9999,
         pointerEvents: "none",
-        paddingTop: "max(env(safe-area-inset-top, 0px), 12px)",
+        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset, 12px))",
         paddingLeft: 12,
         paddingRight: 12,
       }}
@@ -166,11 +169,11 @@ function AchievementToastOverlay({
           padding: "12px 14px",
           boxShadow:
             "0 12px 40px rgba(42, 42, 74, 0.12), 0 4px 12px rgba(42, 42, 74, 0.06)",
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(-24px)",
+          opacity: state.visible ? 1 : 0,
+          transform: state.visible ? "translateY(0)" : "translateY(-24px)",
           transition: "opacity 280ms ease-out, transform 280ms ease-out",
         }}
-        onClick={onDismiss}
+        onClick={state.dismiss}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -215,7 +218,7 @@ function AchievementToastOverlay({
         <button
           onClick={(e) => {
             e.stopPropagation();
-            onDismiss();
+            state.dismiss();
           }}
           aria-label="Schließen"
           style={{

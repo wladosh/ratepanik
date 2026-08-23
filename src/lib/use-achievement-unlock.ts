@@ -27,6 +27,10 @@ const SAFE_PHASES: GamePhase[] = [
  * "Safe moments" per UX spec: phase transitions to home, lobby,
  * number_guess_reveal (Reveal), block_scoreboard, or final (Match-End).
  *
+ * Flush happens:
+ *  1. On phase change into a safe phase (primary)
+ *  2. Immediately after enqueue if already in a safe phase (prevents stuck pending)
+ *
  * streak_3 refers to the daily play streak — NOT exact_streak_3 (Hellseher).
  */
 export function useAchievementUnlockWatcher(currentPhase: GamePhase) {
@@ -35,6 +39,11 @@ export function useAchievementUnlockWatcher(currentPhase: GamePhase) {
   const knownUnlocked = useRef<Set<string>>(new Set());
   const pendingToasts = useRef<AchievementId[]>([]);
   const initialFetched = useRef(false);
+  const phaseRef = useRef(currentPhase);
+
+  useEffect(() => {
+    phaseRef.current = currentPhase;
+  });
 
   const flushPending = useCallback(() => {
     while (pendingToasts.current.length > 0) {
@@ -42,6 +51,16 @@ export function useAchievementUnlockWatcher(currentPhase: GamePhase) {
       enqueue(id);
     }
   }, [enqueue]);
+
+  const pushAndMaybeFlush = useCallback(
+    (achId: AchievementId) => {
+      pendingToasts.current.push(achId);
+      if (SAFE_PHASES.includes(phaseRef.current)) {
+        flushPending();
+      }
+    },
+    [flushPending]
+  );
 
   useEffect(() => {
     if (!user || isGuest) return;
@@ -61,7 +80,7 @@ export function useAchievementUnlockWatcher(currentPhase: GamePhase) {
       if (initialFetched.current) {
         for (const achId of SUPPORTED_ACHIEVEMENTS) {
           if (currentIds.has(achId) && !knownUnlocked.current.has(achId)) {
-            pendingToasts.current.push(achId);
+            pushAndMaybeFlush(achId);
           }
         }
       }
@@ -89,7 +108,7 @@ export function useAchievementUnlockWatcher(currentPhase: GamePhase) {
             !knownUnlocked.current.has(achId)
           ) {
             knownUnlocked.current.add(achId);
-            pendingToasts.current.push(achId as AchievementId);
+            pushAndMaybeFlush(achId as AchievementId);
           }
         }
       )
@@ -98,8 +117,9 @@ export function useAchievementUnlockWatcher(currentPhase: GamePhase) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, isGuest]);
+  }, [user, isGuest, pushAndMaybeFlush]);
 
+  // Flush on phase transition into a safe phase
   useEffect(() => {
     if (SAFE_PHASES.includes(currentPhase) && pendingToasts.current.length > 0) {
       flushPending();
