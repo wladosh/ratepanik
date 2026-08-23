@@ -11,13 +11,14 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import {
-  supabase,
-  type DbRoom,
-  type DbPlayer,
-  type DbAnswer,
-  type DbMatchBlock,
-  type DbPickCorrectTurn,
+import { createBrowserSupabase } from "@/lib/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
+import type {
+  DbRoom,
+  DbPlayer,
+  DbAnswer,
+  DbMatchBlock,
+  DbPickCorrectTurn,
 } from "./supabase";
 import {
   fetchRandomThemeOptions,
@@ -154,6 +155,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const { user, isGuest } = useAuth();
   const { tryUnlock } = useAchievementGrant();
   const router = useRouter();
+  const supabase = useMemo(() => createBrowserSupabase(), []);
   const [room, setRoom] = useState<DbRoom | null>(null);
   const [players, setPlayers] = useState<DbPlayer[]>([]);
   const [blocks, setBlocks] = useState<DbMatchBlock[]>([]);
@@ -174,7 +176,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
   });
 
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
   const lastStateKeyRef = useRef("");
   const pickCompleteRef = useRef<string | null>(null);
   const subscribeRef = useRef<((roomId: string) => void) | null>(null);
@@ -476,7 +478,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       });
 
     channelRef.current = channel;
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     subscribeRef.current = subscribeToRoom;
@@ -504,7 +506,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     })();
 
     return () => { cancelled = true; };
-  }, [currentBlock?.theme_id, currentBlock?.prompt_ids]);
+  }, [currentBlock?.theme_id, currentBlock?.prompt_ids, supabase]);
 
   // --- load theme options when theme_vote_active ---
 
@@ -523,7 +525,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     })();
 
     return () => { cancelled = true; };
-  }, [room?.theme_vote_active, currentBlock?.theme_options]);
+  }, [room?.theme_vote_active, currentBlock?.theme_options, supabase]);
 
   // --- reset local sub-state when block advances ---
 
@@ -618,7 +620,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
           .eq("id", player.id);
       }
     })();
-  }, [isHost, currentBlock, correctTurnsCount, blockTurns, players, room, revealHoldActive]);
+  }, [isHost, currentBlock, correctTurnsCount, blockTurns, players, room, revealHoldActive, supabase]);
 
   // --- host-driven question timer expiry ---
 
@@ -1573,7 +1575,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         supabase.removeChannel(channelRef.current);
       }
     };
-  }, []);
+  }, [supabase]);
 
   const value: GameContextValue = {
     phase,

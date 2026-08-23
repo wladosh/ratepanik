@@ -136,7 +136,7 @@ export function questionTimerMsFromBlock(
 
 export function startBlockedReason(settings: RoomSettings): string | null {
   if (settings.themeMix === "manual" && settings.themeIds.length === 0) {
-    return "Pick mindestens ein Thema — sonst würfeln wir ins Leere.";
+    return "Wähl mindestens ein Thema — sonst würfeln wir ins Leere.";
   }
   return null;
 }
