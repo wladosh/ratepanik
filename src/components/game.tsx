@@ -3,11 +3,16 @@
 import { useState } from "react";
 import { useGame, type GamePhase } from "@/lib/game-context";
 import { useAchievementUnlockWatcher } from "@/lib/use-achievement-unlock";
+import { usePresenceHeartbeat } from "@/lib/use-presence-heartbeat";
 import { HomeScreen } from "./home-screen";
 import { LobbyScreen } from "./lobby-screen";
 import { ThemePickScreen } from "./theme-pick-screen";
 import { NumberGuessScreen } from "./number-guess-screen";
 import { NumberGuessRevealScreen } from "./number-guess-reveal-screen";
+import { FindLieScreen } from "./find-lie-screen";
+import { FindLieRevealScreen } from "./find-lie-reveal-screen";
+import { OrderItScreen } from "./order-it-screen";
+import { OrderItRevealScreen } from "./order-it-reveal-screen";
 import { PickCorrectScreen } from "./pick-correct-screen";
 import { BlockScoreboardScreen } from "./block-scoreboard-screen";
 import { FinalScreen } from "./final-screen";
@@ -17,6 +22,12 @@ const MATCH_PHASES: GamePhase[] = [
   "number_guess",
   "number_guess_waiting",
   "number_guess_reveal",
+  "find_lie",
+  "find_lie_waiting",
+  "find_lie_reveal",
+  "order_it",
+  "order_it_waiting",
+  "order_it_reveal",
   "pick_correct",
   "block_scoreboard",
 ];
@@ -86,27 +97,31 @@ export function Game() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   useAchievementUnlockWatcher(game.phase);
+  usePresenceHeartbeat();
 
   const isMatchPhase = MATCH_PHASES.includes(game.phase);
 
   return (
     <div className="relative flex flex-1 flex-col">
       {game.disconnected && (
-        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-amber-500 px-5 py-3 text-center shadow-xl animate-fade-in">
+        <div className="absolute top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-amber-500 px-5 py-3 text-center shadow-xl animate-fade-in">
           <p className="font-bold text-white text-sm">Verbindung verloren.</p>
           <p className="text-white/90 text-xs mt-0.5">Verbindung wird wiederhergestellt…</p>
         </div>
       )}
 
       {game.error && (
-        <div className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl bg-red-500 px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in">
+        <div
+          className="absolute top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl bg-red-500 px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          role="alert"
+        >
           {game.error}
         </div>
       )}
 
       {game.notice && (
         <div
-          className="fixed top-4 left-1/2 z-50 -translate-x-1/2 rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          className="absolute top-4 left-1/2 z-50 -translate-x-1/2 w-[calc(100%-2rem)] max-w-sm rounded-2xl px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
           style={{ background: "var(--rp-success)" }}
           role="status"
         >
@@ -176,6 +191,16 @@ export function Game() {
             return <NumberGuessScreen />;
           case "number_guess_reveal":
             return <NumberGuessRevealScreen />;
+          case "find_lie":
+          case "find_lie_waiting":
+            return <FindLieScreen />;
+          case "find_lie_reveal":
+            return <FindLieRevealScreen />;
+          case "order_it":
+          case "order_it_waiting":
+            return <OrderItScreen />;
+          case "order_it_reveal":
+            return <OrderItRevealScreen />;
           case "pick_correct":
             return <PickCorrectScreen />;
           case "block_scoreboard":

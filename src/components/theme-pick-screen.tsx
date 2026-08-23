@@ -1,6 +1,7 @@
 "use client";
 
 import { useGame } from "@/lib/game-context";
+import { modeEmoji, modeLabelDe } from "@/lib/game-store";
 
 const THEME_ICONS: Record<string, string> = {
   gaming: "\u{1F3AE}",
@@ -18,13 +19,7 @@ export function ThemePickScreen() {
   const picker = game.players.find((p) => p.id === game.themePickerPlayerId);
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
   const mode = game.currentBlock?.mode;
-
-  const modeLabel =
-    mode === "number_guess"
-      ? "Zahlenraten"
-      : mode === "pick_correct"
-        ? "Passendes wählen"
-        : mode ?? "";
+  const modeLabel = modeLabelDe(mode);
 
   return (
     <div
@@ -47,7 +42,7 @@ export function ThemePickScreen() {
             boxShadow: "0 2px 8px rgba(42, 42, 74, 0.06)",
           }}
         >
-          {mode === "number_guess" ? "\u{1F522}" : "\u{1F0CF}"} {modeLabel}
+          {modeEmoji(mode)} {modeLabel}
         </span>
 
         <h2 className="mb-2 text-2xl font-extrabold" style={{ color: "var(--rp-text)" }}>

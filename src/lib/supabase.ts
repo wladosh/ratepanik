@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { RoomSettings } from "./room-settings";
 
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
@@ -15,6 +16,7 @@ export interface DbRoom {
   total_blocks: number;
   host_user_id: string | null;
   theme_vote_active: boolean;
+  settings?: RoomSettings | Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }
@@ -43,6 +45,7 @@ export interface DbAnswer {
   prompt_id: string | null;
   mode: string | null;
   numeric_answer: number | null;
+  payload_answer: unknown | null;
   distance: number | null;
   rank: number | null;
   points_awarded: number;
@@ -53,7 +56,7 @@ export interface DbMatchBlock {
   id: string;
   room_id: string;
   block_index: number;
-  mode: "number_guess" | "pick_correct";
+  mode: "number_guess" | "pick_correct" | "find_lie" | "order_it";
   theme_id: string | null;
   theme_options: string[] | null;
   prompt_ids: string[];
@@ -98,8 +101,33 @@ export interface DbProfile {
   avatar_id: string;
   avatar_onboarding_done: boolean;
   current_streak?: number;
+  friend_code?: string;
+  last_seen_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface DbFriendProfile {
+  id: string;
+  username: string;
+  avatar_id: string;
+  last_seen_at: string | null;
+  friend_code: string;
+}
+
+export interface DbFriendship {
+  id: string;
+  requester_id: string;
+  addressee_id: string;
+  status: "pending" | "accepted";
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbUserCosmetic {
+  user_id: string;
+  item_id: string;
+  acquired_at: string;
 }
 
 export interface DbAchievement {

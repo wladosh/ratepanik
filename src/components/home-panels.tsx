@@ -7,135 +7,13 @@ import { createBrowserSupabase } from "@/lib/supabase/client";
 import { ACHIEVEMENTS, type AchievementId } from "@/lib/rp-assets";
 import { xpProgressInLevel } from "@/lib/progression";
 import { useMatchStats } from "@/lib/use-match-stats";
+import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
+import { FriendsPanel } from "@/components/friends-panel";
+import { ShopPanel } from "@/components/shop-panel";
 
 export type HomePanelId = "friends" | "stats" | "achievements" | "shop";
 
 const CATALOG_IDS = Object.keys(ACHIEVEMENTS) as AchievementId[];
-
-function BackButton({ onBack }: { onBack: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onBack}
-      className="flex items-center justify-center min-w-11 min-h-11 w-11 h-11 rounded-full transition-all active:scale-90"
-      style={{
-        background: "rgba(255,255,255,0.75)",
-        backdropFilter: "blur(8px)",
-        boxShadow: "0 2px 8px rgba(42,42,74,0.10)",
-      }}
-      aria-label="Zurück"
-    >
-      <svg
-        viewBox="0 0 24 24"
-        className="w-5 h-5"
-        fill="none"
-        stroke="var(--rp-text)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M15 18l-6-6 6-6" />
-      </svg>
-    </button>
-  );
-}
-
-function PanelShell({
-  title,
-  onBack,
-  children,
-}: {
-  title: string;
-  onBack: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <div
-      className="flex flex-1 flex-col"
-      style={{
-        background: "var(--rp-bg-hero)",
-        paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
-      }}
-    >
-      <header className="flex items-center gap-3 px-4 py-3">
-        <BackButton onBack={onBack} />
-        <h1
-          className="text-lg font-extrabold"
-          style={{ color: "var(--rp-text)" }}
-        >
-          {title}
-        </h1>
-      </header>
-      <div className="flex-1 overflow-y-auto px-4 pb-8">{children}</div>
-    </div>
-  );
-}
-
-function EmptyCard({
-  kicker,
-  headline,
-  body,
-}: {
-  kicker?: string;
-  headline: string;
-  body: string;
-}) {
-  return (
-    <div
-      className="flex flex-col items-center text-center px-4 py-10"
-      style={{
-        background: "var(--rp-bg-elevated)",
-        borderRadius: "var(--rp-radius-lg)",
-        boxShadow: "var(--rp-shadow-card)",
-      }}
-    >
-      {kicker && (
-        <p
-          className="text-xs font-bold uppercase tracking-wider mb-2"
-          style={{ color: "var(--rp-purple)" }}
-        >
-          {kicker}
-        </p>
-      )}
-      <h2
-        className="text-xl font-extrabold mb-2"
-        style={{ color: "var(--rp-text)" }}
-      >
-        {headline}
-      </h2>
-      <p
-        className="text-sm leading-relaxed"
-        style={{ color: "var(--rp-text-secondary)" }}
-      >
-        {body}
-      </p>
-    </div>
-  );
-}
-
-function FriendsPanel({ onBack }: { onBack: () => void }) {
-  return (
-    <PanelShell title="Freunde" onBack={onBack}>
-      <EmptyCard
-        kicker="Bald"
-        headline="Freundesliste kommt später"
-        body="Einladen geht schon über den Raumcode. Eine Freundesliste gibt es in dieser Version noch nicht."
-      />
-    </PanelShell>
-  );
-}
-
-function ShopPanel({ onBack }: { onBack: () => void }) {
-  return (
-    <PanelShell title="Shop" onBack={onBack}>
-      <EmptyCard
-        kicker="Bald"
-        headline="Shop kommt später"
-        body="Lootboxen und Cosmetics sind für Phase C geplant. Hirncoins sammelst du trotzdem schon am Match-Ende."
-      />
-    </PanelShell>
-  );
-}
 
 function StatsPanel({ onBack }: { onBack: () => void }) {
   const { user, isGuest, profile, profileLoading } = useAuth();
@@ -143,7 +21,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 
   if (!isGuest && profileLoading) {
     return (
-      <PanelShell title="Stats" onBack={onBack}>
+      <PanelShell title="Statistik" onBack={onBack}>
         <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
           Laden…
         </p>
@@ -153,7 +31,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 
   if (isGuest || !profile) {
     return (
-      <PanelShell title="Stats" onBack={onBack}>
+      <PanelShell title="Statistik" onBack={onBack}>
         <EmptyCard
           headline="Stats brauchen ein Konto"
           body="Als Gast speichern wir keine XP, Spiele oder Siege. Melde dich an, dann zählen die Matches hier."
@@ -185,7 +63,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
   ];
 
   return (
-    <PanelShell title="Stats" onBack={onBack}>
+    <PanelShell title="Statistik" onBack={onBack}>
       {games === 0 && (
         <div className="mb-4">
           <EmptyCard
@@ -261,7 +139,7 @@ function AchievementsPanel({ onBack }: { onBack: () => void }) {
   const ready = guestView || loaded;
 
   return (
-    <PanelShell title="Achievements" onBack={onBack}>
+    <PanelShell title="Erfolge" onBack={onBack}>
       {isGuest && (
         <p
           className="text-sm mb-4 px-1"

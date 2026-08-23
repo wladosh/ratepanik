@@ -9,6 +9,7 @@ import { xpProgressInLevel } from "@/lib/progression";
 import { avatarSrc, HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
 import { HomePanel, type HomePanelId } from "@/components/home-panels";
 import { useMatchStats } from "@/lib/use-match-stats";
+import { createBrowserSupabase } from "@/lib/supabase/client";
 
 function GearIcon({ className }: { className?: string }) {
   return (
@@ -52,6 +53,26 @@ export function HomeScreen() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [panel, setPanel] = useState<HomePanelId | null>(null);
   const { games: matchGames } = useMatchStats(user && !isGuest ? user.id : null);
+  const [friendCount, setFriendCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!user || isGuest) {
+      setFriendCount(null);
+      return;
+    }
+    const supabase = createBrowserSupabase();
+    let cancelled = false;
+    void supabase
+      .from("friendships")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "accepted")
+      .then(({ count }) => {
+        if (!cancelled) setFriendCount(count ?? 0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, isGuest]);
 
   const xpProgress = useMemo(() => {
     if (!profile) return null;
@@ -128,9 +149,9 @@ export function HomeScreen() {
           <div className="flex items-center gap-3">
             {/* Avatar + Level badge */}
             <button
-              onClick={() => showToast("Bald")}
+              onClick={() => (isGuest ? showToast("Shop braucht ein Konto") : setPanel("shop"))}
               className="relative shrink-0"
-              aria-label="Profil"
+              aria-label="Avatar"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -216,7 +237,8 @@ export function HomeScreen() {
                   onClick={signOut}
                   className="flex items-center justify-center rounded-full transition-colors hover:bg-black/5 shrink-0"
                   style={{ width: 40, height: 40 }}
-                  aria-label="Einstellungen"
+                  aria-label="Abmelden"
+                  title="Abmelden"
                 >
                   <GearIcon className="w-5 h-5 text-[var(--rp-text-secondary)]" />
                 </button>
@@ -415,7 +437,17 @@ export function HomeScreen() {
             </div>
             <div className="text-left">
               <span className="text-sm font-bold text-[var(--rp-text)]">Freunde</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Bald</p>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">
+                {isGuest
+                  ? "Anmelden"
+                  : friendCount === null
+                    ? "…"
+                    : friendCount === 0
+                      ? "Hinzufügen"
+                      : friendCount === 1
+                        ? "1 Freund"
+                        : `${friendCount} Freunde`}
+              </p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M9 5l7 7-7 7" />
@@ -436,7 +468,7 @@ export function HomeScreen() {
               </svg>
             </div>
             <div className="text-left">
-              <span className="text-sm font-bold text-[var(--rp-text)]">Stats</span>
+              <span className="text-sm font-bold text-[var(--rp-text)]">Statistik</span>
               <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">
                 {isGuest || !profile
                   ? "Anmelden"
@@ -466,7 +498,7 @@ export function HomeScreen() {
               </svg>
             </div>
             <div className="text-left">
-              <span className="text-sm font-bold text-[var(--rp-text)]">Achievements</span>
+              <span className="text-sm font-bold text-[var(--rp-text)]">Erfolge</span>
               <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Deine Erfolge<br />und Abzeichen</p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -489,7 +521,7 @@ export function HomeScreen() {
             </div>
             <div className="text-left">
               <span className="text-sm font-bold text-[var(--rp-text)]">Shop</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Bald</p>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Avatare</p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M9 5l7 7-7 7" />
@@ -538,7 +570,7 @@ export function HomeScreen() {
         <button className="flex flex-col items-center gap-0.5 py-1 px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_home_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
-          <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>Home</span>
+          <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>Start</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -548,7 +580,7 @@ export function HomeScreen() {
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_play_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
-          <span className="text-[10px] font-medium">Play</span>
+          <span className="text-[10px] font-medium">Spielen</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
