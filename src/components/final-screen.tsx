@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { supabase } from "@/lib/supabase";
 import { calculateMatchRewards, type MatchRewardResult } from "@/lib/match-rewards";
 import { levelFromXp } from "@/lib/progression";
+import { useAchievementGrant } from "@/lib/use-achievement-grant";
 import { MatchEndRewardsScreen, BriefScoreboard } from "./match-end-rewards";
 
 type FinalStep = "scoreboard" | "rewards";
@@ -15,12 +16,14 @@ const SCOREBOARD_AUTO_MS = 3500;
 export function FinalScreen() {
   const game = useGame();
   const { user, isGuest, profile, refetchProfile } = useAuth();
+  const { tryUnlock, recordDailyPlay } = useAchievementGrant();
   const [rewards, setRewards] = useState<MatchRewardResult | null>(null);
   const [previousXp, setPreviousXp] = useState(0);
   const [previousLevel, setPreviousLevel] = useState(1);
   const [ready, setReady] = useState(() => !!(isGuest || !user));
   const [step, setStep] = useState<FinalStep>("scoreboard");
   const grantedRef = useRef(false);
+  const achievementsCheckedRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
@@ -108,6 +111,19 @@ export function FinalScreen() {
     grantedRef.current = true;
     void grantRewards();
   }, [roomId, userId, isGuest, grantRewards]);
+
+  // Try achievement unlocks after match finishes
+  useEffect(() => {
+    if (achievementsCheckedRef.current || !roomId || !userId || isGuest) return;
+    achievementsCheckedRef.current = true;
+
+    (async () => {
+      await recordDailyPlay();
+      if (placement === 1 && myScore > 0) {
+        await tryUnlock("first_win");
+      }
+    })();
+  }, [roomId, userId, isGuest, placement, myScore, recordDailyPlay, tryUnlock]);
 
   // Auto-advance from scoreboard to rewards after a brief pause
   useEffect(() => {
