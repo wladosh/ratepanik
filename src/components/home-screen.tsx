@@ -8,6 +8,7 @@ import { generateGuestName } from "@/lib/guest-name";
 import { xpProgressInLevel } from "@/lib/progression";
 import { avatarSrc, HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
 import { HomePanel, type HomePanelId } from "@/components/home-panels";
+import { useMatchStats } from "@/lib/use-match-stats";
 
 function GearIcon({ className }: { className?: string }) {
   return (
@@ -50,6 +51,7 @@ export function HomeScreen() {
   const [joinError, setJoinError] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [panel, setPanel] = useState<HomePanelId | null>(null);
+  const { games: matchGames } = useMatchStats(user && !isGuest ? user.id : null);
 
   const xpProgress = useMemo(() => {
     if (!profile) return null;
@@ -435,7 +437,15 @@ export function HomeScreen() {
             </div>
             <div className="text-left">
               <span className="text-sm font-bold text-[var(--rp-text)]">Stats</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">XP, Level, Spiele</p>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">
+                {isGuest || !profile
+                  ? "Anmelden"
+                  : matchGames === null
+                    ? `Lv. ${xpProgress?.level ?? profile.level}`
+                    : matchGames === 0
+                      ? `Lv. ${xpProgress?.level ?? profile.level}`
+                      : `Lv. ${xpProgress?.level ?? profile.level} · ${matchGames} Spiele`}
+              </p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M9 5l7 7-7 7" />

@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { ACHIEVEMENTS, type AchievementId } from "@/lib/rp-assets";
 import { xpProgressInLevel } from "@/lib/progression";
+import { useMatchStats } from "@/lib/use-match-stats";
 
 export type HomePanelId = "friends" | "stats" | "achievements" | "shop";
 
@@ -138,36 +139,7 @@ function ShopPanel({ onBack }: { onBack: () => void }) {
 
 function StatsPanel({ onBack }: { onBack: () => void }) {
   const { user, isGuest, profile, profileLoading } = useAuth();
-  const [games, setGames] = useState<number | null>(null);
-  const [wins, setWins] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!user || isGuest) return;
-
-    const supabase = createBrowserSupabase();
-    let cancelled = false;
-
-    (async () => {
-      const [gamesRes, winsRes] = await Promise.all([
-        supabase
-          .from("match_rewards")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id),
-        supabase
-          .from("match_rewards")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", user.id)
-          .eq("placement", 1),
-      ]);
-      if (cancelled) return;
-      setGames(gamesRes.count ?? 0);
-      setWins(winsRes.count ?? 0);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [user, isGuest]);
+  const { games, wins } = useMatchStats(user && !isGuest ? user.id : null);
 
   if (!isGuest && profileLoading) {
     return (
@@ -204,6 +176,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 
   const rows: { label: string; value: string }[] = [
     { label: "Level", value: String(xp.level) },
+    { label: "XP gesamt", value: String(profile.xp) },
     { label: "XP in diesem Level", value: `${xp.current} / ${xp.needed}` },
     { label: "Hirncoins", value: String(profile.hirncoins) },
     { label: "Spiele beendet", value: games === null ? "…" : String(games) },
@@ -213,6 +186,14 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
 
   return (
     <PanelShell title="Stats" onBack={onBack}>
+      {games === 0 && (
+        <div className="mb-4">
+          <EmptyCard
+            headline="Noch keine Spiele"
+            body="Level, XP und Hirncoins kommen aus echten Matches. Spiel eine Runde, dann füllen sich die Zahlen."
+          />
+        </div>
+      )}
       <ul className="space-y-2">
         {rows.map((row) => (
           <li
