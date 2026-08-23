@@ -97,6 +97,7 @@ export interface DbProfile {
   hirncoins: number;
   avatar_id: string;
   avatar_onboarding_done: boolean;
+  current_streak?: number;
   created_at: string;
   updated_at: string;
 }
