@@ -121,6 +121,12 @@ export interface DbFriendship {
   updated_at: string;
 }
 
+export interface DbUserCosmetic {
+  user_id: string;
+  item_id: string;
+  acquired_at: string;
+}
+
 export interface DbAchievement {
   id: string;
   title: string;

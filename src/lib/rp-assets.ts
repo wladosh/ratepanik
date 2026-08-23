@@ -40,6 +40,15 @@ export function avatarSrc(avatarId: string, size: 128 | 256 | 512 = 256): string
 
 export const AVATAR_POOL = AVATAR_IDS.map((id) => avatarSrc(id));
 
+export const AVATAR_BG: Record<AvatarId, string> = {
+  default_01: "#FFF0E8",
+  default_02: "#EDE6FF",
+  default_03: "#FFE8F0",
+  default_04: "#E8F5E8",
+  default_05: "#FFF5E8",
+  default_06: "#E0EEFF",
+};
+
 // ── Achievement Badges ───────────────────────────────────────────────
 export const BADGE_FIRST_WIN_48 = "/rp/rp_badge_first_win_48@2x.png";
 export const BADGE_FIRST_WIN_128 = "/rp/rp_badge_first_win_128@2x.png";

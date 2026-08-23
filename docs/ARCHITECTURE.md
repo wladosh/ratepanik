@@ -245,12 +245,13 @@ themes (8 seeded rows)
 - Content schema (themes seeded, prompts empty for Fragemeister)
 
 **Schema allows but NOT built (Phase C):**
-- Lootboxen / Cosmetics shop
+- Lootboxen (on hold)
 - Additional modes (`find_lie`, `order_it` — schema supports them)
 
 **Built after Phase A:**
 - XP / Level / Hirncoins / Achievements (Phase B)
 - Freunde: request/accept via username or friend_code, last-seen presence, invite by copying `/?join=CODE` (no chat)
+- Shop: static avatar catalog (`default_01`–`06`), `user_cosmetics` ownership, `purchase_avatar` / `equip_avatar` (equip owned only)
 
 ---
 

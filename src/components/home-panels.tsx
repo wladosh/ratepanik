@@ -8,22 +8,11 @@ import { ACHIEVEMENTS, type AchievementId } from "@/lib/rp-assets";
 import { xpProgressInLevel } from "@/lib/progression";
 import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
 import { FriendsPanel } from "@/components/friends-panel";
+import { ShopPanel } from "@/components/shop-panel";
 
 export type HomePanelId = "friends" | "stats" | "achievements" | "shop";
 
 const CATALOG_IDS = Object.keys(ACHIEVEMENTS) as AchievementId[];
-
-function ShopPanel({ onBack }: { onBack: () => void }) {
-  return (
-    <PanelShell title="Shop" onBack={onBack}>
-      <EmptyCard
-        kicker="Bald"
-        headline="Shop kommt später"
-        body="Lootboxen und Cosmetics sind für Phase C geplant. Hirncoins sammelst du trotzdem schon am Match-Ende."
-      />
-    </PanelShell>
-  );
-}
 
 function StatsPanel({ onBack }: { onBack: () => void }) {
   const { user, isGuest, profile, profileLoading } = useAuth();

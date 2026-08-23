@@ -147,9 +147,9 @@ export function HomeScreen() {
           <div className="flex items-center gap-3">
             {/* Avatar + Level badge */}
             <button
-              onClick={() => showToast("Bald")}
+              onClick={() => (isGuest ? showToast("Shop braucht ein Konto") : setPanel("shop"))}
               className="relative shrink-0"
-              aria-label="Profil"
+              aria-label="Avatar"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -510,7 +510,7 @@ export function HomeScreen() {
             </div>
             <div className="text-left">
               <span className="text-sm font-bold text-[var(--rp-text)]">Shop</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Bald</p>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Avatare</p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M9 5l7 7-7 7" />
