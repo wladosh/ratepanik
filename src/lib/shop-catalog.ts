@@ -12,7 +12,7 @@ export interface ShopAvatar {
 
 /**
  * Static shop catalog. Prices MUST stay in sync with
- * `avatar_shop_price()` in supabase/migrations/20260823_005_shop_avatars.sql.
+ * `avatar_shop_price()` in supabase/migrations/20260823_013_shop_avatars.sql.
  * No lootboxes. Achievement badges are not cosmetics.
  */
 export const SHOP_AVATARS: readonly ShopAvatar[] = [
