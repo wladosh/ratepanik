@@ -40,6 +40,11 @@ export function PickCorrectScreen() {
   const activePlayer = sortedPlayers[game.activePlayerIndex];
   const correctFound = game.turns.filter((t) => t.is_correct).length;
 
+  const localPlayerTapped = useMemo(
+    () => game.turns.some((t) => t.player_id === game.myPlayerId),
+    [game.turns, game.myPlayerId]
+  );
+
   const tappedPlayerCount = useMemo(
     () => new Set(game.turns.map((t) => t.player_id)).size,
     [game.turns]
@@ -119,7 +124,7 @@ export function PickCorrectScreen() {
             background: "var(--rp-bg-elevated)",
             borderRadius: "var(--rp-radius-lg)",
             boxShadow: "var(--rp-shadow-card)",
-            marginBottom: game.questionDeadlineMs != null ? 0 : 16,
+            marginBottom: !localPlayerTapped && game.questionDeadlineMs != null ? 0 : 16,
           }}
         >
           <h2
@@ -130,8 +135,8 @@ export function PickCorrectScreen() {
           </h2>
         </div>
 
-        {/* Countdown bar — visible for the entire pick_correct round */}
-        {game.questionDeadlineMs != null && (
+        {/* Countdown bar — hidden once the local player has tapped */}
+        {!localPlayerTapped && game.questionDeadlineMs != null && (
           <QuestionTimerBar
             key={game.currentBlock!.id}
             deadlineMs={game.questionDeadlineMs}
