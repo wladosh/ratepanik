@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
+import { LandingHero } from "@/components/landing-hero";
 
 export function LandingScreen({ initialCode }: { initialCode?: string }) {
   const { isAuthenticated } = useAuth();
@@ -51,47 +52,8 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
-      {/* Confetti decoration dots */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute top-[10%] left-[8%] w-2 h-2 rounded-full bg-[var(--rp-purple-soft)] opacity-60" />
-        <div className="absolute top-[15%] right-[12%] w-3 h-3 rounded-full bg-[var(--rp-pink)] opacity-40" />
-        <div className="absolute top-[22%] left-[20%] w-1.5 h-1.5 rounded-full bg-[var(--rp-yellow)] opacity-50" />
-        <div className="absolute top-[18%] right-[25%] w-2 h-2 rounded-full bg-[var(--rp-mint)] opacity-50" />
-        <div className="absolute top-[8%] left-[45%] w-2.5 h-2.5 rounded-full bg-[var(--rp-peach)] opacity-40" />
-        <div className="absolute top-[25%] right-[8%] w-1.5 h-4 rounded-full bg-[var(--rp-sky)] opacity-40 rotate-45" />
-        <div className="absolute top-[12%] left-[30%] w-1.5 h-4 rounded-full bg-[var(--rp-peach)] opacity-30 -rotate-12" />
-      </div>
-
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
-        {/* Trophy — freestanding on gradient */}
-        <div className="mb-4">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/rp/rp_trophy_gold_512.png"
-            alt="Ratepanik Trophy"
-            width={88}
-            height={88}
-            className="drop-shadow-[0_8px_24px_rgba(255,214,107,0.4)]"
-          />
-        </div>
-
-        {/* Logo */}
-        <h1
-          className="text-[2.75rem] leading-tight font-extrabold text-center tracking-tight"
-          style={{
-            background: "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-pink) 50%, var(--rp-peach) 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-          }}
-        >
-          Ratepanik
-        </h1>
-
-        {/* Tagline */}
-        <p className="mt-1 mb-8 text-[var(--rp-text-secondary)] text-base font-medium text-center">
-          Wer falsch liegt, lebt gefährlich.
-        </p>
+        <LandingHero />
 
         {/* Guest join card */}
         <div

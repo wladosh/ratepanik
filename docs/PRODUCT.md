@@ -92,7 +92,8 @@ Registrierte Spieler:innen können Freund:innen per **Username** oder **Freundec
 ---
 
 ## 7. Lobby
-Nur Registrierte hosten. Min 2, max 4. Host startet bei ≥2. Match-Typ MVP: **Standard**.
+- Nur Registrierte hosten. Min 2, max laut Lobby (Standard **4**). Host startet bei ≥2.
+- Vor **Runde starten**: Host stellt Themenmix, Modi, Schwierigkeit, Blöcke, Timer, Gäste und Auto-Start ein (`docs/LOBBY_SETTINGS.md`). Gäste sehen nur eine Zusammenfassung. Standard = bisheriges Match (4 Blöcke, Mix, 5s-Timer).
 
 ---
 
