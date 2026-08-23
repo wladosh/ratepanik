@@ -1,3 +1,6 @@
+/** Question countdown duration — single tunable constant (ms). */
+export const QUESTION_TIMER_MS = 5_000;
+
 /** Rank-based scoring for number_guess (§9.1) */
 export function calculateNumberGuessPoints(
   rank: number,
