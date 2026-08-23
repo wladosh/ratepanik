@@ -4,6 +4,8 @@ import { useState, useRef, useCallback } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n-context";
+import { mapAuthError, type AuthErrorInfo } from "@/lib/auth-errors";
+import { AuthErrorBanner } from "@/components/auth-error-banner";
 
 export default function SignupPage() {
   const { t } = useI18n();
@@ -13,7 +15,7 @@ export default function SignupPage() {
   const [nameError, setNameError] = useState<string | null>(null);
   const [nameAvailable, setNameAvailable] = useState<boolean | null>(null);
   const [nameChecking, setNameChecking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AuthErrorInfo | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const supabase = createBrowserSupabase();
@@ -89,18 +91,7 @@ export default function SignupPage() {
     });
 
     if (signupError) {
-      const msg = signupError.message.toLowerCase();
-      if (
-        msg.includes("rate limit") ||
-        msg.includes("over_email_send_rate_limit") ||
-        msg.includes("429")
-      ) {
-        setError(
-          t.signup.rateLimit
-        );
-      } else {
-        setError(signupError.message);
-      }
+      setError(mapAuthError(t, signupError));
       setLoading(false);
       return;
     }
@@ -114,7 +105,7 @@ export default function SignupPage() {
       const claimData = await claimRes.json();
 
       if (!claimData.ok) {
-        setError(claimData.error ?? t.signup.claimFailed);
+        setError({ message: claimData.error ?? t.signup.claimFailed });
         setLoading(false);
         return;
       }
@@ -136,7 +127,7 @@ export default function SignupPage() {
     });
 
     if (error) {
-      setError(error.message);
+      setError(mapAuthError(t, error));
       setLoading(false);
     }
   }
@@ -173,6 +164,9 @@ export default function SignupPage() {
           </h2>
           <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
             {t.signup.confirmBody}
+          </p>
+          <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+            {t.signup.confirmHint}
           </p>
           <Link
             href="/auth/login"
@@ -217,18 +211,7 @@ export default function SignupPage() {
           </p>
         </div>
 
-        {error && (
-          <div
-            className="rounded-xl px-4 py-3 text-sm font-medium"
-            style={{
-              background: "rgba(255, 92, 122, 0.1)",
-              border: "1px solid rgba(255, 92, 122, 0.2)",
-              color: "var(--rp-danger)",
-            }}
-          >
-            {error}
-          </div>
-        )}
+        {error && <AuthErrorBanner message={error.message} hint={error.hint} />}
 
         <button
           onClick={handleGoogleLogin}

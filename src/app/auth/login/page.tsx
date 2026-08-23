@@ -5,12 +5,14 @@ import { createBrowserSupabase } from "@/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useI18n, LoadingPulse } from "@/lib/i18n-context";
+import { mapAuthError, type AuthErrorInfo } from "@/lib/auth-errors";
+import { AuthErrorBanner } from "@/components/auth-error-banner";
 
 function LoginContent() {
   const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AuthErrorInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,16 +32,7 @@ function LoginContent() {
     });
 
     if (error) {
-      const msg = error.message.toLowerCase();
-      if (
-        msg.includes("rate limit") ||
-        msg.includes("over_email_send_rate_limit") ||
-        msg.includes("429")
-      ) {
-        setError(t.login.rateLimit);
-      } else {
-        setError(error.message);
-      }
+      setError(mapAuthError(t, error));
       setLoading(false);
       return;
     }
@@ -60,7 +53,7 @@ function LoginContent() {
     });
 
     if (error) {
-      setError(error.message);
+      setError(mapAuthError(t, error));
       setLoading(false);
     }
   }
@@ -72,7 +65,7 @@ function LoginContent() {
     const { error } = await supabase.auth.signInAnonymously();
 
     if (error) {
-      setError(error.message);
+      setError(mapAuthError(t, error));
       setLoading(false);
       return;
     }
@@ -107,18 +100,7 @@ function LoginContent() {
           </p>
         </div>
 
-        {error && (
-          <div
-            className="rounded-xl px-4 py-3 text-sm font-medium"
-            style={{
-              background: "rgba(255, 92, 122, 0.1)",
-              border: "1px solid rgba(255, 92, 122, 0.2)",
-              color: "var(--rp-danger)",
-            }}
-          >
-            {error}
-          </div>
-        )}
+        {error && <AuthErrorBanner message={error.message} hint={error.hint} />}
 
         <div
           className="w-full p-5 space-y-3"

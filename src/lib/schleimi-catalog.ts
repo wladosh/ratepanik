@@ -31,16 +31,17 @@ export const RARITY_LABEL_DE: Record<CosmeticRarity, string> = {
   legendaer: "Legendär",
 };
 
+/** @deprecated Use RARITY_UX_PILL in schleimi-ux — kept as fill shortcuts for placeholders. */
 export const RARITY_COLOR: Record<CosmeticRarity, string> = {
-  gewoehnlich: "#EDE6DC",
-  selten: "#8B7CFF",
-  legendaer: "#F5A623",
+  gewoehnlich: "#6B7F9A",
+  selten: "#C989FF",
+  legendaer: "#E8C547",
 };
 
 export const RARITY_SOFT: Record<CosmeticRarity, string> = {
-  gewoehnlich: "#F6F1EA",
-  selten: "#EDE8FF",
-  legendaer: "#FFF4D6",
+  gewoehnlich: "#E8EEF4",
+  selten: "#FDE8F4",
+  legendaer: "#FFF6D6",
 };
 
 export const SLOT_LABEL_DE: Record<CosmeticSlot, string> = {

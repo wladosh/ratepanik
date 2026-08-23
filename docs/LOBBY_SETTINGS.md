@@ -17,7 +17,7 @@ so the existing match engine keeps working.
 | `difficulty` | `mix` | Maps to `prompts.difficulty`. Mix = no filter. |
 | `blocks` | `4` | Clamp 1–4 |
 | `questionsPerBlock` | `2` | Clamp 1–4. Applies to `number_guess` rounds. `pick_correct` stays 1 prompt/block. |
-| `timerSeconds` | `8` | 5 \| 8 \| 10 \| 15. Always on. Same bar for all via `started_at`. Snapshotted onto `match_blocks.timer_seconds` |
+| `timerSeconds` | `10` | 5 \| 8 \| 10 \| 15. Always on. Same bar for all via `started_at`. Snapshotted onto `match_blocks.timer_seconds` |
 | `revealHoldMs` | `1000` | Internal pick-correct highlight delay (not a lobby control) |
 | `maxPlayers` | `4` | 2–4. Cannot go below occupied seats. |
 | `allowGuests` | `true` | Anonymous join rejected when false |

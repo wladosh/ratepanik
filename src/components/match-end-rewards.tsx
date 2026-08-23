@@ -1,6 +1,9 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { useMemo, useState, useEffect, useRef, useSyncExternalStore } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
 import { xpProgressInLevel } from "@/lib/progression";
@@ -12,6 +15,8 @@ import {
   CONFETTI_SHEET_512,
 } from "@/lib/rp-assets";
 import type { MatchRewardResult } from "@/lib/match-rewards";
+
+gsap.registerPlugin(useGSAP);
 
 interface MatchEndRewardsProps {
   rewards: MatchRewardResult | null;
@@ -26,7 +31,7 @@ function useCountUp(target: number, durationMs = 800, delayMs = 400): number {
   const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    if (target <= 0) { setValue(0); return; }
+    if (target <= 0) return;
 
     let start: number | null = null;
     let cancelled = false;
@@ -58,18 +63,20 @@ function useCountUp(target: number, durationMs = 800, delayMs = 400): number {
 
 /* ── Hook: detect prefers-reduced-motion ─────────────────────────── */
 
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeToReducedMotion(onStoreChange: () => void): () => void {
+  const mediaQuery = window.matchMedia(REDUCED_MOTION_QUERY);
+  mediaQuery.addEventListener("change", onStoreChange);
+  return () => mediaQuery.removeEventListener("change", onStoreChange);
+}
+
 function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const handler = (e: MediaQueryListEvent) => setReduced(e.matches);
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  return reduced;
+  return useSyncExternalStore(
+    subscribeToReducedMotion,
+    () => window.matchMedia(REDUCED_MOTION_QUERY).matches,
+    () => false,
+  );
 }
 
 /* ── Confetti background — plays ONCE, respects prefers-reduced-motion ── */
@@ -81,8 +88,7 @@ function ConfettiOverlay({ show }: { show: boolean }) {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={CONFETTI_SHEET_512}
         alt=""
         width={512}
@@ -91,8 +97,7 @@ function ConfettiOverlay({ show }: { show: boolean }) {
         style={{ animation: "confetti-drift 6s ease-in 1", animationFillMode: "forwards" }}
         aria-hidden="true"
       />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
+      <Image
         src={CONFETTI_SHEET_512}
         alt=""
         width={512}
@@ -109,79 +114,290 @@ function ConfettiOverlay({ show }: { show: boolean }) {
   );
 }
 
+type FinalMood = {
+  eyebrow: string;
+  title: string;
+  message: string;
+  accent: string;
+  glow: string;
+};
+
+function getFinalMood(rank: number, playerCount: number): FinalMood {
+  if (rank === 1) {
+    return {
+      eyebrow: "Sieg!",
+      title: playerCount === 1 ? "Runde geschafft!" : "Du hast gewonnen!",
+      message: playerCount === 1
+        ? "Starke Runde – das war dein Spiel."
+        : `Du hast dich gegen ${playerCount - 1} ${
+            playerCount - 1 === 1 ? "Mitspieler" : "Mitspieler"
+          } durchgesetzt.`,
+      accent: "#C98A16",
+      glow: "rgba(255, 214, 107, 0.42)",
+    };
+  }
+
+  if (rank === 2) {
+    return {
+      eyebrow: "Platz 2",
+      title: "So knapp!",
+      message: "Der Pokal war zum Greifen nah. Nächste Runde gehört dir.",
+      accent: "var(--rp-purple)",
+      glow: "rgba(139, 124, 255, 0.28)",
+    };
+  }
+
+  return {
+    eyebrow: `Platz ${rank}`,
+    title: "Stark gekämpft!",
+    message: "Heute nicht ganz vorn – aber die Revanche wartet schon.",
+    accent: "var(--rp-peach-deep)",
+    glow: "rgba(255, 138, 113, 0.25)",
+  };
+}
+
+function FinalHero({
+  rank,
+  playerCount,
+  score,
+  avatar,
+}: {
+  rank: number;
+  playerCount: number;
+  score: number;
+  avatar: string;
+}) {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const winner = rank === 1;
+  const mood = getFinalMood(rank, playerCount);
+
+  useGSAP(
+    () => {
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reducedMotion) return;
+
+      const timeline = gsap.timeline({ defaults: { ease: "back.out(1.5)" } });
+      timeline
+        .from("[data-final-orb]", { scale: 0.35, rotation: winner ? -14 : 8, opacity: 0, duration: 0.7 })
+        .from("[data-final-copy]", { y: 18, opacity: 0, duration: 0.45, stagger: 0.08 }, "-=0.35")
+        .from("[data-final-score]", { scale: 0.7, opacity: 0, duration: 0.35 }, "-=0.18");
+
+      if (winner) {
+        gsap.to("[data-final-orb]", {
+          y: -5,
+          duration: 1.5,
+          ease: "sine.inOut",
+          repeat: -1,
+          yoyo: true,
+          delay: 0.8,
+        });
+      }
+    },
+    { scope: heroRef, dependencies: [winner] },
+  );
+
+  return (
+    <section ref={heroRef} className="relative mb-5 text-center" aria-label={`${mood.eyebrow}: ${mood.title}`}>
+      <div className="relative mx-auto mb-3 h-[132px] w-[132px]">
+        <span
+          className="absolute inset-2 rounded-full blur-2xl"
+          style={{ background: mood.glow }}
+          aria-hidden="true"
+        />
+        <div
+          data-final-orb
+          className="relative flex h-full w-full items-center justify-center rounded-[42px]"
+          style={{
+            background: winner
+              ? "linear-gradient(145deg, #FFF9D7 0%, #FFE2A4 100%)"
+              : "linear-gradient(145deg, rgba(255,255,255,0.96) 0%, rgba(237,230,255,0.94) 100%)",
+            border: winner ? "1px solid rgba(201, 138, 22, 0.2)" : "1px solid rgba(139, 124, 255, 0.16)",
+            boxShadow: winner
+              ? "0 18px 42px rgba(166, 112, 26, 0.2)"
+              : "0 18px 42px rgba(76, 60, 130, 0.15)",
+          }}
+        >
+          {winner ? (
+            <Image
+              src={TROPHY_GOLD_512}
+              alt="Goldener Siegerpokal"
+              width={106}
+              height={106}
+              className="h-[106px] w-[106px] object-contain"
+              priority
+            />
+          ) : (
+            <span className="text-[64px]" aria-hidden="true">
+              {avatar}
+            </span>
+          )}
+          <span
+            className="absolute -bottom-2 -right-2 flex min-h-11 min-w-11 items-center justify-center rounded-2xl px-2 text-base font-black text-white"
+            style={{
+              background: winner
+                ? "linear-gradient(135deg, #F3B928 0%, #D58A12 100%)"
+                : "linear-gradient(135deg, var(--rp-purple) 0%, #6B5CE7 100%)",
+              boxShadow: "0 7px 16px rgba(72, 54, 118, 0.22)",
+            }}
+          >
+            #{rank}
+          </span>
+        </div>
+      </div>
+
+      <p
+        data-final-copy
+        className="mb-1 text-[11px] font-black uppercase tracking-[0.18em]"
+        style={{ color: mood.accent }}
+      >
+        {mood.eyebrow}
+      </p>
+      <h1
+        data-final-copy
+        className="text-[30px] font-black leading-tight tracking-[-0.04em]"
+        style={{ color: "var(--rp-text)" }}
+      >
+        {mood.title}
+      </h1>
+      <p
+        data-final-copy
+        className="mx-auto mt-2 max-w-[300px] text-sm font-semibold leading-relaxed"
+        style={{ color: "var(--rp-text-secondary)" }}
+      >
+        {mood.message}
+      </p>
+      <div
+        data-final-score
+        className="mt-3 inline-flex items-baseline gap-1.5 rounded-full px-4 py-2"
+        style={{
+          background: "rgba(255, 255, 255, 0.82)",
+          border: "1px solid rgba(255, 255, 255, 0.9)",
+          boxShadow: "0 7px 20px rgba(42, 42, 74, 0.07)",
+        }}
+      >
+        <span className="text-xl font-black tabular-nums" style={{ color: mood.accent }}>
+          {score.toLocaleString("de-DE")}
+        </span>
+        <span className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: "var(--rp-text-secondary)" }}>
+          Punkte
+        </span>
+      </div>
+    </section>
+  );
+}
+
 /* ── Scoreboard (brief, shown first) ────────────────────────────── */
 
 function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
   const game = useGame();
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
   const myRank = sortedPlayers.findIndex((p) => p.id === game.myPlayerId) + 1;
+  const myPlayer = sortedPlayers.find((p) => p.id === game.myPlayerId);
 
   return (
     <div
-      className="flex flex-1 flex-col items-center px-4 py-6 relative overflow-hidden"
+      className="relative flex flex-1 flex-col items-center overflow-y-auto px-4 pb-6"
       style={{
         background: "var(--rp-bg-hero)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       <ConfettiOverlay show={myRank === 1} />
-      <div className="w-full max-w-sm text-center relative z-10 pt-6">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={TROPHY_GOLD_512}
-          alt="Pokal"
-          width={80}
-          height={80}
-          className="w-20 h-20 mx-auto mb-3 animate-bounce-slow"
-        />
-        <h1 className="text-2xl font-extrabold mb-1" style={{ color: "var(--rp-text)" }}>
-          Runde vorbei!
-        </h1>
-        <p className="text-sm mb-5" style={{ color: "var(--rp-text-secondary)" }}>
-          Endstand
-        </p>
+      <span
+        className="pointer-events-none absolute -left-20 top-40 h-52 w-52 rounded-full opacity-35 blur-3xl"
+        style={{ background: myRank === 1 ? "#FFE9A8" : "var(--rp-purple-soft)" }}
+        aria-hidden="true"
+      />
+      <span
+        className="pointer-events-none absolute -right-20 bottom-20 h-48 w-48 rounded-full opacity-30 blur-3xl"
+        style={{ background: "var(--rp-peach-soft)" }}
+        aria-hidden="true"
+      />
 
-        <div className="space-y-2 mb-6">
+      <div className="relative z-10 mt-8 w-full max-w-sm">
+        <FinalHero
+          rank={Math.max(myRank, 1)}
+          playerCount={sortedPlayers.length}
+          score={myPlayer?.score ?? 0}
+          avatar={myPlayer ? game.getAvatar(myPlayer.id) : "🎯"}
+        />
+
+        <div className="mb-2 flex items-center justify-between px-1">
+          <h2 className="text-sm font-extrabold" style={{ color: "var(--rp-text)" }}>
+            Endstand
+          </h2>
+          <span className="text-xs font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+            {sortedPlayers.length} Spieler
+          </span>
+        </div>
+
+        <div className="mb-5 space-y-2">
           {sortedPlayers.map((player, i) => (
             <div
               key={player.id}
-              className="flex items-center gap-3 px-4 py-3 animate-fade-in"
+              className="animate-fade-in flex items-center gap-3 px-3.5 py-3"
               style={{
-                animationDelay: `${i * 150}ms`,
-                background: i === 0 ? "rgba(255, 214, 107, 0.1)" : "var(--rp-bg-elevated)",
-                borderRadius: "var(--rp-radius-md)",
-                border: "1px solid var(--rp-border)",
+                animationDelay: `${500 + i * 100}ms`,
+                background:
+                  player.id === game.myPlayerId
+                    ? "rgba(255, 255, 255, 0.94)"
+                    : "rgba(255, 255, 255, 0.7)",
+                borderRadius: 20,
+                border:
+                  player.id === game.myPlayerId
+                    ? "1.5px solid rgba(139, 124, 255, 0.3)"
+                    : "1px solid rgba(255, 255, 255, 0.78)",
+                boxShadow:
+                  player.id === game.myPlayerId
+                    ? "0 8px 22px rgba(92, 77, 175, 0.11)"
+                    : "0 5px 16px rgba(42, 42, 74, 0.05)",
               }}
             >
-              <span className="w-8 text-center text-lg font-black" style={{ color: "var(--rp-text-secondary)" }}>
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black"
+                style={{
+                  background: i === 0 ? "#FFF2B8" : "var(--rp-bg-muted)",
+                  color: i === 0 ? "#A87513" : "var(--rp-text-secondary)",
+                }}
+              >
                 {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
               </span>
-              <span className="text-2xl">{game.getAvatar(player.id)}</span>
-              <div className="flex-1 text-left">
-                <p className="font-bold" style={{ color: "var(--rp-text)" }}>
+              <span className="text-[26px]">{game.getAvatar(player.id)}</span>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="truncate font-bold" style={{ color: "var(--rp-text)" }}>
                   {player.display_name}
                   {player.id === game.myPlayerId && (
-                    <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>(Du)</span>
+                    <span
+                      className="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase"
+                      style={{ background: "var(--rp-purple-soft)", color: "var(--rp-purple)" }}
+                    >
+                      Du
+                    </span>
                   )}
                 </p>
               </div>
-              <span className="text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
-                {player.score}
-              </span>
+              <div className="text-right">
+                <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
+                  {player.score.toLocaleString("de-DE")}
+                </span>
+                <span className="block text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--rp-text-secondary)" }}>
+                  Punkte
+                </span>
+              </div>
             </div>
           ))}
         </div>
 
         <button
           onClick={onContinue}
-          className="w-full h-[48px] rounded-[var(--rp-radius-pill)] text-base font-bold text-white transition-all active:scale-[0.97] animate-fade-in"
+          className="animate-fade-in h-[56px] w-full rounded-[var(--rp-radius-pill)] text-base font-extrabold text-white transition-all active:scale-[0.97]"
           style={{
             background: "linear-gradient(135deg, var(--rp-purple) 0%, #6B5CE7 100%)",
-            boxShadow: "0 6px 20px rgba(139, 124, 255, 0.35)",
-            animationDelay: "0.8s",
+            boxShadow: "0 10px 26px rgba(107, 92, 231, 0.3)",
+            animationDelay: "0.9s",
           }}
         >
-          Weiter
+          Belohnungen ansehen →
         </button>
       </div>
     </div>
@@ -377,98 +593,124 @@ function GuestEndScreen() {
   const game = useGame();
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
   const myRank = sortedPlayers.findIndex((p) => p.id === game.myPlayerId) + 1;
+  const myPlayer = sortedPlayers.find((p) => p.id === game.myPlayerId);
 
   return (
     <div
-      className="flex flex-1 flex-col items-center px-4 py-6 relative overflow-hidden"
+      className="relative flex flex-1 flex-col items-center overflow-y-auto px-4 pb-6"
       style={{
         background: "var(--rp-bg-hero)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       <ConfettiOverlay show={myRank === 1} />
-      <div className="w-full max-w-sm text-center relative z-10 pt-6">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={TROPHY_GOLD_512}
-          alt="Pokal"
-          width={80}
-          height={80}
-          className="w-20 h-20 mx-auto mb-3 animate-bounce-slow"
-        />
-        <h1 className="text-2xl font-extrabold mb-1" style={{ color: "var(--rp-text)" }}>
-          Runde vorbei!
-        </h1>
-        <p className="text-sm mb-6" style={{ color: "var(--rp-text-secondary)" }}>
-          Gut gespielt!
-        </p>
+      <span
+        className="pointer-events-none absolute -left-20 top-40 h-52 w-52 rounded-full opacity-35 blur-3xl"
+        style={{ background: myRank === 1 ? "#FFE9A8" : "var(--rp-purple-soft)" }}
+        aria-hidden="true"
+      />
+      <span
+        className="pointer-events-none absolute -right-20 bottom-24 h-48 w-48 rounded-full opacity-30 blur-3xl"
+        style={{ background: "var(--rp-peach-soft)" }}
+        aria-hidden="true"
+      />
 
-        {/* Guest participation card */}
-        <div
-          className="p-4 mb-5 animate-fade-in"
-          style={{
-            background: "var(--rp-bg-elevated)",
-            borderRadius: "var(--rp-radius-md)",
-            border: "1px solid var(--rp-border)",
-            animationDelay: "0.2s",
-          }}
-        >
-          <p className="text-base font-bold" style={{ color: "var(--rp-text)" }}>
-            🎉 Du hast mitgespielt
-          </p>
-          <p className="text-sm mt-1" style={{ color: "var(--rp-text-secondary)" }}>
-            Erstelle ein Konto, um XP & Hirncoins zu sammeln.
-          </p>
+      <div className="relative z-10 mt-8 w-full max-w-sm text-center">
+        <FinalHero
+          rank={Math.max(myRank, 1)}
+          playerCount={sortedPlayers.length}
+          score={myPlayer?.score ?? 0}
+          avatar={myPlayer ? game.getAvatar(myPlayer.id) : "🎯"}
+        />
+
+        <div className="mb-2 flex items-center justify-between px-1">
+          <h2 className="text-sm font-extrabold" style={{ color: "var(--rp-text)" }}>
+            Endstand
+          </h2>
+          <span className="text-xs font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+            Als Gast gespielt
+          </span>
         </div>
 
         {/* Scoreboard */}
-        <div className="space-y-2 mb-5">
+        <div className="mb-5 space-y-2">
           {sortedPlayers.map((player, i) => (
             <div
               key={player.id}
-              className="flex items-center gap-3 px-4 py-3 animate-fade-in"
+              className="animate-fade-in flex items-center gap-3 px-3.5 py-3"
               style={{
-                animationDelay: `${i * 150 + 300}ms`,
-                background: i === 0 ? "rgba(255, 214, 107, 0.1)" : "var(--rp-bg-elevated)",
-                borderRadius: "var(--rp-radius-md)",
-                border: "1px solid var(--rp-border)",
+                animationDelay: `${500 + i * 100}ms`,
+                background:
+                  player.id === game.myPlayerId
+                    ? "rgba(255, 255, 255, 0.94)"
+                    : "rgba(255, 255, 255, 0.7)",
+                borderRadius: 20,
+                border:
+                  player.id === game.myPlayerId
+                    ? "1.5px solid rgba(139, 124, 255, 0.3)"
+                    : "1px solid rgba(255, 255, 255, 0.78)",
+                boxShadow:
+                  player.id === game.myPlayerId
+                    ? "0 8px 22px rgba(92, 77, 175, 0.11)"
+                    : "0 5px 16px rgba(42, 42, 74, 0.05)",
               }}
             >
-              <span className="w-8 text-center text-lg font-black" style={{ color: "var(--rp-text-secondary)" }}>
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black"
+                style={{
+                  background: i === 0 ? "#FFF2B8" : "var(--rp-bg-muted)",
+                  color: i === 0 ? "#A87513" : "var(--rp-text-secondary)",
+                }}
+              >
                 {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
               </span>
-              <span className="text-2xl">{game.getAvatar(player.id)}</span>
-              <div className="flex-1 text-left">
-                <p className="font-bold" style={{ color: "var(--rp-text)" }}>
+              <span className="text-[26px]">{game.getAvatar(player.id)}</span>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="truncate font-bold" style={{ color: "var(--rp-text)" }}>
                   {player.display_name}
                   {player.id === game.myPlayerId && (
-                    <span className="ml-1.5 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>(Du)</span>
+                    <span
+                      className="ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase"
+                      style={{ background: "var(--rp-purple-soft)", color: "var(--rp-purple)" }}
+                    >
+                      Du
+                    </span>
                   )}
                 </p>
               </div>
-              <span className="text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
-                {player.score}
-              </span>
+              <div className="text-right">
+                <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
+                  {player.score.toLocaleString("de-DE")}
+                </span>
+                <span className="block text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--rp-text-secondary)" }}>
+                  Punkte
+                </span>
+              </div>
             </div>
           ))}
         </div>
 
         {/* Guest auth upsell — both CTAs */}
         <div
-          className="p-4 mb-5 text-center animate-fade-in"
+          className="animate-fade-in mb-5 overflow-hidden p-4 text-left"
           style={{
-            background: "var(--rp-level-up-bg)",
-            borderRadius: "var(--rp-radius-md)",
-            animationDelay: "0.6s",
+            background: "linear-gradient(135deg, rgba(237, 230, 255, 0.95), rgba(255, 240, 232, 0.95))",
+            borderRadius: 22,
+            border: "1px solid rgba(139, 124, 255, 0.14)",
+            boxShadow: "0 10px 26px rgba(76, 60, 130, 0.08)",
+            animationDelay: "0.8s",
           }}
         >
-          <p className="text-sm font-semibold mb-3" style={{ color: "var(--rp-level)" }}>
-            Melde dich an, um XP & Hirncoins zu behalten
+          <p className="text-base font-black" style={{ color: "var(--rp-text)" }}>
+            Dein Fortschritt wartet ✨
           </p>
-          <div className="flex gap-3 justify-center">
+          <p className="mb-3 mt-1 text-sm leading-relaxed" style={{ color: "var(--rp-text-secondary)" }}>
+            Erstelle ein Konto und sammle ab der nächsten Runde XP, Hirncoins und Erfolge.
+          </p>
+          <div className="flex gap-2.5">
             <a
               href="/auth/signup"
-              className="inline-flex items-center justify-center h-[40px] px-5 rounded-[var(--rp-radius-pill)] text-sm font-bold text-white transition-all active:scale-[0.97]"
+              className="inline-flex h-[44px] flex-1 items-center justify-center rounded-[var(--rp-radius-pill)] px-4 text-sm font-extrabold text-white transition-all active:scale-[0.97]"
               style={{
                 background: "linear-gradient(135deg, var(--rp-purple) 0%, #6B5CE7 100%)",
                 boxShadow: "0 4px 12px rgba(139, 124, 255, 0.3)",
@@ -478,11 +720,11 @@ function GuestEndScreen() {
             </a>
             <a
               href="/auth/login"
-              className="inline-flex items-center justify-center h-[40px] px-5 rounded-[var(--rp-radius-pill)] text-sm font-bold transition-all active:scale-[0.97]"
+              className="inline-flex h-[44px] items-center justify-center rounded-[var(--rp-radius-pill)] px-4 text-sm font-bold transition-all active:scale-[0.97]"
               style={{
-                border: "2px solid var(--rp-border)",
+                border: "1.5px solid rgba(139, 124, 255, 0.2)",
                 color: "var(--rp-text)",
-                background: "var(--rp-bg-elevated)",
+                background: "rgba(255, 255, 255, 0.78)",
               }}
             >
               Anmelden

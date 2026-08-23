@@ -128,6 +128,32 @@ Display name: **Hirncoins**. The `rp_currency_coin_*` files from Tranche 1 remai
 
 > Tranche 1 `party_host` and `streak_3` assets remain in place.
 
+## Gameplay category and mode art
+
+All gameplay illustrations are 512×512 RGBA source renders, displayed at up
+to 256 CSS pixels.
+
+### Theme categories
+
+| Theme slug | File |
+|------------|------|
+| `gaming` | `rp_theme_gaming_256.png` |
+| `geschichte` | `rp_theme_geschichte_256.png` |
+| `wissenschaft-natur` | `rp_theme_wissenschaft_natur_256.png` |
+| `sport` | `rp_theme_sport_256.png` |
+| `musik` | `rp_theme_musik_256.png` |
+| `film-serie` | `rp_theme_film_serie_256.png` |
+| `reise-orte` | `rp_theme_reise_orte_256.png` |
+| `alltag-peinlich` | `rp_theme_alltag_peinlich_256.png` |
+
+### Game modes
+
+| Mode | File |
+|------|------|
+| `number_guess` | `rp_mode_number_guess_256.png` |
+| `pick_correct` | `rp_mode_pick_correct_256.png` |
+| `order_it` | `rp_mode_order_it_256.png` |
+
 ## Notes
 
 - All assets are delivered by the Asset team — do NOT generate or invent replacements.

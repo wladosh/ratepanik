@@ -1,0 +1,210 @@
+.content {
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+.loading {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  color: var(--rp-text-secondary);
+  font-size: 18px;
+  font-weight: 650;
+  animation: loadingPulse 1.4s ease-in-out infinite;
+}
+
+.stageEmoji {
+  display: flex;
+  width: 92px;
+  height: 92px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.76);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.52);
+  box-shadow: 0 12px 22px rgba(132, 47, 91, 0.13);
+  font-size: 54px;
+  transform: rotate(3deg);
+}
+
+.statementList {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.instruction {
+  margin: 0 4px 1px;
+  color: var(--rp-text-secondary);
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+}
+
+.statementCard {
+  display: flex;
+  width: 100%;
+  min-height: 62px;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  border: 1.5px solid rgba(255, 122, 182, 0.17);
+  border-radius: 19px;
+  color: var(--rp-text);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 16px rgba(84, 53, 76, 0.08);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  touch-action: manipulation;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease,
+    background-color 160ms ease;
+}
+
+.statementCard:hover {
+  border-color: rgba(255, 122, 182, 0.42);
+  background: rgba(255, 249, 252, 0.98);
+  box-shadow: 0 9px 21px rgba(118, 47, 82, 0.12);
+  transform: translateY(-1px);
+}
+
+.statementCard:active {
+  transform: scale(0.985);
+}
+
+.statementCard:focus-visible {
+  outline: 3px solid var(--rp-focus-ring);
+  outline-offset: 3px;
+}
+
+.statementCard[aria-pressed="true"] {
+  border-color: var(--rp-pink);
+  background: rgba(255, 235, 245, 0.98);
+  box-shadow:
+    0 0 0 3px rgba(255, 122, 182, 0.14),
+    0 10px 23px rgba(118, 47, 82, 0.13);
+}
+
+.statementBadge {
+  display: flex;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 122, 182, 0.16);
+  border-radius: 14px;
+  color: #a63b70;
+  background: rgba(255, 122, 182, 0.13);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.statementText {
+  min-width: 0;
+  flex: 1;
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.pickCue {
+  flex: none;
+  padding: 5px 8px;
+  border-radius: var(--rp-radius-pill);
+  color: #9a3f6c;
+  background: rgba(255, 122, 182, 0.09);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.waitingPanel {
+  border-color: rgba(255, 122, 182, 0.17);
+  background:
+    radial-gradient(circle at 50% 2%, rgba(255, 255, 255, 0.9), transparent 31%),
+    linear-gradient(145deg, rgba(255, 247, 251, 0.94), rgba(244, 237, 255, 0.91));
+}
+
+.waitingEmoji {
+  display: flex;
+  width: 74px;
+  height: 74px;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.88);
+  border-radius: 26px;
+  background: rgba(255, 226, 239, 0.72);
+  box-shadow: 0 10px 20px rgba(112, 55, 87, 0.11);
+  font-size: 38px;
+}
+
+.selectedAnswer {
+  display: inline-flex;
+  min-width: 26px;
+  min-height: 26px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  color: #fff;
+  background: #b83f79;
+  font-size: 12px;
+}
+
+.selectedStatement {
+  display: block;
+  max-width: 320px;
+  margin: 8px auto 0;
+  color: var(--rp-text);
+  font-weight: 750;
+}
+
+@keyframes loadingPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 390px) {
+  .statementCard {
+    min-height: 58px;
+    gap: 10px;
+    padding: 9px 11px;
+  }
+
+  .statementBadge {
+    width: 36px;
+    height: 36px;
+  }
+
+  .pickCue {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading {
+    animation: none;
+  }
+
+  .stageEmoji,
+  .statementCard {
+    transition: none;
+    transform: none;
+  }
+
+  .statementCard:hover,
+  .statementCard:active {
+    transform: none;
+  }
+}

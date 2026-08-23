@@ -37,7 +37,7 @@ export const DEFAULT_ROOM_SETTINGS: RoomSettings = {
   blocks: 4,
   questionsPerBlock: 2,
   timerEnabled: true,
-  timerSeconds: 8,
+  timerSeconds: 10,
   revealHoldMs: 1000,
   maxPlayers: 4,
   allowGuests: true,
@@ -82,7 +82,7 @@ export function parseRoomSettings(raw: unknown): RoomSettings {
     blocks: asUnion(src.blocks, [1, 2, 3, 4] as const, 4),
     questionsPerBlock: asUnion(src.questionsPerBlock, [1, 2, 3, 4] as const, 2),
     timerEnabled: true,
-    timerSeconds: asUnion(src.timerSeconds, TIMER_SECONDS_OPTIONS, 8),
+    timerSeconds: asUnion(src.timerSeconds, TIMER_SECONDS_OPTIONS, 10),
     revealHoldMs: asUnion(src.revealHoldMs, REVEAL_HOLD_OPTIONS, 1000),
     maxPlayers: asUnion(src.maxPlayers, [2, 3, 4] as const, 4),
     allowGuests: src.allowGuests !== false,
@@ -127,7 +127,7 @@ export function timerSecondsForBlock(settings: RoomSettings): number {
 
 /**
  * Duration for the Match-Timer bar. Always on — same bar for everyone via started_at.
- * `timer_seconds === 0` or missing on a legacy block falls back to the 8s default.
+ * `timer_seconds === 0` or missing on a legacy block falls back to the 10s default.
  */
 export function questionTimerMsFromBlock(
   timerSeconds: number | null | undefined,

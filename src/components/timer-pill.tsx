@@ -1,64 +1,78 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import styles from "./match-play-foundation.module.css";
+import { useSharedCountdown } from "./use-shared-countdown";
 
-interface TimerPillProps {
+export interface TimerPillProps {
   timerSeconds?: number | null;
   startedAt?: string | null;
+  /** Prefer this absolute server-derived deadline when already available. */
+  deadlineMs?: number | null;
+  ariaLabel?: string;
+  urgentAtSeconds?: number;
+  hideWhenExpired?: boolean;
+  className?: string;
 }
 
-export function TimerPill({ timerSeconds, startedAt }: TimerPillProps) {
-  const [remaining, setRemaining] = useState<number | null>(null);
+export function TimerPill({
+  timerSeconds,
+  startedAt,
+  deadlineMs,
+  ariaLabel = "Verbleibende Zeit",
+  urgentAtSeconds = 5,
+  hideWhenExpired = false,
+  className,
+}: TimerPillProps) {
+  const durationMs =
+    timerSeconds != null && Number.isFinite(timerSeconds)
+      ? Math.max(0, timerSeconds * 1000)
+      : 0;
+  const startedAtMs = startedAt ? Date.parse(startedAt) : Number.NaN;
+  const resolvedDeadline =
+    deadlineMs != null && Number.isFinite(deadlineMs)
+      ? deadlineMs
+      : durationMs > 0 && Number.isFinite(startedAtMs)
+        ? startedAtMs + durationMs
+        : null;
+  const countdown = useSharedCountdown(
+    resolvedDeadline,
+    Math.max(1, durationMs),
+  );
 
-  useEffect(() => {
-    if (!timerSeconds || timerSeconds <= 0 || !startedAt) {
-      setRemaining(null);
-      return;
-    }
+  if (resolvedDeadline == null || (hideWhenExpired && countdown.expired)) {
+    return null;
+  }
 
-    function tick() {
-      const elapsed = Math.floor(
-        (Date.now() - new Date(startedAt!).getTime()) / 1000
-      );
-      setRemaining(Math.max(0, timerSeconds! - elapsed));
-    }
-
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, [timerSeconds, startedAt]);
-
-  if (remaining === null) return null;
-
-  const urgent = remaining <= 5;
+  const urgent = countdown.remainingSeconds <= urgentAtSeconds;
 
   return (
     <span
-      className="rp-timer-pill"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        height: 32,
-        padding: "0 12px",
-        borderRadius: "var(--rp-radius-pill)",
-        fontSize: 13,
-        fontWeight: 700,
-        fontVariantNumeric: "tabular-nums",
-        color: urgent ? "#fff" : "var(--rp-peach-deep)",
-        background: urgent ? "var(--rp-danger)" : "rgba(245, 107, 82, 0.10)",
-        boxShadow: urgent
-          ? "0 0 0 3px rgba(255, 92, 122, 0.25)"
-          : "0 2px 8px rgba(42, 42, 74, 0.06)",
-        transition: "background 0.3s, color 0.3s, box-shadow 0.3s",
-        animation: urgent ? "timer-pulse 1s ease-in-out infinite" : undefined,
-      }}
+      className={[
+        styles.timerPill,
+        urgent ? styles.timerPillUrgent : null,
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      role="timer"
+      aria-live="off"
+      aria-label={`${ariaLabel}: ${countdown.remainingSeconds} Sekunden`}
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
       </svg>
-      {remaining}s
+      <span aria-hidden="true">{countdown.remainingSeconds}s</span>
     </span>
   );
 }

@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import type { CSSProperties } from "react";
 import { QUESTION_TIMER_MS } from "@/lib/game-store";
+import styles from "./match-play-foundation.module.css";
+import { useSharedCountdown } from "./use-shared-countdown";
 
-interface QuestionTimerBarProps {
+type TimerFillStyle = CSSProperties & {
+  "--timer-progress": number;
+};
+
+export interface QuestionTimerBarProps {
   /** Server-driven deadline (epoch ms) — identical for every client. */
   deadlineMs: number;
   durationMs?: number;
+  ariaLabel?: string;
+  className?: string;
 }
 
 /**
@@ -16,51 +24,41 @@ interface QuestionTimerBarProps {
  * `match_blocks.started_at` + `QUESTION_TIMER_MS`, so the bar position
  * is consistent across the room — no independent local clocks.
  *
- * The CSS animation uses a negative `animationDelay` equal to already-elapsed
- * time so late-joining clients see the correct fill width instantly.
- * Remount via `key` when the round/block changes to reset.
+ * The fill is always derived from the absolute deadline, so delayed browser
+ * timers and late joins cannot drift from the room's shared clock.
  */
 export function QuestionTimerBar({
   deadlineMs,
   durationMs = QUESTION_TIMER_MS,
+  ariaLabel = "Verbleibende Antwortzeit",
+  className,
 }: QuestionTimerBarProps) {
-  // Capture remaining time once on mount — stable across re-renders.
-  // Parent should change `key` when the round resets.
-  const [initialRemaining] = useState(() =>
-    Math.max(0, deadlineMs - Date.now()),
-  );
+  const countdown = useSharedCountdown(deadlineMs, durationMs);
 
-  if (initialRemaining <= 0) return null;
+  if (countdown.expired) return null;
 
-  const elapsed = durationMs - initialRemaining;
-
+  const urgent = countdown.progress <= 0.2;
   return (
     <div
+      className={[styles.timerTrack, className].filter(Boolean).join(" ")}
       role="progressbar"
       aria-valuemin={0}
       aria-valuemax={durationMs}
-      aria-valuenow={Math.round(initialRemaining)}
-      aria-label="Verbleibende Zeit"
-      style={{
-        width: "100%",
-        height: 6,
-        borderRadius: "var(--rp-radius-pill)",
-        background: "var(--rp-bg-muted)",
-        overflow: "hidden",
-        marginTop: 8,
-        marginBottom: 12,
-      }}
+      aria-valuenow={Math.round(countdown.remainingMs)}
+      aria-valuetext={`${countdown.remainingSeconds} Sekunden verbleibend`}
+      aria-label={ariaLabel}
     >
       <div
-        style={{
-          height: "100%",
-          borderRadius: "var(--rp-radius-pill)",
-          background: "var(--rp-peach)",
-          transformOrigin: "left center",
-          animation: `rp-timer-shrink ${durationMs}ms linear forwards`,
-          animationDelay: `-${elapsed}ms`,
-          willChange: "transform",
-        }}
+        className={[
+          styles.timerFill,
+          urgent ? styles.timerFillUrgent : null,
+        ]
+          .filter(Boolean)
+          .join(" ")}
+        style={
+          { "--timer-progress": countdown.progress } as TimerFillStyle
+        }
+        aria-hidden="true"
       />
     </div>
   );
