@@ -21,8 +21,10 @@ interface AuthContextValue {
   profile: Profile | null;
   profileLoading: boolean;
   needsUsername: boolean;
+  needsAvatarOnboarding: boolean;
   signOut: () => Promise<void>;
   refetchProfile: () => Promise<void>;
+  markAvatarOnboardingDone: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -38,6 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [avatarOnboardingDismissed, setAvatarOnboardingDismissed] = useState(false);
   const supabase = createBrowserSupabase();
 
   const fetchProfile = useCallback(
@@ -94,6 +97,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const canHost = isAuthenticated && !isGuest;
   const needsUsername = !profileLoading && !!user && !isGuest && !profile;
 
+  const needsAvatarOnboarding =
+    !profileLoading &&
+    !!user &&
+    !isGuest &&
+    !!profile &&
+    !avatarOnboardingDismissed &&
+    (typeof window !== "undefined" &&
+      !localStorage.getItem(`rp_avatar_onboarding_${user.id}`));
+
+  const markAvatarOnboardingDone = useCallback(() => {
+    setAvatarOnboardingDismissed(true);
+  }, []);
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUser(null);
@@ -111,8 +127,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         profileLoading,
         needsUsername,
+        needsAvatarOnboarding,
         signOut,
         refetchProfile: fetchProfile,
+        markAvatarOnboardingDone,
       }}
     >
       {children}
