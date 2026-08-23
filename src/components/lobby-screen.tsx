@@ -84,7 +84,7 @@ export function LobbyScreen() {
         {/* Back button */}
         <button
           onClick={() => void game.leaveRoom()}
-          className="self-start mt-2 mb-2 text-sm font-medium transition-colors"
+          className="self-start inline-flex items-center min-h-11 min-w-11 -ml-2 px-2 mt-1 mb-1 text-sm font-medium transition-colors"
           style={{ color: "var(--rp-text-secondary)" }}
         >
           &larr; Verlassen
