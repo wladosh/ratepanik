@@ -3,7 +3,9 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useGame } from "@/lib/game-context";
 import { TimerPill } from "./timer-pill";
+import { QuestionTimerBar } from "./question-timer-bar";
 import { WaitingFooter } from "./waiting-footer";
+import { QUESTION_TIMER_MS } from "@/lib/game-store";
 import type { NumberGuessPayload } from "@/lib/content";
 
 export function NumberGuessScreen() {
@@ -98,11 +100,12 @@ export function NumberGuessScreen() {
 
         {/* Question card */}
         <div
-          className="p-5 mb-5"
+          className="p-5"
           style={{
             background: "var(--rp-bg-elevated)",
             borderRadius: "var(--rp-radius-lg)",
             boxShadow: "var(--rp-shadow-card)",
+            marginBottom: (!hasAnswered && !submitted && game.questionDeadlineMs != null) ? 0 : 20,
           }}
         >
           <h2
@@ -122,6 +125,15 @@ export function NumberGuessScreen() {
             </p>
           )}
         </div>
+
+        {/* Countdown bar — hidden once submitted / answered */}
+        {!hasAnswered && !submitted && game.questionDeadlineMs != null && (
+          <QuestionTimerBar
+            key={`${game.currentBlock!.id}:${game.currentBlock!.current_round}`}
+            deadlineMs={game.questionDeadlineMs}
+            durationMs={QUESTION_TIMER_MS}
+          />
+        )}
 
         {/* Input or waiting state */}
         {!hasAnswered && !submitted ? (

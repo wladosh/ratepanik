@@ -29,6 +29,7 @@ import {
   generateBlockModes,
   calculateNumberGuessPoints,
   calculatePickCorrectPoints,
+  QUESTION_TIMER_MS,
 } from "./game-store";
 import { useAuth } from "./auth-context";
 import { useAchievementGrant } from "./use-achievement-grant";
@@ -84,6 +85,9 @@ interface GameContextValue {
   // theme picker
   themePickerPlayerId: string | null;
   isThemePicker: boolean;
+
+  // Question timer — shared deadline derived from server timestamp
+  questionDeadlineMs: number | null;
 
   // Actions
   createRoom: (hostName: string, hostUserId: string) => Promise<void>;
@@ -249,6 +253,18 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
     return "playing_loading";
   }, [room, currentBlock, roundAnswers, players.length, myPlayerId, correctTurnsCount, restoring, revealHoldActive]);
+
+  // Canonical shared deadline — every client computes the same value from the
+  // same DB-synced started_at timestamp.  No independent local clocks.
+  const questionDeadlineMs = useMemo(() => {
+    if (!currentBlock?.started_at) return null;
+    const isQuestionPhase =
+      phase === "number_guess" ||
+      phase === "number_guess_waiting" ||
+      phase === "pick_correct";
+    if (!isQuestionPhase) return null;
+    return new Date(currentBlock.started_at).getTime() + QUESTION_TIMER_MS;
+  }, [currentBlock?.started_at, phase]);
 
   const getAvatar = useCallback(
     (playerId: string) => {
@@ -522,6 +538,186 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         .eq("id", currentBlock.id);
     })();
   }, [isHost, currentBlock, correctTurnsCount, blockTurns, players, room, revealHoldActive]);
+
+  // --- host-driven question timer expiry ---
+
+  const handleExpiryRef = useRef<() => Promise<void>>(async () => {});
+  handleExpiryRef.current = async () => {
+    if (!room || !currentBlock || !isHost) return;
+
+    // Re-fetch block to guard against stale/double execution.
+    const { data: block } = await supabase
+      .from("match_blocks")
+      .select()
+      .eq("id", currentBlock.id)
+      .single();
+    if (!block || block.is_complete) return;
+
+    if (block.mode === "number_guess") {
+      if (block.current_round !== currentBlock.current_round) return;
+
+      const { data: currentPlayers } = await supabase
+        .from("players").select().eq("room_id", room.id);
+      if (!currentPlayers?.length) return;
+
+      const { data: answers } = await supabase
+        .from("answers").select()
+        .eq("room_id", room.id)
+        .eq("block_index", block.block_index)
+        .eq("round_index", block.current_round);
+
+      const currentAnswers = answers || [];
+
+      const promptForRound = prompts[block.current_round];
+      const correctAnswer = (promptForRound?.payload as { answer: number })?.answer;
+
+      if (correctAnswer !== undefined) {
+        const sorted = currentAnswers
+          .filter((a) => a.numeric_answer != null)
+          .map((a) => ({
+            ...a,
+            dist: Math.abs(a.numeric_answer! - correctAnswer),
+          }))
+          .sort((a, b) => a.dist - b.dist);
+
+        for (let i = 0; i < sorted.length; i++) {
+          const a = sorted[i];
+          const rank = i + 1;
+          const pts = calculateNumberGuessPoints(rank, currentPlayers.length);
+
+          await supabase
+            .from("answers")
+            .update({ distance: a.dist, rank, points_awarded: pts })
+            .eq("id", a.id);
+
+          const player = currentPlayers.find((p) => p.id === a.player_id);
+          if (player) {
+            await supabase
+              .from("players")
+              .update({ score: player.score + pts })
+              .eq("id", player.id);
+          }
+        }
+      }
+
+      const nextRound = block.current_round + 1;
+      if (nextRound < block.rounds_total) {
+        await supabase
+          .from("match_blocks")
+          .update({
+            current_round: nextRound,
+            started_at: new Date().toISOString(),
+          })
+          .eq("id", block.id);
+      } else {
+        const { data: allBlockAns } = await supabase
+          .from("answers").select()
+          .eq("room_id", room.id)
+          .eq("block_index", block.block_index);
+
+        for (const player of currentPlayers) {
+          const blockPts = (allBlockAns || [])
+            .filter((a) => a.player_id === player.id)
+            .reduce((sum, a) => sum + (a.points_awarded || 0), 0);
+
+          await supabase.from("match_scores").upsert(
+            {
+              room_id: room.id,
+              player_id: player.id,
+              block_index: block.block_index,
+              total_points: blockPts,
+            },
+            { onConflict: "room_id,player_id,block_index" },
+          );
+        }
+
+        await supabase
+          .from("match_blocks")
+          .update({ is_complete: true, finished_at: new Date().toISOString() })
+          .eq("id", block.id);
+      }
+    } else if (block.mode === "pick_correct") {
+      if (pickCompleteRef.current === block.id) return;
+      pickCompleteRef.current = block.id;
+
+      const { data: currentPlayers } = await supabase
+        .from("players").select().eq("room_id", room.id);
+      if (!currentPlayers?.length) return;
+
+      const { data: currentTurns } = await supabase
+        .from("pick_correct_turns").select()
+        .eq("room_id", room.id)
+        .eq("block_index", block.block_index);
+
+      const playerCorrects = new Map<string, number>();
+      for (const t of currentTurns || []) {
+        if (t.is_correct) {
+          playerCorrects.set(
+            t.player_id,
+            (playerCorrects.get(t.player_id) ?? 0) + 1,
+          );
+        }
+      }
+
+      for (const player of currentPlayers) {
+        const found = playerCorrects.get(player.id) ?? 0;
+        const pts = calculatePickCorrectPoints(found);
+
+        await supabase.from("match_scores").upsert(
+          {
+            room_id: room.id,
+            player_id: player.id,
+            block_index: block.block_index,
+            total_points: pts,
+          },
+          { onConflict: "room_id,player_id,block_index" },
+        );
+
+        await supabase
+          .from("players")
+          .update({ score: player.score + pts })
+          .eq("id", player.id);
+      }
+
+      await supabase
+        .from("match_blocks")
+        .update({ is_complete: true, finished_at: new Date().toISOString() })
+        .eq("id", block.id);
+    }
+  };
+
+  useEffect(() => {
+    if (!isHost) return;
+    if (!currentBlock?.started_at || currentBlock.is_complete) return;
+
+    const isQuestionPhase =
+      phase === "number_guess" ||
+      phase === "number_guess_waiting" ||
+      phase === "pick_correct";
+    if (!isQuestionPhase) return;
+
+    const endMs =
+      new Date(currentBlock.started_at).getTime() + QUESTION_TIMER_MS;
+    const remaining = endMs - Date.now();
+
+    if (remaining <= 0) {
+      void handleExpiryRef.current?.();
+      return;
+    }
+
+    const timer = setTimeout(
+      () => void handleExpiryRef.current?.(),
+      remaining,
+    );
+    return () => clearTimeout(timer);
+  }, [
+    isHost,
+    currentBlock?.started_at,
+    currentBlock?.id,
+    currentBlock?.current_round,
+    currentBlock?.is_complete,
+    phase,
+  ]);
 
   // --- session persistence ---
 
@@ -1028,7 +1224,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     if (nextRound < currentBlock.rounds_total) {
       await supabase
         .from("match_blocks")
-        .update({ current_round: nextRound })
+        .update({
+          current_round: nextRound,
+          started_at: new Date().toISOString(),
+        })
         .eq("id", currentBlock.id);
     } else {
       // Block complete
@@ -1209,6 +1408,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     isMyTurn,
     themePickerPlayerId,
     isThemePicker,
+    questionDeadlineMs,
     createRoom,
     joinRoom,
     leaveRoom,

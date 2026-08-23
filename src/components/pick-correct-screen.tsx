@@ -3,7 +3,9 @@
 import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
 import { TimerPill } from "./timer-pill";
+import { QuestionTimerBar } from "./question-timer-bar";
 import { WaitingFooter } from "./waiting-footer";
+import { QUESTION_TIMER_MS } from "@/lib/game-store";
 import type { PickCorrectPayload } from "@/lib/content";
 
 const ANSWER_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -112,11 +114,12 @@ export function PickCorrectScreen() {
 
         {/* Question card */}
         <div
-          className="p-5 mb-4"
+          className="p-5"
           style={{
             background: "var(--rp-bg-elevated)",
             borderRadius: "var(--rp-radius-lg)",
             boxShadow: "var(--rp-shadow-card)",
+            marginBottom: game.questionDeadlineMs != null ? 0 : 16,
           }}
         >
           <h2
@@ -126,6 +129,15 @@ export function PickCorrectScreen() {
             {prompt.prompt}
           </h2>
         </div>
+
+        {/* Countdown bar — visible for the entire pick_correct round */}
+        {game.questionDeadlineMs != null && (
+          <QuestionTimerBar
+            key={game.currentBlock!.id}
+            deadlineMs={game.questionDeadlineMs}
+            durationMs={QUESTION_TIMER_MS}
+          />
+        )}
 
         {/* Answer buttons */}
         <div className="space-y-2.5 mb-4 flex-1">

@@ -30,6 +30,7 @@
   --rp-radius-md: 20px;
   --rp-radius-lg: 28px;
   --rp-radius-pill: 999px;
+  --rp-bg-muted: #F3EEF8;
   --rp-shadow-card: 0 10px 30px rgba(42, 42, 74, 0.08);
 
   --rp-xp: #5B9DFF;
@@ -181,6 +182,13 @@
   50% {
     box-shadow: 0 0 0 6px rgba(255, 92, 122, 0.15);
   }
+}
+
+@keyframes rp-timer-shrink {
+  0%     { transform: scaleX(1);   background-color: var(--rp-peach); }
+  79.9%  { background-color: var(--rp-peach); }
+  80%    { transform: scaleX(0.2); background-color: var(--rp-peach-deep); }
+  100%   { transform: scaleX(0);   background-color: var(--rp-peach-deep); }
 }
 
 @keyframes slide-up {
