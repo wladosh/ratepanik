@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { generateGuestName } from "@/lib/guest-name";
 import { xpProgressInLevel } from "@/lib/progression";
 import { avatarSrc, HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
+import { HomePanel, type HomePanelId } from "@/components/home-panels";
 
 function GearIcon({ className }: { className?: string }) {
   return (
@@ -48,6 +49,7 @@ export function HomeScreen() {
   const [roomCode, setRoomCode] = useState(initialJoinCode);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [panel, setPanel] = useState<HomePanelId | null>(null);
 
   const xpProgress = useMemo(() => {
     if (!profile) return null;
@@ -80,7 +82,7 @@ export function HomeScreen() {
   }
 
   function handleToast() {
-    showToast("Kommt bald!");
+    showToast("Bald");
   }
 
   if (authLoading) {
@@ -94,6 +96,10 @@ export function HomeScreen() {
         </div>
       </div>
     );
+  }
+
+  if (panel) {
+    return <HomePanel id={panel} onBack={() => setPanel(null)} />;
   }
 
   return (
@@ -120,7 +126,7 @@ export function HomeScreen() {
           <div className="flex items-center gap-3">
             {/* Avatar + Level badge */}
             <button
-              onClick={() => showToast("Profil kommt bald!")}
+              onClick={() => showToast("Bald")}
               className="relative shrink-0"
               aria-label="Profil"
             >
@@ -176,7 +182,7 @@ export function HomeScreen() {
                 {/* Hirncoin pill */}
                 {!isGuest && profile && (
                   <button
-                    onClick={() => showToast("Shop kommt bald")}
+                    onClick={() => setPanel("shop")}
                     className="flex items-center gap-1.5 shrink-0"
                     style={{
                       height: 32,
@@ -208,7 +214,8 @@ export function HomeScreen() {
                   onClick={signOut}
                   className="flex items-center justify-center rounded-full transition-colors hover:bg-black/5 shrink-0"
                   style={{ width: 40, height: 40 }}
-                  aria-label="Einstellungen"
+                  aria-label="Abmelden"
+                  title="Abmelden"
                 >
                   <GearIcon className="w-5 h-5 text-[var(--rp-text-secondary)]" />
                 </button>
@@ -393,7 +400,7 @@ export function HomeScreen() {
         {/* ── 2×2 feature grid ────────────────────── */}
         <div className="grid grid-cols-2 gap-3 mb-3">
           <button
-            onClick={handleToast}
+            onClick={() => setPanel("friends")}
             className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
             style={{
               background: "linear-gradient(135deg, #D6ECFF 0%, #C8E0FF 100%)",
@@ -407,7 +414,7 @@ export function HomeScreen() {
             </div>
             <div className="text-left">
               <span className="text-sm font-bold text-[var(--rp-text)]">Freunde</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Sieh, wer online ist<br />und lade ein</p>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Bald</p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M9 5l7 7-7 7" />
@@ -415,7 +422,7 @@ export function HomeScreen() {
           </button>
 
           <button
-            onClick={handleToast}
+            onClick={() => setPanel("stats")}
             className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
             style={{
               background: "linear-gradient(135deg, #EDE6FF 0%, #DDD4FF 100%)",
@@ -428,8 +435,8 @@ export function HomeScreen() {
               </svg>
             </div>
             <div className="text-left">
-              <span className="text-sm font-bold text-[var(--rp-text)]">Stats</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Deine Punkte<br />im Überblick</p>
+              <span className="text-sm font-bold text-[var(--rp-text)]">Statistik</span>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">XP, Level, Spiele</p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M9 5l7 7-7 7" />
@@ -437,7 +444,7 @@ export function HomeScreen() {
           </button>
 
           <button
-            onClick={handleToast}
+            onClick={() => setPanel("achievements")}
             className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
             style={{
               background: "linear-gradient(135deg, #FFF5D6 0%, #FFEDB8 100%)",
@@ -450,7 +457,7 @@ export function HomeScreen() {
               </svg>
             </div>
             <div className="text-left">
-              <span className="text-sm font-bold text-[var(--rp-text)]">Achievements</span>
+              <span className="text-sm font-bold text-[var(--rp-text)]">Erfolge</span>
               <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Deine Erfolge<br />und Abzeichen</p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -459,7 +466,7 @@ export function HomeScreen() {
           </button>
 
           <button
-            onClick={handleToast}
+            onClick={() => setPanel("shop")}
             className="flex items-center gap-3 p-3.5 transition-all active:scale-[0.97]"
             style={{
               background: "linear-gradient(135deg, #D6FFF0 0%, #C0F5E0 100%)",
@@ -473,7 +480,7 @@ export function HomeScreen() {
             </div>
             <div className="text-left">
               <span className="text-sm font-bold text-[var(--rp-text)]">Shop</span>
-              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Coole Items<br />entdecken</p>
+              <p className="text-[10px] text-[var(--rp-text-secondary)] leading-tight">Bald</p>
             </div>
             <svg viewBox="0 0 24 24" className="w-4 h-4 text-[var(--rp-text-secondary)] ml-auto shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
               <path d="M9 5l7 7-7 7" />
@@ -482,28 +489,32 @@ export function HomeScreen() {
         </div>
 
         {/* ── Streak card ─────────────────────────── */}
-        <div
-          className="flex items-center gap-3 p-4 mb-4"
-          style={{
-            background: "var(--rp-bg-elevated)",
-            borderRadius: "var(--rp-radius-md)",
-            boxShadow: "var(--rp-shadow-card)",
-          }}
-        >
-          <span className="text-2xl" role="img" aria-label="Feuer">🔥</span>
-          <div className="flex-1">
-            <h4 className="text-sm font-bold text-[var(--rp-text)]">Streak</h4>
-            <p className="text-[10px] text-[var(--rp-text-secondary)]">
-              Spiele an 3 Tagen in Folge, um deine Streak zu starten!
-            </p>
-          </div>
-          <span
-            className="w-9 h-9 flex items-center justify-center rounded-full text-base font-bold"
-            style={{ background: "#FFF0F0", color: "var(--rp-danger)" }}
+        {!isGuest && (
+          <div
+            className="flex items-center gap-3 p-4 mb-4"
+            style={{
+              background: "var(--rp-bg-elevated)",
+              borderRadius: "var(--rp-radius-md)",
+              boxShadow: "var(--rp-shadow-card)",
+            }}
           >
-            0
-          </span>
-        </div>
+            <span className="text-2xl" role="img" aria-label="Feuer">🔥</span>
+            <div className="flex-1">
+              <h4 className="text-sm font-bold text-[var(--rp-text)]">Streak</h4>
+              <p className="text-[10px] text-[var(--rp-text-secondary)]">
+                {(profile?.current_streak ?? 0) >= 3
+                  ? "Kalendertage in Folge gespielt."
+                  : "Spiele an 3 Tagen in Folge für den Streak-Erfolg."}
+              </p>
+            </div>
+            <span
+              className="w-9 h-9 flex items-center justify-center rounded-full text-base font-bold"
+              style={{ background: "#FFF0F0", color: "var(--rp-danger)" }}
+            >
+              {profile?.current_streak ?? 0}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* ── Bottom nav ────────────────────────────── */}
@@ -518,7 +529,7 @@ export function HomeScreen() {
         <button className="flex flex-col items-center gap-0.5 py-1 px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_home_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
-          <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>Home</span>
+          <span className="text-[10px] font-semibold" style={{ color: "var(--rp-peach)" }}>Start</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -528,7 +539,7 @@ export function HomeScreen() {
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_play_24.svg" alt="" width={24} height={24} className="w-6 h-6 opacity-50" />
-          <span className="text-[10px] font-medium">Play</span>
+          <span className="text-[10px] font-medium">Spielen</span>
         </button>
         <button onClick={handleToast} className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]">
           {/* eslint-disable-next-line @next/next/no-img-element */}

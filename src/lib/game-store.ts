@@ -1,4 +1,4 @@
-/** Question countdown duration — default for number_guess / pick_correct / find_lie (ms). */
+/** Default question countdown when a block has no timer snapshot (legacy). */
 export const QUESTION_TIMER_MS = 5_000;
 
 /** order_it needs longer — 4-item reorder is not playable in 5s. */
@@ -7,7 +7,12 @@ export const ORDER_IT_TIMER_MS = 20_000;
 export const FIND_LIE_CORRECT_POINTS = 400;
 export const ORDER_IT_POINTS_PER_SLOT = 100;
 
-export type BlockMode = "number_guess" | "pick_correct" | "find_lie" | "order_it";
+export type PlayableMode =
+  | "number_guess"
+  | "pick_correct"
+  | "find_lie"
+  | "order_it";
+export type ModeFilter = "all" | PlayableMode;
 
 export function questionTimerMsForMode(mode: string | undefined | null): number {
   return mode === "order_it" ? ORDER_IT_TIMER_MS : QUESTION_TIMER_MS;
@@ -52,6 +57,14 @@ export function calculateNumberGuessPoints(
   return (totalPlayers - rank) * 100;
 }
 
+/** Timeout and full-lobby scoring share this field so ranks stay comparable. */
+export function numberGuessScoringPool(
+  playerCount: number,
+  answerCount: number,
+): number {
+  return Math.max(playerCount, answerCount);
+}
+
 /** Contribution-based scoring for pick_correct (§9.2) */
 export function calculatePickCorrectPoints(
   correctFound: number,
@@ -79,17 +92,27 @@ export function calculateOrderItPoints(
   return pts;
 }
 
-/** 4 unique modes, shuffled — PRODUCT.md §8 no-repeat when possible. */
-export function generateBlockModes(count: number = 4): BlockMode[] {
-  const pool: BlockMode[] = [
-    "number_guess",
-    "pick_correct",
-    "find_lie",
-    "order_it",
-  ];
+const ALL_PLAYABLE: PlayableMode[] = [
+  "number_guess",
+  "pick_correct",
+  "find_lie",
+  "order_it",
+];
+
+/** Mix of playable modes, or a single-mode filter. Count clamped 1–4. */
+export function generateBlockModes(
+  count: number = 4,
+  filter: ModeFilter = "all",
+): PlayableMode[] {
+  const n = Math.min(4, Math.max(1, Math.round(count)));
+  if (filter !== "all") {
+    return Array.from({ length: n }, () => filter);
+  }
+
+  const pool = [...ALL_PLAYABLE];
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  return pool.slice(0, count);
+  return pool.slice(0, n);
 }
