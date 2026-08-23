@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { RoomSettings } from "./room-settings";
 
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co",
@@ -15,6 +16,7 @@ export interface DbRoom {
   total_blocks: number;
   host_user_id: string | null;
   theme_vote_active: boolean;
+  settings?: RoomSettings | Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 }

@@ -5,7 +5,6 @@ import { useGame } from "@/lib/game-context";
 import { TimerPill } from "./timer-pill";
 import { QuestionTimerBar } from "./question-timer-bar";
 import { WaitingFooter } from "./waiting-footer";
-import { QUESTION_TIMER_MS } from "@/lib/game-store";
 import type { NumberGuessPayload } from "@/lib/content";
 
 export function NumberGuessScreen() {
@@ -134,7 +133,7 @@ export function NumberGuessScreen() {
           <QuestionTimerBar
             key={`${game.currentBlock!.id}:${game.currentBlock!.current_round}`}
             deadlineMs={game.questionDeadlineMs}
-            durationMs={QUESTION_TIMER_MS}
+            durationMs={game.questionTimerMs ?? undefined}
           />
         )}
 

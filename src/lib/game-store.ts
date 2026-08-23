@@ -1,4 +1,4 @@
-/** Question countdown duration — single tunable constant (ms). */
+/** Default question countdown when a block has no timer snapshot (legacy). */
 export const QUESTION_TIMER_MS = 5_000;
 
 /** Rank-based scoring for number_guess (§9.1) */
@@ -19,17 +19,26 @@ export function calculatePickCorrectPoints(
   return Math.round((correctFound / totalCorrect) * 1000);
 }
 
-/** Choose 4 block modes: mix of number_guess + pick_correct, no repeat if possible */
-export function generateBlockModes(count: number = 4): ("number_guess" | "pick_correct")[] {
-  const pool: ("number_guess" | "pick_correct")[] = [
-    "number_guess",
-    "pick_correct",
-    "number_guess",
-    "pick_correct",
-  ];
+export type PlayableMode = "number_guess" | "pick_correct";
+export type ModeFilter = "all" | PlayableMode;
+
+/** Mix of playable modes, or a single-mode filter. Count clamped 1–4. */
+export function generateBlockModes(
+  count: number = 4,
+  filter: ModeFilter = "all",
+): PlayableMode[] {
+  const n = Math.min(4, Math.max(1, Math.round(count)));
+  if (filter === "number_guess" || filter === "pick_correct") {
+    return Array.from({ length: n }, () => filter);
+  }
+
+  const pool: PlayableMode[] = [];
+  for (let i = 0; i < n; i++) {
+    pool.push(i % 2 === 0 ? "number_guess" : "pick_correct");
+  }
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  return pool.slice(0, count);
+  return pool;
 }
