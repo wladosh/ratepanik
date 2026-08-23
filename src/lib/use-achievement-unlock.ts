@@ -17,6 +17,8 @@ const SAFE_PHASES: GamePhase[] = [
   "home",
   "lobby",
   "number_guess_reveal",
+  "find_lie_reveal",
+  "order_it_reveal",
   "block_scoreboard",
   "final",
 ];

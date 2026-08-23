@@ -20,16 +20,20 @@ import {
   type DbPickCorrectTurn,
 } from "./supabase";
 import {
-  fetchRandomThemeOptions,
+  fetchRandomThemeOptionsForMode,
   fetchPromptsForBlock,
   type Theme,
   type Prompt,
+  type FindLiePayload,
+  type OrderItPayload,
 } from "./content";
 import {
   generateBlockModes,
   calculateNumberGuessPoints,
   calculatePickCorrectPoints,
-  QUESTION_TIMER_MS,
+  calculateFindLiePoints,
+  calculateOrderItPoints,
+  questionTimerMsForMode,
 } from "./game-store";
 import { useAuth } from "./auth-context";
 import { useAchievementGrant } from "./use-achievement-grant";
@@ -43,6 +47,12 @@ export type GamePhase =
   | "number_guess"
   | "number_guess_waiting"
   | "number_guess_reveal"
+  | "find_lie"
+  | "find_lie_waiting"
+  | "find_lie_reveal"
+  | "order_it"
+  | "order_it_waiting"
+  | "order_it_reveal"
   | "pick_correct"
   | "block_scoreboard"
   | "final";
@@ -97,6 +107,8 @@ interface GameContextValue {
   startGame: () => Promise<void>;
   selectTheme: (themeId: string) => Promise<void>;
   submitNumberGuess: (guess: number) => Promise<void>;
+  submitFindLie: (lieIndex: number) => Promise<void>;
+  submitOrderIt: (order: number[]) => Promise<void>;
   tapCard: (cardIndex: number) => Promise<void>;
   advanceFromReveal: () => Promise<void>;
   advanceFromBlockScore: () => Promise<void>;
@@ -248,6 +260,24 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       return "number_guess";
     }
 
+    if (currentBlock.mode === "find_lie") {
+      if (roundAnswers.length >= players.length && players.length > 0) {
+        return "find_lie_reveal";
+      }
+      const myAnswer = roundAnswers.find((a) => a.player_id === myPlayerId);
+      if (myAnswer) return "find_lie_waiting";
+      return "find_lie";
+    }
+
+    if (currentBlock.mode === "order_it") {
+      if (roundAnswers.length >= players.length && players.length > 0) {
+        return "order_it_reveal";
+      }
+      const myAnswer = roundAnswers.find((a) => a.player_id === myPlayerId);
+      if (myAnswer) return "order_it_waiting";
+      return "order_it";
+    }
+
     if (currentBlock.mode === "pick_correct") {
       if (correctTurnsCount >= 4 && !revealHoldActive) return "block_scoreboard";
       return "pick_correct";
@@ -263,10 +293,17 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     const isQuestionPhase =
       phase === "number_guess" ||
       phase === "number_guess_waiting" ||
-      phase === "pick_correct";
+      phase === "pick_correct" ||
+      phase === "find_lie" ||
+      phase === "find_lie_waiting" ||
+      phase === "order_it" ||
+      phase === "order_it_waiting";
     if (!isQuestionPhase) return null;
-    return new Date(currentBlock.started_at).getTime() + QUESTION_TIMER_MS;
-  }, [currentBlock?.started_at, phase]);
+    return (
+      new Date(currentBlock.started_at).getTime() +
+      questionTimerMsForMode(currentBlock.mode)
+    );
+  }, [currentBlock?.started_at, currentBlock?.mode, phase]);
 
   const getAvatar = useCallback(
     (playerId: string) => {
@@ -547,6 +584,67 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     })();
   }, [isHost, currentBlock, correctTurnsCount, blockTurns, players, room, revealHoldActive]);
 
+  const completeSimultaneousQuizBlock = async (
+    block: DbMatchBlock,
+    currentPlayers: DbPlayer[],
+    currentAnswers: DbAnswer[],
+    promptForRound: Prompt | undefined
+  ) => {
+    const ptsByPlayer = new Map<string, number>();
+
+    if (block.mode === "find_lie") {
+      const lieIndex = (promptForRound?.payload as FindLiePayload | undefined)?.lie_index;
+      for (const a of currentAnswers) {
+        const choice = a.numeric_answer;
+        const pts =
+          lieIndex === undefined || choice == null
+            ? 0
+            : calculateFindLiePoints(Number(choice), lieIndex);
+        ptsByPlayer.set(a.player_id, (ptsByPlayer.get(a.player_id) ?? 0) + pts);
+        await supabase
+          .from("answers")
+          .update({ points_awarded: pts, is_correct: pts > 0 })
+          .eq("id", a.id);
+      }
+    } else if (block.mode === "order_it") {
+      const correctOrder =
+        (promptForRound?.payload as OrderItPayload | undefined)?.correct_order ?? [];
+      for (const a of currentAnswers) {
+        const order = Array.isArray(a.payload_answer)
+          ? (a.payload_answer as number[])
+          : [];
+        const pts = calculateOrderItPoints(order, correctOrder);
+        ptsByPlayer.set(a.player_id, (ptsByPlayer.get(a.player_id) ?? 0) + pts);
+        await supabase
+          .from("answers")
+          .update({ points_awarded: pts })
+          .eq("id", a.id);
+      }
+    }
+
+    for (const player of currentPlayers) {
+      const blockPts = ptsByPlayer.get(player.id) ?? 0;
+      await supabase.from("match_scores").upsert(
+        {
+          room_id: room!.id,
+          player_id: player.id,
+          block_index: block.block_index,
+          total_points: blockPts,
+        },
+        { onConflict: "room_id,player_id,block_index" }
+      );
+      await supabase
+        .from("players")
+        .update({ score: player.score + blockPts })
+        .eq("id", player.id);
+    }
+
+    await supabase
+      .from("match_blocks")
+      .update({ is_complete: true, finished_at: new Date().toISOString() })
+      .eq("id", block.id);
+  };
+
   // --- host-driven question timer expiry ---
 
   const handleExpiryRef = useRef<() => Promise<void>>(async () => {});
@@ -644,6 +742,30 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
           .update({ is_complete: true, finished_at: new Date().toISOString() })
           .eq("id", block.id);
       }
+    } else if (block.mode === "find_lie" || block.mode === "order_it") {
+      if (pickCompleteRef.current === block.id) return;
+      pickCompleteRef.current = block.id;
+
+      const { data: currentPlayers } = await supabase
+        .from("players")
+        .select()
+        .eq("room_id", room.id);
+      if (!currentPlayers?.length) return;
+
+      const { data: answers } = await supabase
+        .from("answers")
+        .select()
+        .eq("room_id", room.id)
+        .eq("block_index", block.block_index)
+        .eq("round_index", block.current_round);
+
+      const promptForRound = prompts[0];
+      await completeSimultaneousQuizBlock(
+        block as DbMatchBlock,
+        currentPlayers as DbPlayer[],
+        (answers || []) as DbAnswer[],
+        promptForRound
+      );
     } else if (block.mode === "pick_correct") {
       if (pickCompleteRef.current === block.id) return;
       pickCompleteRef.current = block.id;
@@ -701,11 +823,16 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     const isQuestionPhase =
       phase === "number_guess" ||
       phase === "number_guess_waiting" ||
-      phase === "pick_correct";
+      phase === "pick_correct" ||
+      phase === "find_lie" ||
+      phase === "find_lie_waiting" ||
+      phase === "order_it" ||
+      phase === "order_it_waiting";
     if (!isQuestionPhase) return;
 
     const endMs =
-      new Date(currentBlock.started_at).getTime() + QUESTION_TIMER_MS;
+      new Date(currentBlock.started_at).getTime() +
+      questionTimerMsForMode(currentBlock.mode);
     const remaining = endMs - Date.now();
 
     if (remaining <= 0) {
@@ -724,6 +851,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     currentBlock?.id,
     currentBlock?.current_round,
     currentBlock?.is_complete,
+    currentBlock?.mode,
     phase,
   ]);
 
@@ -1055,8 +1183,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
     setBlocks(blocksData || []);
 
-    // Get 2 random themes for first block
-    const themes = await fetchRandomThemeOptions(2);
+    const firstMode = (blocksData?.[0]?.mode as string) ?? modes[0];
+    const themes = await fetchRandomThemeOptionsForMode(firstMode, 2);
     const themeIds = themes.map((t) => t.id);
 
     // Update first block with theme options
@@ -1108,8 +1236,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
     // Fallback: if no prompts for selected theme+mode, try other themes
     if (fetchedPrompts.length === 0) {
-      const allThemes = await fetchRandomThemeOptions(8);
-      for (const fallbackTheme of allThemes) {
+      const fallbackThemes = await fetchRandomThemeOptionsForMode(currentBlock.mode, 8);
+      for (const fallbackTheme of fallbackThemes) {
         if (fallbackTheme.id === themeId) continue;
         fetchedPrompts = await fetchPromptsForBlock(fallbackTheme.id, currentBlock.mode, count);
         if (fetchedPrompts.length > 0) break;
@@ -1166,6 +1294,50 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
   };
 
+  const submitFindLie = async (lieIndex: number) => {
+    if (!room || !myPlayerId || !currentBlock || !currentPrompt) return;
+
+    const { error: ansErr } = await supabase.from("answers").insert({
+      room_id: room.id,
+      player_id: myPlayerId,
+      block_index: currentBlock.block_index,
+      round_index: currentBlock.current_round,
+      prompt_id: currentPrompt.id,
+      mode: "find_lie",
+      numeric_answer: lieIndex,
+      question_index: room.current_block_index * 10 + currentBlock.current_round,
+      choice_index: lieIndex,
+      is_correct: null,
+    });
+
+    if (ansErr && ansErr.code !== "23505") {
+      setError("Konnte nicht senden. Nochmal tippen?");
+      throw new Error(ansErr.message);
+    }
+  };
+
+  const submitOrderIt = async (order: number[]) => {
+    if (!room || !myPlayerId || !currentBlock || !currentPrompt) return;
+
+    const { error: ansErr } = await supabase.from("answers").insert({
+      room_id: room.id,
+      player_id: myPlayerId,
+      block_index: currentBlock.block_index,
+      round_index: currentBlock.current_round,
+      prompt_id: currentPrompt.id,
+      mode: "order_it",
+      payload_answer: order,
+      question_index: room.current_block_index * 10 + currentBlock.current_round,
+      choice_index: -1,
+      is_correct: null,
+    });
+
+    if (ansErr && ansErr.code !== "23505") {
+      setError("Konnte nicht senden. Nochmal tippen?");
+      throw new Error(ansErr.message);
+    }
+  };
+
   const tapCard = async (cardIndex: number) => {
     if (!room || !myPlayerId || !currentBlock || !currentPrompt || !isMyTurn) return;
 
@@ -1192,7 +1364,19 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const advanceFromReveal = async () => {
     if (!room || !isHost || !currentBlock) return;
 
-    // Calculate rankings for current round
+    if (currentBlock.mode === "find_lie" || currentBlock.mode === "order_it") {
+      if (pickCompleteRef.current === currentBlock.id) return;
+      pickCompleteRef.current = currentBlock.id;
+      await completeSimultaneousQuizBlock(
+        currentBlock,
+        players,
+        roundAnswers,
+        currentPrompt ?? undefined
+      );
+      return;
+    }
+
+    // Calculate rankings for current round (number_guess)
     const correctAnswer = (currentPrompt?.payload as { answer: number })?.answer;
     if (correctAnswer !== undefined) {
       const answersForRound = roundAnswers.map((a) => ({
@@ -1286,7 +1470,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     // Set up next block's theme options
     const nextBlock = blocks.find((b) => b.block_index === nextBlockIndex);
     if (nextBlock) {
-      const themes = await fetchRandomThemeOptions(2);
+      const themes = await fetchRandomThemeOptionsForMode(nextBlock.mode, 2);
       const themeIds = themes.map((t) => t.id);
 
       await supabase
@@ -1425,6 +1609,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     startGame,
     selectTheme,
     submitNumberGuess,
+    submitFindLie,
+    submitOrderIt,
     tapCard,
     advanceFromReveal,
     advanceFromBlockScore,

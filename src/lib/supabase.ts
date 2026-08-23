@@ -43,6 +43,7 @@ export interface DbAnswer {
   prompt_id: string | null;
   mode: string | null;
   numeric_answer: number | null;
+  payload_answer: unknown | null;
   distance: number | null;
   rank: number | null;
   points_awarded: number;
@@ -53,7 +54,7 @@ export interface DbMatchBlock {
   id: string;
   room_id: string;
   block_index: number;
-  mode: "number_guess" | "pick_correct";
+  mode: "number_guess" | "pick_correct" | "find_lie" | "order_it";
   theme_id: string | null;
   theme_options: string[] | null;
   prompt_ids: string[];

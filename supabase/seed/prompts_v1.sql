@@ -209,7 +209,7 @@ INSERT INTO prompts (id, theme_id, mode, difficulty, prompt, hint, payload, acti
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- find_lie prompts (2, inactive — Phase B)
+-- find_lie prompts (2, active)
 -- ============================================================
 
 INSERT INTO prompts (id, theme_id, mode, difficulty, prompt, hint, payload, active) VALUES
@@ -219,7 +219,7 @@ INSERT INTO prompts (id, theme_id, mode, difficulty, prompt, hint, payload, acti
  'Welche Aussage ist falsch?',
  'Everest = Himalaya.',
  '{"lie_index": 2, "statements": ["Der Nil fließt durch Ägypten.", "Island liegt im Atlantik.", "Der Mount Everest liegt in den Alpen.", "Australien ist zugleich Land und Kontinent."]}',
- false),
+ true),
 
 ('c0e99ba8-3ea6-411b-827c-2ce2b55c9a22',
  (SELECT id FROM themes WHERE slug = 'musik'),
@@ -227,12 +227,12 @@ INSERT INTO prompts (id, theme_id, mode, difficulty, prompt, hint, payload, acti
  'Drei stimmen — eine ist gelogen. Welche?',
  'Becken-Anzahl ist Geschmackssache, keine feste Regel.',
  '{"lie_index": 3, "statements": ["Ein Standard-Klavier hat 88 Tasten.", "Die Beatles kamen aus Liverpool.", "Mozart hat mehr als 40 Sinfonien geschrieben.", "Ein typisches Drumset hat immer genau drei Becken."]}',
- false)
+ true)
 
 ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
--- order_it prompts (2, inactive — Phase B)
+-- order_it prompts (2, active)
 -- ============================================================
 
 INSERT INTO prompts (id, theme_id, mode, difficulty, prompt, hint, payload, active) VALUES
@@ -242,7 +242,7 @@ INSERT INTO prompts (id, theme_id, mode, difficulty, prompt, hint, payload, acti
  'Ordne chronologisch (frühestes zuerst).',
  '1914 -> 1945 -> 1969 -> 1989.',
  '{"items": ["Erster Weltkrieg beginnt", "Zweiter Weltkrieg endet in Europa", "Mondlandung", "Fall der Berliner Mauer"], "order_axis": "chronologisch", "correct_order": [0, 1, 2, 3]}',
- false),
+ true),
 
 ('c963b266-e139-49ae-a78c-43a9a68853ca',
  (SELECT id FROM themes WHERE slug = 'film-serie'),
@@ -250,6 +250,6 @@ INSERT INTO prompts (id, theme_id, mode, difficulty, prompt, hint, payload, acti
  'Ordne die Star-Wars-Saga-Filme nach Kinostart (älteste zuerst).',
  'Original-Trilogie, dann Sequel.',
  '{"items": ["Eine neue Hoffnung (Episode IV)", "Das Imperium schlägt zurück (Episode V)", "Die Rückkehr der Jedi-Ritter (Episode VI)", "Das Erwachen der Macht (Episode VII)"], "order_axis": "Release", "correct_order": [0, 1, 2, 3]}',
- false)
+ true)
 
 ON CONFLICT (id) DO NOTHING;

@@ -8,6 +8,10 @@ import { LobbyScreen } from "./lobby-screen";
 import { ThemePickScreen } from "./theme-pick-screen";
 import { NumberGuessScreen } from "./number-guess-screen";
 import { NumberGuessRevealScreen } from "./number-guess-reveal-screen";
+import { FindLieScreen } from "./find-lie-screen";
+import { FindLieRevealScreen } from "./find-lie-reveal-screen";
+import { OrderItScreen } from "./order-it-screen";
+import { OrderItRevealScreen } from "./order-it-reveal-screen";
 import { PickCorrectScreen } from "./pick-correct-screen";
 import { BlockScoreboardScreen } from "./block-scoreboard-screen";
 import { FinalScreen } from "./final-screen";
@@ -17,6 +21,12 @@ const MATCH_PHASES: GamePhase[] = [
   "number_guess",
   "number_guess_waiting",
   "number_guess_reveal",
+  "find_lie",
+  "find_lie_waiting",
+  "find_lie_reveal",
+  "order_it",
+  "order_it_waiting",
+  "order_it_reveal",
   "pick_correct",
   "block_scoreboard",
 ];
@@ -176,6 +186,16 @@ export function Game() {
             return <NumberGuessScreen />;
           case "number_guess_reveal":
             return <NumberGuessRevealScreen />;
+          case "find_lie":
+          case "find_lie_waiting":
+            return <FindLieScreen />;
+          case "find_lie_reveal":
+            return <FindLieRevealScreen />;
+          case "order_it":
+          case "order_it_waiting":
+            return <OrderItScreen />;
+          case "order_it_reveal":
+            return <OrderItRevealScreen />;
           case "pick_correct":
             return <PickCorrectScreen />;
           case "block_scoreboard":
