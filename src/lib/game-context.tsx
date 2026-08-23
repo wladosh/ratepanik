@@ -51,6 +51,8 @@ const AVATARS = [
   "🐷", "🐮", "🐔", "🦄", "🐲", "🐙",
 ];
 
+const REVEAL_HOLD_MS = 1000;
+
 interface GameContextValue {
   phase: GamePhase;
   room: DbRoom | null;
@@ -145,6 +147,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const joinCodeUsedRef = useRef(false);
   const [disconnected, setDisconnected] = useState(false);
   const myPlayerIdRef = useRef<string | null>(null);
+  const [revealHoldActive, setRevealHoldActive] = useState(false);
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // --- derived state ---
 
@@ -225,7 +229,9 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
     if (!currentBlock) return "playing_loading";
 
-    if (currentBlock.is_complete) return "block_scoreboard";
+    if (currentBlock.is_complete && !(revealHoldActive && currentBlock.mode === "pick_correct")) {
+      return "block_scoreboard";
+    }
 
     if (currentBlock.mode === "number_guess") {
       if (roundAnswers.length >= players.length && players.length > 0) {
@@ -237,12 +243,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     if (currentBlock.mode === "pick_correct") {
-      if (correctTurnsCount >= 4) return "block_scoreboard";
+      if (correctTurnsCount >= 4 && !revealHoldActive) return "block_scoreboard";
       return "pick_correct";
     }
 
     return "playing_loading";
-  }, [room, currentBlock, roundAnswers, players.length, myPlayerId, correctTurnsCount, restoring]);
+  }, [room, currentBlock, roundAnswers, players.length, myPlayerId, correctTurnsCount, restoring, revealHoldActive]);
 
   const getAvatar = useCallback(
     (playerId: string) => {
@@ -439,11 +445,40 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room?.status, room?.current_block_index, room?.theme_vote_active]);
 
+  // Activate ~1s reveal hold when pick_correct finds the 4th correct card,
+  // keeping the card highlight visible before transitioning to scoreboard.
+  const prevPickCorrectDoneRef = useRef(false);
+  useEffect(() => {
+    const done =
+      !!currentBlock &&
+      currentBlock.mode === "pick_correct" &&
+      !currentBlock.is_complete &&
+      correctTurnsCount >= 4;
+
+    if (done && !prevPickCorrectDoneRef.current) {
+      queueMicrotask(() => setRevealHoldActive(true));
+      revealTimerRef.current = setTimeout(() => {
+        setRevealHoldActive(false);
+        revealTimerRef.current = null;
+      }, REVEAL_HOLD_MS);
+    }
+
+    prevPickCorrectDoneRef.current = done;
+
+    return () => {
+      if (revealTimerRef.current) {
+        clearTimeout(revealTimerRef.current);
+        revealTimerRef.current = null;
+      }
+    };
+  }, [correctTurnsCount, currentBlock]);
+
   // Handle pick_correct auto-complete: when 4 correct found, host marks block complete
   useEffect(() => {
     if (!isHost || !currentBlock || currentBlock.mode !== "pick_correct") return;
     if (currentBlock.is_complete) return;
     if (correctTurnsCount < 4) return;
+    if (revealHoldActive) return;
     const completeKey = `${currentBlock.id}`;
     if (pickCompleteRef.current === completeKey) return;
     pickCompleteRef.current = completeKey;
@@ -486,7 +521,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         })
         .eq("id", currentBlock.id);
     })();
-  }, [isHost, currentBlock, correctTurnsCount, blockTurns, players, room]);
+  }, [isHost, currentBlock, correctTurnsCount, blockTurns, players, room, revealHoldActive]);
 
   // --- session persistence ---
 
