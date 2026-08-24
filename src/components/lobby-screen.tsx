@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useGame } from "@/lib/game-context";
 import { PlayerSchleimi } from "@/components/player-schleimi";
 import { LobbySettingsPanel } from "@/components/lobby-settings";
@@ -48,6 +48,14 @@ function ShareIcon({ className }: { className?: string }) {
   );
 }
 
+function PencilIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+    </svg>
+  );
+}
+
 function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor">
@@ -56,11 +64,107 @@ function PeopleIcon({ className, style }: { className?: string; style?: React.CS
   );
 }
 
+function RenameSheet({
+  currentName,
+  onSave,
+  onClose,
+}: {
+  currentName: string;
+  onSave: (name: string) => Promise<string | null>;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const [value, setValue] = useState(currentName);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, []);
+
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    const err = await onSave(value);
+    setSaving(false);
+    if (err) {
+      setError(err);
+    } else {
+      onClose();
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ background: "rgba(0,0,0,0.35)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="w-full max-w-md animate-fade-in"
+        style={{
+          background: "var(--rp-bg-elevated)",
+          borderRadius: "var(--rp-radius-lg) var(--rp-radius-lg) 0 0",
+          boxShadow: "0 -8px 30px rgba(0,0,0,0.12)",
+          padding: "24px 20px max(env(safe-area-inset-bottom, 16px), 24px)",
+        }}
+      >
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          maxLength={16}
+          placeholder={t.game.renamePlaceholder}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setError(null);
+          }}
+          onKeyDown={(e) => { if (e.key === "Enter") void handleSave(); }}
+          className="w-full px-4 py-3 text-base font-bold rounded-xl outline-none"
+          style={{
+            background: "var(--rp-bg-hero)",
+            border: error ? "2px solid var(--rp-danger)" : "2px solid var(--rp-border)",
+            color: "var(--rp-text)",
+          }}
+        />
+        {error && (
+          <p className="text-xs font-semibold mt-1.5 px-1" style={{ color: "var(--rp-danger)" }}>
+            {error}
+          </p>
+        )}
+        <div className="flex gap-3 mt-4">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97]"
+            style={{
+              background: "var(--rp-bg-hero)",
+              color: "var(--rp-text-secondary)",
+            }}
+          >
+            {t.game.renameCancel}
+          </button>
+          <button
+            onClick={() => void handleSave()}
+            disabled={saving}
+            className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.97] disabled:opacity-50"
+            style={{ background: "var(--rp-purple)" }}
+          >
+            {saving ? "…" : t.game.renameSave}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function LobbyScreen() {
   const game = useGame();
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
+  const [renameOpen, setRenameOpen] = useState(false);
 
   const playersSorted = [...game.players].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -221,14 +325,23 @@ export function LobbyScreen() {
               }}
             >
               <PlayerSchleimi playerId={player.id} size={48} label={player.display_name} />
-              <span className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold" style={{ color: "var(--rp-text)" }}>
-                <span className="min-w-0 truncate">{player.display_name}</span>
-                {player.id === game.myPlayerId && (
+              {player.id === game.myPlayerId ? (
+                <button
+                  className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold text-left active:opacity-70 transition-opacity"
+                  style={{ color: "var(--rp-text)" }}
+                  onClick={() => setRenameOpen(true)}
+                >
+                  <span className="min-w-0 truncate">{player.display_name}</span>
+                  <PencilIcon className="w-3.5 h-3.5 shrink-0 opacity-50" />
                   <span className="shrink-0 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>
                     {t.game.youBadge}
                   </span>
-                )}
-              </span>
+                </button>
+              ) : (
+                <span className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold" style={{ color: "var(--rp-text)" }}>
+                  <span className="min-w-0 truncate">{player.display_name}</span>
+                </span>
+              )}
               {player.is_host && (
                 <span
                   className="flex items-center gap-1 h-7 px-3 rounded-full text-xs font-bold"
@@ -303,6 +416,16 @@ export function LobbyScreen() {
           </div>
         )}
       </div>
+
+      {renameOpen && (
+        <RenameSheet
+          currentName={
+            game.players.find((p) => p.id === game.myPlayerId)?.display_name ?? ""
+          }
+          onSave={(name) => game.updateDisplayName(name)}
+          onClose={() => setRenameOpen(false)}
+        />
+      )}
     </div>
   );
 }
