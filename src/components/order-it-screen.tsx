@@ -13,6 +13,7 @@ import { OrderItSortable, type OrderItItem } from "./order-it-sortable";
 import { QuestionStage } from "./question-stage";
 import { QuestionTimerBar } from "./question-timer-bar";
 import { TimerPill } from "./timer-pill";
+import { useAutoSubmitOnExpiry } from "./use-auto-submit-on-expiry";
 import styles from "./order-it-screen.module.css";
 
 function shuffleEntries(items: string[], correctOrder: number[]): OrderItItem[] {
@@ -60,6 +61,16 @@ export function OrderItScreen() {
       setSubmitted(false);
     }
   }, [entries, game, hasAnswered, submitted]);
+
+  const canAutoSubmit = !submitted && !hasAnswered && entries.length > 0;
+
+  useAutoSubmitOnExpiry({
+    deadlineMs: game.questionDeadlineMs,
+    canAutoSubmit,
+    onAutoSubmit: () => {
+      void handleSubmit();
+    },
+  });
 
   if (!prompt || !payload || (payload.items?.length ?? 0) === 0) {
     return (

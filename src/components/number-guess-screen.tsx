@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useCallback, useState } from "react";
 import type { NumberGuessPayload } from "@/lib/content";
+import { parseGermanDecimal } from "@/lib/parse-german-decimal";
 import { PlayerSchleimi } from "@/components/player-schleimi";
 import { useGame } from "@/lib/game-context";
 import { MODE_NUMBER_GUESS_256 } from "@/lib/rp-assets";
@@ -13,6 +14,7 @@ import { MatchStatusHeader } from "./match-status-header";
 import styles from "./number-guess-screen.module.css";
 import { QuestionStage } from "./question-stage";
 import { TimerPill } from "./timer-pill";
+import { useAutoSubmitOnExpiry } from "./use-auto-submit-on-expiry";
 
 interface PromptDraft {
   promptId: string;
@@ -78,6 +80,20 @@ export function NumberGuessScreen() {
     },
     [game, hasAnswered, prompt, submission],
   );
+
+  const parsedDraft = guess ? parseGermanDecimal(guess) : null;
+  const canAutoSubmit =
+    !waiting && parsedDraft !== null && !hasAnswered && submission?.promptId !== promptId;
+
+  useAutoSubmitOnExpiry({
+    deadlineMs: game.questionDeadlineMs,
+    canAutoSubmit,
+    onAutoSubmit: () => {
+      if (parsedDraft !== null) {
+        void handleSubmit(parsedDraft);
+      }
+    },
+  });
 
   if (!prompt) {
     return (
