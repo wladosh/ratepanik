@@ -139,6 +139,7 @@ interface GameContextValue {
   advanceFromBlockScore: () => Promise<void>;
   resetGame: () => Promise<void>;
   goHome: () => void;
+  updateDisplayName: (newName: string) => Promise<string | null>;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -1757,6 +1758,32 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     setRoom({ ...room, settings: next, total_blocks: next.blocks });
   };
 
+  const updateDisplayName = async (newName: string): Promise<string | null> => {
+    if (!room || !myPlayerId) return t.game.renameFailed;
+    const trimmed = newName.trim();
+    if (!trimmed) return t.game.renameEmpty;
+    if (trimmed.length < 3) return t.game.renameTooShort;
+    if (trimmed.length > 16) return t.game.renameTooLong;
+
+    const taken = players.some(
+      (p) =>
+        p.id !== myPlayerId &&
+        p.display_name.toLowerCase() === trimmed.toLowerCase(),
+    );
+    if (taken) return t.game.renameTaken;
+
+    const { error: err } = await supabase
+      .from("players")
+      .update({ display_name: trimmed })
+      .eq("id", myPlayerId);
+    if (err) return t.game.renameFailed;
+
+    setPlayers((prev) =>
+      prev.map((p) => (p.id === myPlayerId ? { ...p, display_name: trimmed } : p)),
+    );
+    return null;
+  };
+
   const resetGame = async () => {
     if (!room) return;
 
@@ -1926,6 +1953,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     advanceFromBlockScore,
     resetGame,
     goHome,
+    updateDisplayName,
   };
 
   return (
