@@ -125,7 +125,7 @@ export function AchievementUnlockOverlay({
       <div className={styles.stage}>
         <div className={styles.glow} data-unlock-glow aria-hidden="true" />
         <div className={styles.sticker} data-unlock-sticker>
-          <AchievementSticker id={achievementId} unlocked size={168} />
+          <AchievementSticker id={achievementId} unlocked hero size={168} />
           <div className={styles.shine} aria-hidden="true">
             <div className={styles.shineBar} data-unlock-shine />
           </div>
@@ -146,6 +146,11 @@ export function AchievementUnlockOverlay({
         <p className={styles.name} data-unlock-copy>
           {copy.title}
         </p>
+        {copy.description ? (
+          <p className={styles.description} data-unlock-copy>
+            {copy.description}
+          </p>
+        ) : null}
         <button
           type="button"
           className={styles.close}

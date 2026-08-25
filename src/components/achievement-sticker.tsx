@@ -290,11 +290,13 @@ export function AchievementSticker({
   unlocked,
   size = 120,
   className,
+  hero = false,
 }: {
   id: string;
   unlocked: boolean;
   size?: number;
   className?: string;
+  hero?: boolean;
 }) {
   const def = isKnownId(id) ? ACHIEVEMENT_BY_ID[id] : null;
   const path = def ? SHAPES[def.id] : SHAPES.first_win;
@@ -332,7 +334,7 @@ export function AchievementSticker({
         d={path}
         fill={`url(#${uid}-face)`}
         stroke="#FFFFFF"
-        strokeWidth={unlocked ? 11 : 10}
+        strokeWidth={hero ? 14 : unlocked ? 11 : 10}
         strokeLinejoin="round"
         paintOrder="stroke fill"
         filter={`url(#${uid}-shadow)`}
