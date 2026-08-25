@@ -57,6 +57,13 @@ import { useAuth } from "./auth-context";
 import { useAchievementGrant } from "./use-achievement-grant";
 import { generateGuestName } from "./guest-name";
 import { displayNameForJoin, resolveGuestExitPath, shouldSkipSessionRestore } from "./guest-flow";
+import {
+  clearJoinSeat,
+  joinAttemptKey,
+  readJoinSeat,
+  takeJoinInflight,
+  writeJoinSeat,
+} from "./join-guard";
 import { useRoomLoadouts } from "./use-room-loadouts";
 import {
   isVsIntroActive,
@@ -130,6 +137,7 @@ interface GameContextValue {
   createRoom: (hostName: string, hostUserId: string) => Promise<string | null>;
   joinRoom: (code: string, displayName: string) => Promise<string | null>;
   leaveRoom: (options?: { next?: string }) => Promise<void>;
+  kickPlayer: (playerId: string) => Promise<string | null>;
   startGame: () => Promise<void>;
   selectTheme: (themeId: string) => Promise<void>;
   submitNumberGuess: (guess: number) => Promise<void>;
@@ -270,6 +278,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const [hostActionLock, setHostActionLock] = useState(false);
   const hostActionLockRef = useRef(false);
   const startGameLockRef = useRef(false);
+  const kickingIdsRef = useRef(new Set<string>());
+  const ejectKickedRef = useRef<() => Promise<void>>(async () => {});
   const currentBlockRef = useRef<DbMatchBlock | null>(null);
   const phaseRef = useRef<GamePhase>("home");
   const currentPromptRef = useRef<Prompt | null>(null);
@@ -540,19 +550,24 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
             );
           } else if (payload.eventType === "DELETE") {
             const leftPlayerId = (payload.old as { id: string }).id;
+            if (leftPlayerId === myPlayerIdRef.current) {
+              queueMicrotask(() => {
+                void ejectKickedRef.current();
+              });
+              return;
+            }
             setPlayers((prev) => {
-              if (leftPlayerId !== myPlayerIdRef.current) {
-                const leftPlayer = prev.find((p) => p.id === leftPlayerId);
-                if (leftPlayer) {
-                  queueMicrotask(() =>
-                    setNotice(
-                      interpolate(tRef.current.game.playerLeft, {
-                        name: leftPlayer.display_name,
-                      }),
-                    )
-                  );
-                }
+              const leftPlayer = prev.find((p) => p.id === leftPlayerId);
+              if (leftPlayer && !kickingIdsRef.current.has(leftPlayerId)) {
+                queueMicrotask(() =>
+                  setNotice(
+                    interpolate(tRef.current.game.playerLeft, {
+                      name: leftPlayer.display_name,
+                    }),
+                  )
+                );
               }
+              kickingIdsRef.current.delete(leftPlayerId);
               return prev.filter((p) => p.id !== leftPlayerId);
             });
           }
@@ -1071,6 +1086,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       setPrompts([]);
 
       saveSession(roomData.id, playerData.id);
+      writeJoinSeat(roomData.code as string, playerData.id);
       subscribeToRoom(roomData.id);
 
       try {
@@ -1090,13 +1106,26 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const joinRoom = async (code: string, displayName: string): Promise<string | null> => {
     setLoading(true);
     setError(null);
-    try {
-      const uid = user?.id ?? null;
 
+    const normalizedCode = code.toUpperCase().trim();
+    const { data: { user: freshUser } } = await supabase.auth.getUser();
+    const uid = user?.id ?? freshUser?.id ?? null;
+    const joiningAsGuest =
+      user?.is_anonymous === true || isGuest || freshUser?.is_anonymous === true;
+
+    if (!uid) {
+      const m = t.game.joinFailed;
+      setError(m);
+      setLoading(false);
+      return m;
+    }
+
+    return takeJoinInflight(joinAttemptKey(normalizedCode, uid), async () => {
+    try {
       const { data: roomData, error: roomErr } = await supabase
         .from("rooms")
         .select()
-        .eq("code", code.toUpperCase().trim())
+        .eq("code", normalizedCode)
         .single();
 
       if (roomErr || !roomData) {
@@ -1110,18 +1139,22 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         .select()
         .eq("room_id", roomData.id);
 
-      // Check if this user is already a player in the room (rejoin scenario)
+      const seatId = readJoinSeat(normalizedCode);
       const stored = sessionStorage.getItem("ratepanik-session");
-      let existingPlayer: DbPlayer | null = null;
-      if (stored) {
+      let storedPlayerId: string | null = seatId;
+      if (!storedPlayerId && stored) {
         try {
-          const { playerId } = JSON.parse(stored);
-          existingPlayer = existingPlayers?.find((p) => p.id === playerId) ?? null;
+          const { playerId } = JSON.parse(stored) as { playerId?: string };
+          storedPlayerId = typeof playerId === "string" ? playerId : null;
         } catch { /* ignore parse errors */ }
       }
 
-      if (existingPlayer) {
-        // Rejoin: player already exists in this room — restore state
+      const existingPlayer =
+        existingPlayers?.find((p) => p.user_id === uid) ??
+        existingPlayers?.find((p) => p.id === storedPlayerId) ??
+        null;
+
+      const adoptSeat = async (player: DbPlayer) => {
         const [
           { data: answersData },
           { data: blocksData },
@@ -1134,15 +1167,20 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
         setRoom(roomData);
         setPlayers(existingPlayers || []);
-        setMyPlayerId(existingPlayer.id);
+        setMyPlayerId(player.id);
         setAllAnswers(answersData || []);
         setBlocks(blocksData || []);
         setTurns(turnsData || []);
         setPrompts([]);
 
-        saveSession(roomData.id, existingPlayer.id);
+        saveSession(roomData.id, player.id);
+        writeJoinSeat(normalizedCode, player.id);
         subscribeToRoom(roomData.id);
         return null;
+      };
+
+      if (existingPlayer) {
+        return adoptSeat(existingPlayer);
       }
 
       if (roomData.status !== "lobby") {
@@ -1151,105 +1189,45 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         return m;
       }
 
-      let playerData: DbPlayer;
+      const seated = existingPlayers ?? [];
+      const s = parseRoomSettings(roomData.settings);
+      const blocked = joinBlockedCopy(
+        {
+          allowGuests: s.allowGuests,
+          joiningAsGuest,
+          playerCount: seated.length,
+          maxPlayers: s.maxPlayers,
+        },
+        t,
+      );
+      if (blocked) {
+        setError(blocked);
+        return blocked;
+      }
 
-      // Rejoin: reuse existing player row for this auth user in this room
-      if (uid) {
-        const { data: existing } = await supabase
+      const { data: inserted, error: insertErr } = await supabase
+        .from("players")
+        .insert({
+          room_id: roomData.id,
+          user_id: uid,
+          display_name: displayName,
+          is_host: false,
+        })
+        .select()
+        .single();
+
+      let playerData = inserted;
+      if (insertErr?.code === "23505") {
+        const { data: raced } = await supabase
           .from("players")
           .select()
           .eq("room_id", roomData.id)
           .eq("user_id", uid)
           .maybeSingle();
-
-        if (existing) {
-          const { data: updated, error: updateErr } = await supabase
-            .from("players")
-            .update({
-              display_name: displayName,
-              last_seen_at: new Date().toISOString(),
-            })
-            .eq("id", existing.id)
-            .select()
-            .single();
-
-          if (updateErr) throw updateErr;
-          playerData = updated;
-        } else {
-          // New join — check capacity first
-          const { data: existingPlayers } = await supabase
-            .from("players")
-            .select()
-            .eq("room_id", roomData.id);
-
-          const s = parseRoomSettings(roomData.settings);
-          const blocked = joinBlockedCopy(
-            {
-              allowGuests: s.allowGuests,
-              joiningAsGuest: user?.is_anonymous === true || isGuest,
-              playerCount: existingPlayers?.length ?? 0,
-              maxPlayers: s.maxPlayers,
-            },
-            t,
-          );
-          if (blocked) {
-            setError(blocked);
-            return blocked;
-          }
-
-          const { data: inserted, error: insertErr } = await supabase
-            .from("players")
-            .insert({
-              room_id: roomData.id,
-              user_id: uid,
-              display_name: displayName,
-              is_host: false,
-            })
-            .select()
-            .single();
-
-          if (insertErr) throw insertErr;
-          playerData = inserted;
-        }
-      } else {
-        // Context user not yet loaded — resolve directly from Supabase Auth
-        // so anon-auth guests still get user_id set on their player row.
-        const { data: { user: freshUser } } = await supabase.auth.getUser();
-        const fallbackUid = freshUser?.id ?? null;
-
-        const { data: existingPlayers } = await supabase
-          .from("players")
-          .select()
-          .eq("room_id", roomData.id);
-
-        const s = parseRoomSettings(roomData.settings);
-        const blocked = joinBlockedCopy(
-          {
-            allowGuests: s.allowGuests,
-            joiningAsGuest: freshUser?.is_anonymous === true,
-            playerCount: existingPlayers?.length ?? 0,
-            maxPlayers: s.maxPlayers,
-          },
-          t,
-        );
-        if (blocked) {
-          setError(blocked);
-          return blocked;
-        }
-
-        const { data: inserted, error: insertErr } = await supabase
-          .from("players")
-          .insert({
-            room_id: roomData.id,
-            user_id: fallbackUid,
-            display_name: displayName,
-            is_host: false,
-          })
-          .select()
-          .single();
-
-        if (insertErr) throw insertErr;
-        playerData = inserted;
+        if (!raced) throw insertErr;
+        playerData = raced;
+      } else if (insertErr || !playerData) {
+        throw insertErr ?? new Error("join insert failed");
       }
 
       const { data: allPlayers } = await supabase
@@ -1266,6 +1244,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       setPrompts([]);
 
       saveSession(roomData.id, playerData.id);
+      writeJoinSeat(normalizedCode, playerData.id);
       subscribeToRoom(roomData.id);
       return null;
     } catch (err: unknown) {
@@ -1275,6 +1254,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     } finally {
       setLoading(false);
     }
+    });
   };
 
   // Auto-join from ?join=CODE — never flash home while this is in flight.
@@ -1881,6 +1861,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       channelRef.current = null;
     }
     clearSession();
+    clearJoinSeat(room?.code);
 
     if (isGuest) {
       router.replace(guestNext);
@@ -1890,6 +1871,55 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
     goHome();
   };
+
+  const kickPlayer = async (playerId: string): Promise<string | null> => {
+    if (!room || !isHost || playerId === myPlayerId) return t.game.kickFailed;
+    const target = players.find((p) => p.id === playerId);
+    if (!target || target.is_host) return t.game.kickFailed;
+
+    kickingIdsRef.current.add(playerId);
+    const { error: kickErr } = await supabase.rpc("kick_player", {
+      p_player_id: playerId,
+    });
+    if (kickErr) {
+      kickingIdsRef.current.delete(playerId);
+      setError(t.game.kickFailed);
+      return t.game.kickFailed;
+    }
+
+    setPlayers((prev) => prev.filter((p) => p.id !== playerId));
+    setNotice(
+      interpolate(t.game.playerKicked, { name: target.display_name }),
+    );
+    return null;
+  };
+
+  const ejectKicked = async () => {
+    const code = room?.code;
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    clearSession();
+    clearJoinSeat(code);
+    setRoom(null);
+    setPlayers([]);
+    setAllAnswers([]);
+    setBlocks([]);
+    setTurns([]);
+    setMyPlayerId(null);
+    setPrompts([]);
+    setThemeOptions([]);
+    setError(null);
+    setNotice(t.game.kicked);
+    lastStateKeyRef.current = "";
+
+    if (isGuest) {
+      router.replace(resolveGuestExitPath());
+      await signOut();
+    }
+  };
+  ejectKickedRef.current = ejectKicked;
 
   const goHome = () => {
     if (channelRef.current) {
@@ -1914,6 +1944,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     setRoundTimedOut(false);
     setRevealHoldActive(false);
     clearSession();
+    clearJoinSeat(room?.code);
 
     if (isGuest) {
       router.replace(resolveGuestExitPath());
@@ -1966,6 +1997,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     createRoom,
     joinRoom,
     leaveRoom,
+    kickPlayer,
     startGame,
     selectTheme,
     submitNumberGuess,

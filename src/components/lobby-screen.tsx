@@ -57,6 +57,15 @@ function PencilIcon({ className }: { className?: string }) {
   );
 }
 
+function KickIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M15 9l-6 6M9 9l6 6" />
+    </svg>
+  );
+}
+
 function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor">
@@ -166,6 +175,7 @@ export function LobbyScreen() {
   const [copied, setCopied] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
   const [renameOpen, setRenameOpen] = useState(false);
+  const [kickTarget, setKickTarget] = useState<{ id: string; display_name: string } | null>(null);
 
   const playersSorted = [...game.players].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -364,6 +374,17 @@ export function LobbyScreen() {
                   Host
                 </span>
               )}
+              {game.isHost && player.id !== game.myPlayerId && (
+                <button
+                  type="button"
+                  className="flex items-center justify-center min-h-11 min-w-11 -mr-1 rounded-full transition-all active:scale-90"
+                  style={{ color: "var(--rp-text-secondary)" }}
+                  aria-label={interpolate(t.lobby.kickAria, { name: player.display_name })}
+                  onClick={() => setKickTarget({ id: player.id, display_name: player.display_name })}
+                >
+                  <KickIcon className="w-5 h-5" />
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -435,6 +456,60 @@ export function LobbyScreen() {
           onSave={(name) => game.updateDisplayName(name)}
           onClose={() => setRenameOpen(false)}
         />
+      )}
+
+      {kickTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center px-6"
+          style={{ background: "rgba(42, 42, 74, 0.28)", backdropFilter: "blur(2px)" }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setKickTarget(null);
+          }}
+        >
+          <div
+            className="w-full max-w-xs p-6 text-center animate-fade-in"
+            style={{
+              background: "var(--rp-bg-elevated)",
+              borderRadius: "var(--rp-radius-lg)",
+              boxShadow: "0 16px 48px rgba(42, 42, 74, 0.25)",
+            }}
+          >
+            <h3 className="text-lg font-bold mb-1" style={{ color: "var(--rp-text)" }}>
+              {t.lobby.kickTitle}
+            </h3>
+            <p className="text-sm mb-5" style={{ color: "var(--rp-text-secondary)" }}>
+              {interpolate(t.lobby.kickBody, { name: kickTarget.display_name })}
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => setKickTarget(null)}
+                className="flex-1 h-11 rounded-[var(--rp-radius-pill)] text-sm font-bold"
+                style={{
+                  border: "2px solid var(--rp-border)",
+                  color: "var(--rp-text)",
+                  background: "transparent",
+                }}
+              >
+                {t.game.leaveCancel}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const id = kickTarget.id;
+                  setKickTarget(null);
+                  void game.kickPlayer(id);
+                }}
+                className="flex-1 h-11 rounded-[var(--rp-radius-pill)] text-sm font-bold text-white"
+                style={{
+                  background: "linear-gradient(135deg, var(--rp-danger) 0%, #E0445A 100%)",
+                }}
+              >
+                {t.lobby.kickConfirm}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
