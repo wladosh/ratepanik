@@ -9,6 +9,11 @@ export function guestMaySeeAppHome(isGuest: boolean): boolean {
   return !isGuest;
 }
 
+/** Account holders keep their claimed username; only guests can rename in the lobby. */
+export function guestMayRenameInLobby(isGuest: boolean): boolean {
+  return isGuest;
+}
+
 export function resolveGuestExitPath(next?: string): string {
   if (next === "/auth/signup" || next === "/auth/login") return next;
   return "/auth/login";

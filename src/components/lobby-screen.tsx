@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useGame } from "@/lib/game-context";
+import { useAuth } from "@/lib/auth-context";
 import { PlayerSchleimi } from "@/components/player-schleimi";
 import { LobbySettingsPanel } from "@/components/lobby-settings";
 import { startBlockedReason } from "@/lib/room-settings";
@@ -10,6 +11,7 @@ import { emptyPromptPoolReason } from "@/lib/content";
 import { copyJoinLink, shareOrCopyJoinLink } from "@/lib/join-link";
 import { interpolate } from "@/lib/i18n";
 import { useI18n } from "@/lib/i18n-context";
+import { guestMayRenameInLobby } from "@/lib/guest-flow";
 import { LobbyJoinQrButton } from "@/components/lobby-join-qr";
 
 function CrownIcon({ className }: { className?: string }) {
@@ -162,10 +164,12 @@ function RenameSheet({
 
 export function LobbyScreen() {
   const game = useGame();
+  const { isGuest } = useAuth();
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
   const [renameOpen, setRenameOpen] = useState(false);
+  const canRename = guestMayRenameInLobby(isGuest);
 
   const playersSorted = [...game.players].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -335,7 +339,7 @@ export function LobbyScreen() {
               }}
             >
               <PlayerSchleimi playerId={player.id} size={48} label={player.display_name} />
-              {player.id === game.myPlayerId ? (
+              {player.id === game.myPlayerId && canRename ? (
                 <button
                   className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold text-left active:opacity-70 transition-opacity"
                   style={{ color: "var(--rp-text)" }}
@@ -350,6 +354,11 @@ export function LobbyScreen() {
               ) : (
                 <span className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold" style={{ color: "var(--rp-text)" }}>
                   <span className="min-w-0 truncate">{player.display_name}</span>
+                  {player.id === game.myPlayerId && (
+                    <span className="shrink-0 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>
+                      {t.game.youBadge}
+                    </span>
+                  )}
                 </span>
               )}
               {player.is_host && (
@@ -427,7 +436,7 @@ export function LobbyScreen() {
         )}
       </div>
 
-      {renameOpen && (
+      {renameOpen && canRename && (
         <RenameSheet
           currentName={
             game.players.find((p) => p.id === game.myPlayerId)?.display_name ?? ""
