@@ -10,6 +10,7 @@ import { emptyPromptPoolReason } from "@/lib/content";
 import { copyJoinLink, shareOrCopyJoinLink } from "@/lib/join-link";
 import { interpolate } from "@/lib/i18n";
 import { useI18n } from "@/lib/i18n-context";
+import { LobbyJoinQrButton } from "@/components/lobby-join-qr";
 
 function CrownIcon({ className }: { className?: string }) {
   return (
@@ -252,14 +253,23 @@ export function LobbyScreen() {
             {shareToast ?? t.lobby.linkCopied}
           </div>
         )}
-        {/* Back button */}
-        <button
-          onClick={() => void game.leaveRoom()}
-          className="self-start inline-flex items-center min-h-11 min-w-11 -ml-2 px-2 mt-1 mb-1 text-sm font-medium transition-colors"
-          style={{ color: "var(--rp-text-secondary)" }}
-        >
-          &larr; {t.lobby.leave}
-        </button>
+        <div className="flex items-center justify-between gap-3 mt-1 mb-1">
+          <button
+            onClick={() => void game.leaveRoom()}
+            className="self-start inline-flex items-center min-h-11 min-w-11 -ml-2 px-2 text-sm font-medium transition-colors"
+            style={{ color: "var(--rp-text-secondary)" }}
+          >
+            &larr; {t.lobby.leave}
+          </button>
+          {game.room?.code && (
+            <LobbyJoinQrButton
+              code={game.room.code}
+              mascotPlayerId={
+                playersSorted.find((player) => player.is_host)?.id ?? game.myPlayerId
+              }
+            />
+          )}
+        </div>
 
         {/* Room code card */}
         <div className="flex flex-col items-center mb-5">
