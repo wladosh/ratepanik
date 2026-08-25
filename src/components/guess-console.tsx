@@ -1,7 +1,12 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
-import { parseGermanDecimal } from "@/lib/parse-german-decimal";
+import { useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import {
+  caretAfterContentChars,
+  countContentChars,
+  formatGermanGroupedInput,
+  parseGermanDecimal,
+} from "@/lib/parse-german-decimal";
 import styles from "./number-guess-screen.module.css";
 
 export interface GuessConsoleProps {
@@ -13,8 +18,8 @@ export interface GuessConsoleProps {
   onSubmit: (value: number) => void | Promise<void>;
 }
 
-const FORMAT_HELP = "Komma oder Punkt möglich";
-const INVALID_GUESS = "Gib eine gültige Zahl ein, zum Beispiel 12,5.";
+const FORMAT_HELP = "Große Zahlen bekommen automatisch Punkte: 10.000.000";
+const INVALID_GUESS = "Gib eine gültige Zahl ein, zum Beispiel 12,5 oder 10.000.";
 
 export function GuessConsole({
   value,
@@ -28,6 +33,8 @@ export function GuessConsole({
   const helpId = useId();
   const errorId = useId();
   const unitId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const caretRef = useRef<number | null>(null);
   const [showValidation, setShowValidation] = useState(false);
   const parsedGuess = parseGermanDecimal(value);
   const invalid = showValidation && value.trim() !== "" && parsedGuess === null;
@@ -39,6 +46,14 @@ export function GuessConsole({
   ]
     .filter(Boolean)
     .join(" ");
+
+  useLayoutEffect(() => {
+    const caret = caretRef.current;
+    const input = inputRef.current;
+    if (caret == null || !input) return;
+    input.setSelectionRange(caret, caret);
+    caretRef.current = null;
+  }, [value]);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -65,6 +80,7 @@ export function GuessConsole({
       >
         <input
           id={inputId}
+          ref={inputRef}
           className={[
             styles.input,
             unit ? styles.inputWithUnit : null,
@@ -82,8 +98,14 @@ export function GuessConsole({
           aria-invalid={visibleError ? "true" : "false"}
           aria-describedby={describedBy}
           onChange={(event) => {
+            const next = formatGermanGroupedInput(event.target.value);
+            const contentBefore = countContentChars(
+              event.target.value,
+              event.target.selectionStart ?? event.target.value.length,
+            );
+            caretRef.current = caretAfterContentChars(next, contentBefore);
             setShowValidation(false);
-            onChange(event.target.value);
+            onChange(next);
           }}
           onBlur={() => setShowValidation(true)}
         />

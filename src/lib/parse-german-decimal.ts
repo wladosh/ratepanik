@@ -25,13 +25,12 @@ export function parseGermanDecimal(input: string): number | null {
 
   if (PLAIN_NUMBER.test(unsigned)) {
     normalized = unsigned;
-  } else if (DECIMAL_POINT.test(unsigned)) {
-    // A single point follows the input hint and is treated as a decimal mark.
-    // German thousands remain supported when multiple groups are present or
-    // when a comma supplies the decimal part (for example 1.234,56).
-    normalized = unsigned;
   } else if (GERMAN_GROUPED.test(unsigned)) {
+    // 1.234 and 1.234.567 are thousands groups. A true decimal uses a comma
+    // (1,234) or a single point with 1–2 digits (12.5).
     normalized = unsigned.replaceAll(".", "").replace(",", ".");
+  } else if (DECIMAL_POINT.test(unsigned)) {
+    normalized = unsigned;
   } else if (INTERNATIONAL_GROUPED.test(unsigned)) {
     normalized = unsigned.replaceAll(",", "");
   } else if (MULTI_COMMA_GROUPED.test(unsigned)) {
@@ -46,4 +45,83 @@ export function parseGermanDecimal(input: string): number | null {
 
   const value = Number(`${sign}${normalized}`);
   return Number.isFinite(value) ? value : null;
+}
+
+const INPUT_KEEP = /[^\d.,+\-]/g;
+
+function groupThousands(digits: string): string {
+  if (!digits) return "";
+  const chars = digits.split("");
+  const parts: string[] = [];
+  for (let i = chars.length; i > 0; i -= 3) {
+    parts.unshift(chars.slice(Math.max(0, i - 3), i).join(""));
+  }
+  return parts.join(".");
+}
+
+/**
+ * Live display for the guess field: 10000000 → 10.000.000.
+ * A comma (or a single point with 1–2 decimals) stays the decimal mark.
+ */
+export function formatGermanGroupedInput(raw: string): string {
+  const cleaned = raw.replace(INPUT_KEEP, "");
+  const sign = cleaned.startsWith("-") ? "-" : "";
+  let body = cleaned;
+  if (body.startsWith("+") || body.startsWith("-")) body = body.slice(1);
+  body = body.replace(/[+\-]/g, "");
+
+  const commaAt = body.indexOf(",");
+  const lastDot = body.lastIndexOf(".");
+  const dotCount = body.split(".").length - 1;
+
+  let intDigits: string;
+  let fraction: string | null = null;
+  let keepTrailingSep = false;
+
+  if (commaAt >= 0) {
+    intDigits = body.slice(0, commaAt).replace(/\D/g, "");
+    fraction = body.slice(commaAt + 1).replace(/\D/g, "");
+    keepTrailingSep = fraction.length === 0 && body.endsWith(",");
+  } else if (dotCount === 1 && lastDot >= 0) {
+    const after = body.slice(lastDot + 1).replace(/\D/g, "");
+    if (after.length <= 2) {
+      intDigits = body.slice(0, lastDot).replace(/\D/g, "");
+      fraction = after;
+      keepTrailingSep = after.length === 0 && body.endsWith(".");
+    } else {
+      intDigits = body.replace(/\D/g, "");
+    }
+  } else {
+    intDigits = body.replace(/\D/g, "");
+  }
+
+  intDigits = intDigits.replace(/^0+(?=\d)/, "");
+  const grouped = groupThousands(intDigits);
+  if (fraction !== null) {
+    return `${sign}${grouped},${keepTrailingSep ? "" : fraction}`;
+  }
+  return `${sign}${grouped}`;
+}
+
+export function countContentChars(value: string, until: number): number {
+  let count = 0;
+  const end = Math.min(until, value.length);
+  for (let i = 0; i < end; i++) {
+    if (value[i] !== ".") count += 1;
+  }
+  return count;
+}
+
+export function caretAfterContentChars(
+  formatted: string,
+  contentCharsBefore: number,
+): number {
+  if (contentCharsBefore <= 0) return 0;
+  let seen = 0;
+  for (let i = 0; i < formatted.length; i++) {
+    if (formatted[i] === ".") continue;
+    seen += 1;
+    if (seen >= contentCharsBefore) return i + 1;
+  }
+  return formatted.length;
 }
