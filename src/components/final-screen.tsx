@@ -4,7 +4,11 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { useGame } from "@/lib/game-context";
 import { useAuth } from "@/lib/auth-context";
 import { createBrowserSupabase } from "@/lib/supabase/client";
-import { calculateMatchRewards, type MatchRewardResult } from "@/lib/match-rewards";
+import {
+  calculateMatchRewards,
+  questionSlotsFromSettings,
+  type MatchRewardResult,
+} from "@/lib/match-rewards";
 import { useAchievementGrant } from "@/lib/use-achievement-grant";
 import { MatchEndRewardsScreen, BriefScoreboard } from "./match-end-rewards";
 
@@ -35,16 +39,16 @@ export function FinalScreen() {
   const profileXp = profile?.xp ?? 0;
   const profileLevel = profile?.level ?? 1;
   const myScore = myPlayer?.score ?? 0;
-  const playerCount = game.players.length;
+  const questionSlots = questionSlotsFromSettings(game.roomSettings);
 
   const grantRewards = useCallback(async () => {
     if (!roomId || !userId) return;
 
-    const correctAnswerCount = playerCount > 0 && myScore > 0
-      ? Math.max(0, Math.round(myScore / 25))
-      : 0;
-
-    const result = calculateMatchRewards(placement, correctAnswerCount);
+    const result = calculateMatchRewards({
+      placement,
+      score: myScore,
+      questionSlots,
+    });
 
     setPreviousXp(profileXp);
     setPreviousLevel(profileLevel);
@@ -95,7 +99,7 @@ export function FinalScreen() {
       await refetchProfile();
       setReady(true);
     }
-  }, [roomId, userId, placement, profileXp, profileLevel, myScore, playerCount, recordDailyPlay, refetchProfile, supabase]);
+  }, [roomId, userId, placement, profileXp, profileLevel, myScore, questionSlots, recordDailyPlay, refetchProfile, supabase]);
 
   useEffect(() => {
     if (grantedRef.current || !roomId || !userId || isGuest) return;
