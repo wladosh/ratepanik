@@ -1,0 +1,117 @@
+.progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 18px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 22px rgba(42, 42, 74, 0.06);
+}
+
+.progressLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--rp-text);
+}
+
+.progressMeta {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--rp-text-secondary);
+}
+
+.guestHint {
+  margin: 0 0 16px;
+  padding: 0 2px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--rp-text-secondary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px 12px;
+  padding: 4px 2px 12px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 0;
+}
+
+.stickerWrap {
+  position: relative;
+  width: 124px;
+  height: 124px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stickerWrap[data-unlocked="true"] {
+  filter: drop-shadow(0 10px 16px rgba(42, 42, 74, 0.1));
+}
+
+.stickerWrap[data-tilt="0"] {
+  transform: rotate(-5deg);
+}
+
+.stickerWrap[data-tilt="1"] {
+  transform: rotate(4deg);
+}
+
+.stickerWrap[data-tilt="2"] {
+  transform: rotate(-2deg);
+}
+
+.stickerWrap[data-tilt="3"] {
+  transform: rotate(6deg);
+}
+
+.copy {
+  margin-top: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--rp-text);
+}
+
+.description {
+  margin: 4px 0 0;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--rp-text-secondary);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stickerWrap[data-tilt] {
+    transform: none;
+  }
+}

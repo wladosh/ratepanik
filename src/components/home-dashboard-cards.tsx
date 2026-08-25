@@ -9,12 +9,12 @@ import { useGSAP } from "@gsap/react";
 import type { HomePanelId } from "@/components/home-panels";
 import { DecorSchleimi } from "@/components/player-schleimi";
 import {
-  BADGE_FIRST_WIN_128,
   HOME_CREATE_ROOM_256,
   LOOT_BOX_RARE_128,
   RANK_BADGE_GOLD_128,
   TROPHY_GOLD_512,
 } from "@/lib/rp-assets";
+import { AchievementSticker } from "@/components/achievement-sticker";
 import styles from "./home-dashboard-cards.module.css";
 
 gsap.registerPlugin(useGSAP);
@@ -320,7 +320,7 @@ function FeatureGrid({
         className={styles.achievementsCard}
         asset={
           <span className={styles.featureAsset} data-feature-asset aria-hidden="true">
-            <Image src={BADGE_FIRST_WIN_128} alt="" width={68} height={68} />
+            <AchievementSticker id="first_win" unlocked size={72} />
           </span>
         }
         onOpen={onOpenPanel}
