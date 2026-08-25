@@ -985,7 +985,9 @@ function validate(prompts) {
     if (!["find_lie", "order_it"].includes(p.mode)) errors.push(`${loc}: bad mode`);
     if (!["leicht", "mittel", "schwer"].includes(p.difficulty)) errors.push(`${loc}: bad difficulty`);
     if (typeof p.prompt !== "string" || p.prompt.trim().length < 8) errors.push(`${loc}: prompt too short`);
-    if (p.hint != null && typeof p.hint !== "string") errors.push(`${loc}: hint must be string`);
+    if (p.hint != null && String(p.hint).trim() !== "") {
+      errors.push(`${loc}: question hints are retired — hint must be null`);
+    }
     if (p.active !== true) errors.push(`${loc}: active must be true`);
     if (!p.payload || typeof p.payload !== "object") errors.push(`${loc}: missing payload`);
 
@@ -1131,7 +1133,7 @@ function countsTable(prompts) {
   return lines.join("\n");
 }
 
-const prompts = RAW.map((p) => ({ ...p, active: true }));
+const prompts = RAW.map((p) => ({ ...p, hint: null, active: true }));
 const { errors, byDiff } = validate(prompts);
 if (errors.length) {
   console.error("Validation failed:\n" + errors.map((e) => "- " + e).join("\n"));

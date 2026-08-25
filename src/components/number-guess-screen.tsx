@@ -154,7 +154,6 @@ export function NumberGuessScreen() {
         stageTint="rgba(232, 245, 255, 0.96)"
         stageBorder="rgba(126, 182, 255, 0.2)"
         artworkBackground="rgba(211, 235, 255, 0.76)"
-        supportingContent={undefined}
         artwork={
           <Image
             src={MODE_NUMBER_GUESS_256}

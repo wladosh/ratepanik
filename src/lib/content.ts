@@ -31,13 +31,14 @@ export interface OrderItPayload {
   order_axis?: string;
 }
 
+const PROMPT_COLUMNS = "id, theme_id, mode, difficulty, prompt, payload";
+
 export interface Prompt {
   id: string;
   theme_id: string;
   mode: "number_guess" | "pick_correct" | "find_lie" | "order_it";
   difficulty: "leicht" | "mittel" | "schwer";
   prompt: string;
-  hint: string | null;
   payload:
     | NumberGuessPayload
     | PickCorrectPayload
@@ -66,7 +67,7 @@ export async function fetchPromptsByThemeAndMode(
 ): Promise<Prompt[]> {
   const { data, error } = await supabase
     .from("prompts")
-    .select("id, theme_id, mode, difficulty, prompt, hint, payload")
+    .select(PROMPT_COLUMNS)
     .eq("theme_id", themeId)
     .eq("mode", mode)
     .eq("active", true)
@@ -170,7 +171,7 @@ async function queryPromptsForMode(opts: {
 }): Promise<Prompt[]> {
   let query = supabase
     .from("prompts")
-    .select("id, theme_id, mode, difficulty, prompt, hint, payload")
+    .select(PROMPT_COLUMNS)
     .eq("mode", opts.mode)
     .eq("active", true);
 

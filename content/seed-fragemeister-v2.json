@@ -1,0 +1,794 @@
+{
+  "prompts": [
+    {
+      "theme_slug": "gaming",
+      "mode": "number_guess",
+      "difficulty": "schwer",
+      "prompt": "Wie viele Pokémon-Sammelkarten wurden ungefähr weltweit schon gedruckt (Stand 2026)?",
+      "hint": null,
+      "payload": {
+        "answer": 85000000000,
+        "unit": null,
+        "plausibility_note": "The Pokémon Company: über 85 Milliarden Karten bis März 2026."
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "gaming",
+      "mode": "number_guess",
+      "difficulty": "mittel",
+      "prompt": "Wie viele Spiele sind ungefähr jemals auf Steam erschienen (Größenordnung, Stand 2026)?",
+      "hint": null,
+      "payload": {
+        "answer": 130000,
+        "unit": null,
+        "plausibility_note": "SteamDB lag 2026 bei grob 130.000 jemals erschienenen Titeln (Store schwankt durch Delistings)."
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "geschichte",
+      "mode": "number_guess",
+      "difficulty": "schwer",
+      "prompt": "Wie viele Menschen sind ungefähr jemals geboren worden — alle Generationen zusammen, nicht nur die heute Lebenden?",
+      "hint": null,
+      "payload": {
+        "answer": 117000000000,
+        "unit": null,
+        "plausibility_note": "Population Reference Bureau 2022: ca. 117 Milliarden Geburten seit dem Auftreten des Homo sapiens."
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "wissenschaft-natur",
+      "mode": "number_guess",
+      "difficulty": "schwer",
+      "prompt": "Wie viele Bäume stehen ungefähr auf der ganzen Erde?",
+      "hint": null,
+      "payload": {
+        "answer": 3000000000000,
+        "unit": null,
+        "plausibility_note": "Crowther et al., Nature 2015: ca. 3,04 Billionen Bäume (deutsche Billion = 10^12)."
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "wissenschaft-natur",
+      "mode": "number_guess",
+      "difficulty": "mittel",
+      "prompt": "Wie viele Nervenzellen (Neuronen) hat ein menschliches Gehirn ungefähr?",
+      "hint": null,
+      "payload": {
+        "answer": 86000000000,
+        "unit": null,
+        "plausibility_note": "Azevedo / Herculano-Houzel: im Schnitt ca. 86 Milliarden Neuronen."
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "sport",
+      "mode": "number_guess",
+      "difficulty": "schwer",
+      "prompt": "Wie viele Tennisbälle werden ungefähr während eines kompletten Wimbledon-Turniers verbraucht?",
+      "hint": null,
+      "payload": {
+        "answer": 55000,
+        "unit": null,
+        "plausibility_note": "AELTC-Angaben liegen typischerweise bei grob 54.000–65.000 Bällen; gängige Größe 55.000."
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "musik",
+      "mode": "number_guess",
+      "difficulty": "schwer",
+      "prompt": "Wie viele Menschen waren ungefähr beim Rekord-Open-Air von Rod Stewart an der Copacabana (Silvester 1994) live vor Ort?",
+      "hint": null,
+      "payload": {
+        "answer": 3500000,
+        "unit": null,
+        "plausibility_note": "Guinness / Stadt Rio: ca. 3,5 Millionen, inkl. Silvester-Feuerwerk-Publikum am Strand."
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "film-serie",
+      "mode": "number_guess",
+      "difficulty": "schwer",
+      "prompt": "Wie viele Statisten kamen ungefähr in der Beerdigungsszene von „Gandhi“ (1982) zum Einsatz?",
+      "hint": null,
+      "payload": {
+        "answer": 300000,
+        "unit": null,
+        "plausibility_note": "Guinness World Records: über 300.000 Extras, oft als Film-Rekord zitiert."
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "reise-orte",
+      "mode": "number_guess",
+      "difficulty": "schwer",
+      "prompt": "Wie viele Nieten halten ungefähr den Eiffelturm zusammen?",
+      "hint": null,
+      "payload": {
+        "answer": 2500000,
+        "unit": null,
+        "plausibility_note": "Offizielle Angabe der Turmverwaltung: ca. 2,5 Millionen Nieten."
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "alltag-peinlich",
+      "mode": "number_guess",
+      "difficulty": "schwer",
+      "prompt": "Wie viele Bläschen entstehen ungefähr, wenn eine 0,75-Liter-Flasche Champagner komplett ausperlt?",
+      "hint": null,
+      "payload": {
+        "answer": 50000000,
+        "unit": null,
+        "plausibility_note": "Theoretische CO₂-Bilanz (Uni Reims / Liger-Belair-Umrechnung): grob 49 Millionen mögliche Blasen; Party-Ziel 50 Millionen."
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "gaming",
+      "mode": "pick_correct",
+      "difficulty": "schwer",
+      "prompt": "Welche Spiele hat Hideo Kojima maßgeblich als Autor oder Regisseur verantwortet?",
+      "hint": null,
+      "payload": {
+        "cards": [
+          "Silent Hill 2",
+          "Metal Gear Solid",
+          "Resident Evil 4",
+          "Death Stranding",
+          "Bloodborne",
+          "Snatcher",
+          "The Last of Us",
+          "P.T."
+        ],
+        "correct_indices": [
+          1,
+          3,
+          5,
+          7
+        ]
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "geschichte",
+      "mode": "pick_correct",
+      "difficulty": "mittel",
+      "prompt": "Welche Ereignisse lagen zeitlich vor Kolumbus’ erster Landung in der Karibik?",
+      "hint": null,
+      "payload": {
+        "cards": [
+          "Fall Konstantinopels",
+          "95 Thesen Luthers",
+          "Wikinger erreichen Vinland",
+          "Magellan sticht zur Weltumsegelung in See",
+          "Buchdruck mit beweglichen Lettern in Mainz",
+          "Französische Revolution",
+          "Azteken gründen Tenochtitlán",
+          "Erste iPhone-Keynote"
+        ],
+        "correct_indices": [
+          0,
+          2,
+          4,
+          6
+        ]
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "geschichte",
+      "mode": "pick_correct",
+      "difficulty": "schwer",
+      "prompt": "Welche Personen herrschten wirklich als Königin oder Kaiserin aus eigenem Recht — nicht nur als Gemahlin?",
+      "hint": null,
+      "payload": {
+        "cards": [
+          "Hatschepsut",
+          "Marie-Antoinette",
+          "Elisabeth I. von England",
+          "Eva Perón",
+          "Maria Theresia",
+          "Jackie Kennedy",
+          "Katharina die Große",
+          "Wallis Simpson"
+        ],
+        "correct_indices": [
+          0,
+          2,
+          4,
+          6
+        ]
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "wissenschaft-natur",
+      "mode": "pick_correct",
+      "difficulty": "mittel",
+      "prompt": "Welche Einheiten messen Energie — nicht Kraft, nicht Leistung, nicht Druck?",
+      "hint": null,
+      "payload": {
+        "cards": [
+          "Joule",
+          "Newton",
+          "Kilowattstunde",
+          "Watt",
+          "Kalorie",
+          "Pascal",
+          "Elektronenvolt",
+          "Ampere"
+        ],
+        "correct_indices": [
+          0,
+          2,
+          4,
+          6
+        ]
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "sport",
+      "mode": "pick_correct",
+      "difficulty": "mittel",
+      "prompt": "Welche Sportarten waren mindestens einmal olympisch, stehen 2026 aber nicht im Sommer- oder Winterprogramm?",
+      "hint": null,
+      "payload": {
+        "cards": [
+          "Tauziehen",
+          "Schwimmen",
+          "Polo zu Pferd",
+          "Leichtathletik",
+          "Jeu de Paume",
+          "Turnen",
+          "Croquet",
+          "Fechten"
+        ],
+        "correct_indices": [
+          0,
+          2,
+          4,
+          6
+        ]
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "musik",
+      "mode": "pick_correct",
+      "difficulty": "schwer",
+      "prompt": "Welche Werke sind Opern — keine Musicals und keine Operetten?",
+      "hint": null,
+      "payload": {
+        "cards": [
+          "Carmen",
+          "Cats",
+          "La Traviata",
+          "Die Fledermaus",
+          "Tosca",
+          "Hamilton",
+          "Die Zauberflöte",
+          "West Side Story"
+        ],
+        "correct_indices": [
+          0,
+          2,
+          4,
+          6
+        ]
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "film-serie",
+      "mode": "pick_correct",
+      "difficulty": "mittel",
+      "prompt": "Welche Serien liefen ursprünglich als HBO-Eigenproduktion — nicht Netflix, AMC oder BBC?",
+      "hint": null,
+      "payload": {
+        "cards": [
+          "The Sopranos",
+          "Breaking Bad",
+          "Succession",
+          "Stranger Things",
+          "The Wire",
+          "The Office (US)",
+          "True Detective",
+          "Sherlock"
+        ],
+        "correct_indices": [
+          0,
+          2,
+          4,
+          6
+        ]
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "film-serie",
+      "mode": "pick_correct",
+      "difficulty": "schwer",
+      "prompt": "Welche Filme hat Hayao Miyazaki selbst inszeniert — nicht nur „irgendwas von Ghibli“?",
+      "hint": null,
+      "payload": {
+        "cards": [
+          "Chihiros Reise ins Zauberland",
+          "Die letzten Glühwürmchen",
+          "Prinzessin Mononoke",
+          "Perfect Blue",
+          "Mein Nachbar Totoro",
+          "Akira",
+          "Das wandelnde Schloss",
+          "Your Name"
+        ],
+        "correct_indices": [
+          0,
+          2,
+          4,
+          6
+        ]
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "reise-orte",
+      "mode": "pick_correct",
+      "difficulty": "mittel",
+      "prompt": "Welche dieser Hauptstädte liegen südlich des Äquators?",
+      "hint": null,
+      "payload": {
+        "cards": [
+          "Canberra",
+          "Mexiko-Stadt",
+          "Brasília",
+          "Kairo",
+          "Wellington",
+          "Bangkok",
+          "Buenos Aires",
+          "Madrid"
+        ],
+        "correct_indices": [
+          0,
+          2,
+          4,
+          6
+        ]
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "alltag-peinlich",
+      "mode": "pick_correct",
+      "difficulty": "schwer",
+      "prompt": "Welche Aussagen über Essen und Körper stimmen wirklich?",
+      "hint": null,
+      "payload": {
+        "cards": [
+          "Bananen sind botanisch Beeren",
+          "Man nutzt nur 10 % des Gehirns",
+          "Erdnüsse sind keine Nüsse, sondern Hülsenfrüchte",
+          "Goldfische vergessen alles nach drei Sekunden",
+          "Viel Carotin kann die Haut leicht orange färben",
+          "Man verliert die meiste Körperwärme über den Kopf",
+          "Tomaten sind botanisch Früchte",
+          "Ein Blitz schlägt nie zweimal an derselben Stelle ein"
+        ],
+        "correct_indices": [
+          0,
+          2,
+          4,
+          6
+        ]
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "gaming",
+      "mode": "find_lie",
+      "difficulty": "schwer",
+      "prompt": "Spielegeschichte: eine Behauptung ist gelogen. Welche?",
+      "hint": null,
+      "payload": {
+        "statements": [
+          "Counter-Strike entstand als Half-Life-Mod.",
+          "Halo: Combat Evolved war ein Launch-Titel der originalen Xbox.",
+          "Final Fantasy VII erschien zuerst exklusiv auf dem Super Nintendo.",
+          "The Legend of Zelda: Ocarina of Time erschien zuerst auf dem Nintendo 64."
+        ],
+        "lie_index": 2
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "geschichte",
+      "mode": "find_lie",
+      "difficulty": "mittel",
+      "prompt": "Weltgeschichte: drei stimmen, eine ist Quatsch. Welche?",
+      "hint": null,
+      "payload": {
+        "statements": [
+          "Die Magna Carta wurde in England besiegelt.",
+          "Das Byzantinische Reich endete mit dem Fall Konstantinopels.",
+          "Die Unabhängigkeitserklärung der USA wurde in Philadelphia verabschiedet.",
+          "Napoleon Bonaparte wurde auf Korsika als französischer Kronprinz geboren."
+        ],
+        "lie_index": 3
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "wissenschaft-natur",
+      "mode": "find_lie",
+      "difficulty": "schwer",
+      "prompt": "Naturwissenschaft: welche Aussage ist falsch?",
+      "hint": null,
+      "payload": {
+        "statements": [
+          "Die Venus rotiert im Vergleich zu den meisten Planeten rückwärts.",
+          "Diamanten und Graphit bestehen beide aus Kohlenstoff.",
+          "Die DNA in einer menschlichen Zelle wäre ausgerollt rund zwei Meter lang.",
+          "Glas ist bei Zimmertemperatur eine extrem zähe Flüssigkeit — deshalb sind alte Kirchenfenster unten dicker."
+        ],
+        "lie_index": 3
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "sport",
+      "mode": "find_lie",
+      "difficulty": "schwer",
+      "prompt": "Sportrekorde: eine flunkert. Welche?",
+      "hint": null,
+      "payload": {
+        "statements": [
+          "Ein NBA-Korb hängt 10 Fuß (3,05 m) über dem Parkett.",
+          "Eliud Kipchoge unterbot 2019 offiziell die 2-Stunden-Marke und hält seitdem den World-Athletics-Weltrekord.",
+          "Ein Eishockey-Puck besteht hauptsächlich aus vulkanisiertem Gummi.",
+          "Beim modernen Fußball-Anstoß darf der Ball auch nach hinten gespielt werden."
+        ],
+        "lie_index": 1
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "sport",
+      "mode": "find_lie",
+      "difficulty": "mittel",
+      "prompt": "Fußballregeln: welche Aussage ist falsch?",
+      "hint": null,
+      "payload": {
+        "statements": [
+          "Ein gültiges Tor direkt aus einem Einwurf ist nach den FIFA-Regeln nicht möglich.",
+          "Der Video-Assistent (VAR) wurde bei einer WM erstmals 2018 in Russland eingesetzt.",
+          "Ein Elfmeter wird von der Strafraumgrenze aus ausgeführt — also aus 16,5 Metern.",
+          "Ein Spiel hat zwei Halbzeiten à 45 Minuten plus Nachspielzeit."
+        ],
+        "lie_index": 2
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "musik",
+      "mode": "find_lie",
+      "difficulty": "schwer",
+      "prompt": "Musikgeschichte: welche Behauptung ist falsch?",
+      "hint": null,
+      "payload": {
+        "statements": [
+          "Queen verzichtet in „Bohemian Rhapsody“ bewusst auf einen klassischen, sich wiederholenden Refrain.",
+          "Beethoven komponierte auch nach seiner Ertaubung weiter.",
+          "Die Beatles spielten ihr letztes Dachkonzert auf dem Empire State Building.",
+          "Ein Standard-Konzertflügel hat 88 Tasten."
+        ],
+        "lie_index": 2
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "film-serie",
+      "mode": "find_lie",
+      "difficulty": "mittel",
+      "prompt": "Filmzitate und Fakten: eine Aussage lügt. Welche?",
+      "hint": null,
+      "payload": {
+        "statements": [
+          "Der erste abendfüllende Pixar-Film war Toy Story.",
+          "In Casablanca fällt der Satz „Play it again, Sam“ wortwörtlich genau so.",
+          "Der Herr der Ringe: Die Rückkehr des Königs gewann 11 Oscars.",
+          "2001: Odyssee im Weltraum entstand unter der Regie von Stanley Kubrick."
+        ],
+        "lie_index": 1
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "reise-orte",
+      "mode": "find_lie",
+      "difficulty": "schwer",
+      "prompt": "Geografie für Fortgeschrittene: welche Aussage ist falsch?",
+      "hint": null,
+      "payload": {
+        "statements": [
+          "Lesotho liegt als Binnenstaat komplett innerhalb Südafrikas.",
+          "Der Titicacasee liegt auf der Grenze zwischen Peru und Bolivien.",
+          "Der Nil entspringt ausschließlich in Ägypten.",
+          "Kaliningrad gehört zu Russland, liegt aber zwischen Polen und Litauen."
+        ],
+        "lie_index": 2
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "reise-orte",
+      "mode": "find_lie",
+      "difficulty": "mittel",
+      "prompt": "Länderkunde: eine flunkert. Welche?",
+      "hint": null,
+      "payload": {
+        "statements": [
+          "Istanbul war früher unter anderem als Konstantinopel bekannt.",
+          "Die Große Mauer verläuft im Wesentlichen durch das heutige China.",
+          "Der Äquator durchquert den afrikanischen Kontinent.",
+          "Finnland hat mehr Vulkane als Seen."
+        ],
+        "lie_index": 3
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "alltag-peinlich",
+      "mode": "find_lie",
+      "difficulty": "schwer",
+      "prompt": "Küchenmythen: welche ist gelogen?",
+      "hint": null,
+      "payload": {
+        "statements": [
+          "Bananen reifen nach, weil sie Ethylengas abgeben.",
+          "Honig kann jahrzehntelang haltbar sein, wenn er trocken und dicht verschlossen bleibt.",
+          "Chili-Schärfe sitzt vor allem in den Samen — die weißen Innenrippen sind harmlos.",
+          "Koriander schmeckt einem Teil der Menschen seifig, weil eine Genvariante die Wahrnehmung verändert."
+        ],
+        "lie_index": 2
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "gaming",
+      "mode": "order_it",
+      "difficulty": "mittel",
+      "prompt": "Ordne diese FromSoftware-Spiele nach Erstveröffentlichung (älteste zuerst).",
+      "hint": null,
+      "payload": {
+        "items": [
+          "Elden Ring",
+          "Demon's Souls",
+          "Bloodborne",
+          "Dark Souls"
+        ],
+        "correct_order": [
+          1,
+          3,
+          2,
+          0
+        ],
+        "order_axis": "Release"
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "geschichte",
+      "mode": "order_it",
+      "difficulty": "schwer",
+      "prompt": "Ordne diese Schrift- und Druckmeilensteine (frühestes zuerst).",
+      "hint": null,
+      "payload": {
+        "items": [
+          "Gutenberg-Bibel",
+          "Rosetta-Stein",
+          "Keilschrift-Tafeln aus Uruk",
+          "Magna Carta"
+        ],
+        "correct_order": [
+          2,
+          1,
+          3,
+          0
+        ],
+        "order_axis": "chronologisch"
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "wissenschaft-natur",
+      "mode": "order_it",
+      "difficulty": "schwer",
+      "prompt": "Ordne nach typischer Wellenlänge (längste Welle zuerst).",
+      "hint": null,
+      "payload": {
+        "items": [
+          "Röntgenstrahlung",
+          "UKW-Radio",
+          "sichtbares Licht",
+          "Mikrowelle"
+        ],
+        "correct_order": [
+          1,
+          3,
+          2,
+          0
+        ],
+        "order_axis": "Wellenlänge"
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "sport",
+      "mode": "order_it",
+      "difficulty": "mittel",
+      "prompt": "Ordne die Bälle nach offiziellem Durchmesser (kleinster zuerst).",
+      "hint": null,
+      "payload": {
+        "items": [
+          "Fußball (Größe 5)",
+          "Golfball",
+          "Basketball",
+          "Tennisball"
+        ],
+        "correct_order": [
+          1,
+          3,
+          0,
+          2
+        ],
+        "order_axis": "Durchmesser"
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "musik",
+      "mode": "order_it",
+      "difficulty": "mittel",
+      "prompt": "Ordne die Alben nach Erstveröffentlichung (älteste zuerst).",
+      "hint": null,
+      "payload": {
+        "items": [
+          "Nevermind (Nirvana)",
+          "Thriller (Michael Jackson)",
+          "OK Computer (Radiohead)",
+          "The Dark Side of the Moon"
+        ],
+        "correct_order": [
+          3,
+          1,
+          0,
+          2
+        ],
+        "order_axis": "Release"
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "musik",
+      "mode": "order_it",
+      "difficulty": "schwer",
+      "prompt": "Ordne die Komponisten nach Geburtsjahr (früher geboren zuerst).",
+      "hint": null,
+      "payload": {
+        "items": [
+          "Mozart",
+          "Johann Sebastian Bach",
+          "Beethoven",
+          "Chopin"
+        ],
+        "correct_order": [
+          1,
+          0,
+          2,
+          3
+        ],
+        "order_axis": "Geburtsjahr"
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "film-serie",
+      "mode": "order_it",
+      "difficulty": "schwer",
+      "prompt": "Ordne die Filme nach US-Kinostart (älteste zuerst).",
+      "hint": null,
+      "payload": {
+        "items": [
+          "Jurassic Park",
+          "The Matrix",
+          "Der weiße Hai",
+          "Avatar"
+        ],
+        "correct_order": [
+          2,
+          0,
+          1,
+          3
+        ],
+        "order_axis": "Kinostart"
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "reise-orte",
+      "mode": "order_it",
+      "difficulty": "schwer",
+      "prompt": "Ordne die Flüsse nach Länge (kürzester zuerst).",
+      "hint": null,
+      "payload": {
+        "items": [
+          "Jangtse",
+          "Themse",
+          "Donau",
+          "Rhein"
+        ],
+        "correct_order": [
+          1,
+          3,
+          2,
+          0
+        ],
+        "order_axis": "Länge"
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "alltag-peinlich",
+      "mode": "order_it",
+      "difficulty": "mittel",
+      "prompt": "Ordne die Alltagsdinge nach Erfindung (frühestes zuerst).",
+      "hint": null,
+      "payload": {
+        "items": [
+          "World Wide Web",
+          "Mikrowellenherd",
+          "Kugelschreiber",
+          "Reißverschluss"
+        ],
+        "correct_order": [
+          3,
+          2,
+          1,
+          0
+        ],
+        "order_axis": "Erfindung"
+      },
+      "active": true
+    },
+    {
+      "theme_slug": "alltag-peinlich",
+      "mode": "order_it",
+      "difficulty": "schwer",
+      "prompt": "Ordne nach typischer Haltbarkeit ungeöffnet im Vorratsschrank (kürzeste zuerst).",
+      "hint": null,
+      "payload": {
+        "items": [
+          "Weißbrot",
+          "Honig",
+          "H-Milch",
+          "Dosentomaten"
+        ],
+        "correct_order": [
+          0,
+          2,
+          3,
+          1
+        ],
+        "order_axis": "Haltbarkeit"
+      },
+      "active": true
+    }
+  ]
+}

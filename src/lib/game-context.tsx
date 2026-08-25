@@ -658,7 +658,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     (async () => {
       const { data } = await supabase
         .from("prompts")
-        .select("id, theme_id, mode, difficulty, prompt, hint, payload")
+        .select("id, theme_id, mode, difficulty, prompt, payload")
         .in("id", promptIds);
 
       if (cancelled || !data) return;
