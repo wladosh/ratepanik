@@ -4,14 +4,8 @@ import { useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { useAchievementToast } from "@/lib/achievement-toast-context";
-import type { AchievementId } from "@/lib/rp-assets";
+import { isAchievementId, type AchievementId } from "@/lib/achievement-catalog";
 import type { GamePhase } from "@/lib/game-context";
-
-const SUPPORTED_ACHIEVEMENTS: AchievementId[] = [
-  "first_win",
-  "first_room",
-  "streak_3",
-];
 
 const SAFE_PHASES: GamePhase[] = [
   "home",
@@ -80,8 +74,8 @@ export function useAchievementUnlockWatcher(currentPhase: GamePhase) {
       const currentIds = new Set(data.map((r) => r.achievement_id));
 
       if (initialFetched.current) {
-        for (const achId of SUPPORTED_ACHIEVEMENTS) {
-          if (currentIds.has(achId) && !knownUnlocked.current.has(achId)) {
+        for (const achId of currentIds) {
+          if (isAchievementId(achId) && !knownUnlocked.current.has(achId)) {
             pushAndMaybeFlush(achId);
           }
         }
@@ -105,12 +99,9 @@ export function useAchievementUnlockWatcher(currentPhase: GamePhase) {
         },
         (payload) => {
           const achId = payload.new.achievement_id as string;
-          if (
-            SUPPORTED_ACHIEVEMENTS.includes(achId as AchievementId) &&
-            !knownUnlocked.current.has(achId)
-          ) {
+          if (isAchievementId(achId) && !knownUnlocked.current.has(achId)) {
             knownUnlocked.current.add(achId);
-            pushAndMaybeFlush(achId as AchievementId);
+            pushAndMaybeFlush(achId);
           }
         }
       )

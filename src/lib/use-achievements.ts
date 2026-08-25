@@ -1,7 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
+import {
+  ACHIEVEMENT_CATALOG,
+  isAchievementId,
+} from "@/lib/achievement-catalog";
 
 export interface CatalogAchievement {
   id: string;
@@ -14,7 +18,7 @@ export function achievementBadgeSrc(iconKey: string): string {
 }
 
 export function useAchievements(userId: string | null) {
-  const [catalog, setCatalog] = useState<CatalogAchievement[]>([]);
+  const [extraIds, setExtraIds] = useState<string[]>([]);
   const [unlocked, setUnlocked] = useState<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
 
@@ -36,13 +40,7 @@ export function useAchievements(userId: string | null) {
         title: string;
         icon_key: string;
       }[];
-      setCatalog(
-        rows.map((row) => ({
-          id: row.id,
-          name_de: row.title,
-          icon_key: row.icon_key,
-        }))
-      );
+      setExtraIds(rows.map((row) => row.id).filter((id) => !isAchievementId(id)));
 
       if (!userId) {
         setUnlocked(new Set());
@@ -67,5 +65,21 @@ export function useAchievements(userId: string | null) {
     };
   }, [userId]);
 
-  return { catalog, unlocked, loaded };
+  const catalog = useMemo<CatalogAchievement[]>(
+    () => [
+      ...ACHIEVEMENT_CATALOG.map((item) => ({
+        id: item.id,
+        name_de: item.title.de,
+        icon_key: item.iconKey,
+      })),
+      ...extraIds.map((id) => ({
+        id,
+        name_de: id,
+        icon_key: id,
+      })),
+    ],
+    [extraIds],
+  );
+
+  return { catalog, extraIds, unlocked, loaded };
 }

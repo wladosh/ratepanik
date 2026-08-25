@@ -110,6 +110,14 @@ const de = {
     statsStreak: "Tages-Streak",
     statsDisclaimer: "Nur echte Match-Daten. Level schaltet noch nichts frei.",
     locked: "Noch nicht",
+    achievementUnlocked: "Erfolg freigeschaltet!",
+    achievementClose: "Weiter",
+    achievementLockedAria: "Gesperrter Erfolg",
+    achievementsGuestHint:
+      "Als Gast bleiben Erfolge gesperrt. Mit Konto sammelst du sie in Matches.",
+    achievementsEmptyHeadline: "Keine Erfolge",
+    achievementsEmptyBody:
+      "Der Katalog ist leer. Nach dem nächsten Content-Update erscheinen sie hier.",
   },
   cosmetics: {
     customize: "Schleimi",
@@ -468,6 +476,14 @@ const en: StringTree<typeof de> = {
     statsStreak: "Day streak",
     statsDisclaimer: "Real match data only. Levels don’t unlock extras yet.",
     locked: "Locked",
+    achievementUnlocked: "Achievement unlocked!",
+    achievementClose: "Continue",
+    achievementLockedAria: "Locked achievement",
+    achievementsGuestHint:
+      "Achievements stay locked for guests. Sign in to collect them in matches.",
+    achievementsEmptyHeadline: "No achievements",
+    achievementsEmptyBody:
+      "The catalog is empty. They’ll show up after the next content update.",
   },
   cosmetics: {
     customize: "Schleimi",

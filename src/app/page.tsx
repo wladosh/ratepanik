@@ -2,9 +2,12 @@
 
 import { useAuth } from "@/lib/auth-context";
 import { useI18n, LoadingPulse } from "@/lib/i18n-context";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 import { LandingScreen } from "@/components/landing-screen";
+import { AchievementsPanel } from "@/components/achievements-panel";
+import { useAchievementToast } from "@/lib/achievement-toast-context";
+import { isAchievementId } from "@/lib/achievement-catalog";
 import { SetUsernameScreen } from "@/components/set-username-screen";
 import { AvatarOnboardingScreen } from "@/components/avatar-onboarding-screen";
 import { GameProvider } from "@/lib/game-context";
@@ -16,6 +19,21 @@ import {
   isJoinCode,
   shouldRestoreMatchOnBareHome,
 } from "@/lib/guest-flow";
+
+function AchievementsPreview() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { enqueue } = useAchievementToast();
+
+  useEffect(() => {
+    const unlockId = searchParams.get("unlock");
+    if (unlockId && isAchievementId(unlockId)) {
+      enqueue(unlockId);
+    }
+  }, [enqueue, searchParams]);
+
+  return <AchievementsPanel onBack={() => router.replace("/")} />;
+}
 
 function HomeContent() {
   const { t } = useI18n();
@@ -33,6 +51,10 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const joinParam = searchParams.get("join") ?? undefined;
   const joinCode = isJoinCode(joinParam) ? joinParam.toUpperCase() : undefined;
+
+  if (searchParams.get("preview") === "achievements") {
+    return <AchievementsPreview />;
+  }
 
   const activeGame = hasActiveGameSession();
 

@@ -5,18 +5,13 @@ import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { xpProgressInLevel } from "@/lib/progression";
 import { dailyPlayStreakDays } from "@/lib/daily-play-streak";
-import { BADGE_FIRST_WIN_48 } from "@/lib/rp-assets";
-import { ACHIEVEMENT_UNLOCKED_COPY } from "@/lib/achievement-toast-context";
-import {
-  achievementBadgeSrc,
-  useAchievements,
-} from "@/lib/use-achievements";
 import { useMatchStats } from "@/lib/use-match-stats";
 import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
 import { FriendsPanel } from "@/components/friends-panel";
 import { ShopPanel } from "@/components/shop-panel";
 import { SchleimiCustomizePanel } from "@/components/schleimi-customize-panel";
 import { SettingsPanel } from "@/components/settings-panel";
+import { AchievementsPanel } from "@/components/achievements-panel";
 
 export type HomePanelId =
   | "friends"
@@ -116,83 +111,6 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
       >
         {t.home.statsDisclaimer}
       </p>
-    </PanelShell>
-  );
-}
-
-function AchievementsPanel({ onBack }: { onBack: () => void }) {
-  const { t } = useI18n();
-  const { user, isGuest } = useAuth();
-  const guestView = !user || isGuest;
-  const { catalog, unlocked, loaded } = useAchievements(
-    guestView ? null : user.id
-  );
-
-  return (
-    <PanelShell title={t.home.achievements} onBack={onBack}>
-      {isGuest && (
-        <p
-          className="text-sm mb-4 px-1"
-          style={{ color: "var(--rp-text-secondary)" }}
-        >
-          Als Gast bleiben Erfolge gesperrt. Mit Konto sammelst du sie in Matches.
-        </p>
-      )}
-      {!loaded ? (
-        <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
-          {t.common.loading}
-        </p>
-      ) : catalog.length === 0 ? (
-        <EmptyCard
-          headline="Keine Erfolge"
-          body="Der Katalog ist leer. Nach dem nächsten Content-Update erscheinen sie hier."
-        />
-      ) : (
-        <ul className="space-y-3">
-          {catalog.map((item) => {
-            const isOn = unlocked.has(item.id);
-            return (
-              <li
-                key={item.id}
-                className="flex items-center gap-3 p-3"
-                style={{
-                  background: "var(--rp-bg-elevated)",
-                  borderRadius: "var(--rp-radius-md)",
-                  boxShadow: "var(--rp-shadow-card)",
-                  opacity: isOn ? 1 : 0.55,
-                }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={achievementBadgeSrc(item.icon_key)}
-                  alt=""
-                  width={48}
-                  height={48}
-                  className="w-12 h-12 rounded-xl object-contain shrink-0"
-                  style={{ filter: isOn ? "none" : "grayscale(1)" }}
-                  onError={(e) => {
-                    e.currentTarget.src = BADGE_FIRST_WIN_48;
-                  }}
-                />
-                <div className="min-w-0 flex-1">
-                  <p
-                    className="text-sm font-extrabold truncate"
-                    style={{ color: "var(--rp-text)" }}
-                  >
-                    {item.name_de}
-                  </p>
-                  <p
-                    className="text-xs"
-                    style={{ color: isOn ? "var(--rp-purple)" : "var(--rp-text-secondary)" }}
-                  >
-                    {isOn ? ACHIEVEMENT_UNLOCKED_COPY : t.home.locked}
-                  </p>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
     </PanelShell>
   );
 }
