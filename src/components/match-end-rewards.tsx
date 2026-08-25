@@ -9,7 +9,9 @@ import { useGame } from "@/lib/game-context";
 import { PlayerSchleimi } from "@/components/player-schleimi";
 import { PlayerNameRow } from "@/components/player-name-row";
 import { useAuth } from "@/lib/auth-context";
+import { useI18n } from "@/lib/i18n-context";
 import { xpProgressInLevel } from "@/lib/progression";
+import { GuestAccountUpsell } from "@/components/guest-account-upsell";
 import { allScoresTied, competitionRanks, placeGlyph } from "@/lib/match-ui";
 import {
   HIRNCOIN_ICON_48,
@@ -608,6 +610,8 @@ function Top3Section() {
 
 function GuestEndScreen() {
   const game = useGame();
+  const { t } = useI18n();
+  const [step, setStep] = useState<"results" | "advantages">("results");
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
   const scores = sortedPlayers.map((player) => player.score);
   const ranks = competitionRanks(scores);
@@ -615,6 +619,17 @@ function GuestEndScreen() {
   const myRank = ranks[myIndex] ?? 1;
   const tied = allScoresTied(scores);
   const myPlayer = sortedPlayers.find((p) => p.id === game.myPlayerId);
+  const won = myRank === 1 && !tied;
+
+  if (step === "advantages") {
+    return (
+      <GuestAccountUpsell
+        won={won}
+        onSignup={() => void game.leaveRoom({ next: "/auth/signup" })}
+        onLogin={() => void game.leaveRoom({ next: "/auth/login" })}
+      />
+    );
+  }
 
   return (
     <div
@@ -647,10 +662,10 @@ function GuestEndScreen() {
 
         <div className="mb-2 flex items-center justify-between px-1">
           <h2 className="text-sm font-extrabold" style={{ color: "var(--rp-text)" }}>
-            Endstand
+            {t.guestUpsell.standings}
           </h2>
           <span className="text-xs font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-            Als Gast gespielt
+            {t.guestUpsell.guestBadge}
           </span>
         </div>
 
@@ -697,100 +712,24 @@ function GuestEndScreen() {
                   {player.score.toLocaleString("de-DE")}
                 </span>
                 <span className="block text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--rp-text-secondary)" }}>
-                  Punkte
+                  {t.guestUpsell.points}
                 </span>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Guest auth upsell — both CTAs */}
-        <div
-          className="animate-fade-in mb-5 overflow-hidden p-4 text-left"
+        <button
+          type="button"
+          onClick={() => setStep("advantages")}
+          className="mt-1 w-full h-[54px] rounded-[var(--rp-radius-pill)] text-base font-bold text-white transition-all active:scale-[0.97]"
           style={{
-            background: "linear-gradient(135deg, rgba(237, 230, 255, 0.95), rgba(255, 240, 232, 0.95))",
-            borderRadius: 22,
-            border: "1px solid rgba(139, 124, 255, 0.14)",
-            boxShadow: "0 10px 26px rgba(76, 60, 130, 0.08)",
-            animationDelay: "0.8s",
+            background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+            boxShadow: "0 6px 20px rgba(255, 138, 113, 0.35)",
           }}
         >
-          <p className="text-base font-black" style={{ color: "var(--rp-text)" }}>
-            Dein Fortschritt wartet ✨
-          </p>
-          <p className="mb-3 mt-1 text-sm leading-relaxed" style={{ color: "var(--rp-text-secondary)" }}>
-            Erstelle ein Konto und sammle ab der nächsten Runde XP, Hirncoins und Erfolge.
-          </p>
-          <div className="flex gap-2.5">
-            <a
-              href="/auth/signup"
-              className="inline-flex h-[44px] flex-1 items-center justify-center rounded-[var(--rp-radius-pill)] px-4 text-sm font-extrabold text-white transition-all active:scale-[0.97]"
-              style={{
-                background: "linear-gradient(135deg, var(--rp-purple) 0%, #6B5CE7 100%)",
-                boxShadow: "0 4px 12px rgba(139, 124, 255, 0.3)",
-              }}
-            >
-              Account erstellen
-            </a>
-            <a
-              href="/auth/login"
-              className="inline-flex h-[44px] items-center justify-center rounded-[var(--rp-radius-pill)] px-4 text-sm font-bold transition-all active:scale-[0.97]"
-              style={{
-                border: "1.5px solid rgba(139, 124, 255, 0.2)",
-                color: "var(--rp-text)",
-                background: "rgba(255, 255, 255, 0.78)",
-              }}
-            >
-              Anmelden
-            </a>
-          </div>
-        </div>
-
-        {/* CTAs */}
-        <div className="flex gap-3">
-          {game.isHost ? (
-            <button
-              onClick={() => void game.resetGame()}
-              className="flex-1 h-[52px] rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97] flex items-center justify-center gap-2"
-              style={{
-                background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-                color: "white",
-                boxShadow: "0 6px 20px rgba(255, 138, 113, 0.35)",
-              }}
-            >
-              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <path d="M1 4v6h6" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-              </svg>
-              Nochmal
-            </button>
-          ) : (
-            <div
-              className="flex-1 py-3 text-center rounded-[var(--rp-radius-pill)]"
-              style={{
-                background: "rgba(139, 124, 255, 0.08)",
-                border: "2px dashed var(--rp-purple-soft)",
-              }}
-            >
-              <p className="text-xs font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-                Der Host kann eine neue Runde starten
-              </p>
-            </div>
-          )}
-          <button
-            onClick={() => void game.leaveRoom()}
-            className="flex-1 h-[52px] rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97] flex items-center justify-center gap-2"
-            style={{
-              border: "2px solid var(--rp-border)",
-              color: "var(--rp-text)",
-              background: "var(--rp-bg-elevated)",
-            }}
-          >
-            <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4" />
-            </svg>
-            Home
-          </button>
-        </div>
+          {t.guestUpsell.next}
+        </button>
       </div>
     </div>
   );

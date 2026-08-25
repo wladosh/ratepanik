@@ -60,6 +60,11 @@ function LoginContent() {
   }
 
   async function handleGuestLogin() {
+    if (!joinCode) {
+      router.push("/");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 

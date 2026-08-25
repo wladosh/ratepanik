@@ -56,6 +56,7 @@ import {
 import { useAuth } from "./auth-context";
 import { useAchievementGrant } from "./use-achievement-grant";
 import { generateGuestName } from "./guest-name";
+import { displayNameForJoin, resolveGuestExitPath, shouldSkipSessionRestore } from "./guest-flow";
 import { useRoomLoadouts } from "./use-room-loadouts";
 import {
   isVsIntroActive,
@@ -128,7 +129,7 @@ interface GameContextValue {
   // Actions
   createRoom: (hostName: string, hostUserId: string) => Promise<string | null>;
   joinRoom: (code: string, displayName: string) => Promise<string | null>;
-  leaveRoom: () => Promise<void>;
+  leaveRoom: (options?: { next?: string }) => Promise<void>;
   startGame: () => Promise<void>;
   selectTheme: (themeId: string) => Promise<void>;
   submitNumberGuess: (guess: number) => Promise<void>;
@@ -226,7 +227,7 @@ async function awardPickCorrectAndAdvance(
 }
 
 export function GameProvider({ children, joinCode }: { children: ReactNode; joinCode?: string }) {
-  const { user, isGuest } = useAuth();
+  const { user, isGuest, signOut } = useAuth();
   const { t } = useI18n();
   const tRef = useRef(t);
   tRef.current = t;
@@ -246,6 +247,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(() => {
     if (typeof window === "undefined") return false;
+    if (shouldSkipSessionRestore(joinCode)) return false;
     try {
       return !!JSON.parse(sessionStorage.getItem("ratepanik-session") || "{}").roomId;
     } catch {
@@ -365,7 +367,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   );
 
   const phase: GamePhase = useMemo(() => {
-    if (!room) return restoring ? "playing_loading" : "home";
+    if (!room) {
+      if (restoring || Boolean(joinCode)) return "playing_loading";
+      return "home";
+    }
     if (room.status === "lobby") return "lobby";
     if (room.status === "finished") return "final";
 
@@ -435,7 +440,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     return "playing_loading";
-  }, [room, currentBlock, roundAnswers, players.length, myPlayerId, restoring, revealHoldActive, roundTimedOut, nowMs]);
+  }, [room, currentBlock, roundAnswers, players.length, myPlayerId, restoring, revealHoldActive, roundTimedOut, nowMs, joinCode]);
 
   currentBlockRef.current = currentBlock;
   phaseRef.current = phase;
@@ -487,13 +492,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   useEffect(() => { myPlayerIdRef.current = myPlayerId; }, [myPlayerId]);
 
-  // --- auto-clear errors ---
-
+  // Toast errors during a live match expire. Join/create failures stay until retry.
   useEffect(() => {
-    if (!error) return;
+    if (!error || !room) return;
     const t = setTimeout(() => setError(null), 5000);
     return () => clearTimeout(t);
-  }, [error]);
+  }, [error, room]);
 
   useEffect(() => {
     if (!notice) return;
@@ -952,6 +956,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   }
 
   useEffect(() => {
+    if (shouldSkipSessionRestore(joinCode)) {
+      clearSession();
+      sessionRestoringRef.current = false;
+      setRestoring(false);
+      return;
+    }
     const raw = sessionStorage.getItem("ratepanik-session");
     if (!raw) return;
     let cancelled = false;
@@ -1267,20 +1277,16 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
   };
 
-  // Auto-join from ?join=CODE query param (landing guest flow)
+  // Auto-join from ?join=CODE — never flash home while this is in flight.
   useEffect(() => {
     if (!joinCode || joinCodeUsedRef.current || room) return;
-    // Defer auto-join if session restoration is in progress
     if (sessionRestoringRef.current || restoring) return;
+    if (!user?.id) return;
     joinCodeUsedRef.current = true;
-    const autoName =
-      user?.user_metadata?.display_name ||
-      user?.user_metadata?.full_name ||
-      user?.email?.split("@")[0] ||
-      generateGuestName();
+    const autoName = displayNameForJoin(user) ?? generateGuestName();
     void joinRoom(joinCode, autoName);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [joinCode, room, restoring]);
+  }, [joinCode, room, restoring, user?.id]);
 
   const startGame = async () => {
     if (!room || !isHost) return;
@@ -1815,60 +1821,71 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     lastStateKeyRef.current = "";
   };
 
-  const leaveRoom = async () => {
-    if (!room || !myPlayerId) {
-      goHome();
-      return;
+  const leaveRoom = async (options?: { next?: string }) => {
+    const guestNext = resolveGuestExitPath(options?.next);
+
+    if (room && myPlayerId) {
+      const roomId = room.id;
+      const playerId = myPlayerId;
+
+      try {
+        const { error: leaveErr } = await supabase.rpc("leave_match", {
+          p_room_id: roomId,
+        });
+
+        if (leaveErr) {
+          const me = players.find((p) => p.id === playerId);
+          if (me?.is_host) {
+            const remaining = [...players]
+              .filter((p) => p.id !== playerId)
+              .sort(
+                (a, b) =>
+                  new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+              );
+            const nextHost = remaining[0];
+            if (nextHost) {
+              await supabase.from("players").update({ is_host: true }).eq("id", nextHost.id);
+              await supabase
+                .from("rooms")
+                .update({
+                  host_user_id: nextHost.user_id,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", roomId);
+            } else {
+              await supabase
+                .from("rooms")
+                .update({
+                  status: "finished" as const,
+                  updated_at: new Date().toISOString(),
+                })
+                .eq("id", roomId);
+            }
+          }
+
+          await supabase
+            .from("answers")
+            .delete()
+            .eq("player_id", playerId)
+            .eq("room_id", roomId);
+
+          await supabase.from("players").delete().eq("id", playerId);
+        }
+      } catch (e) {
+        console.error("leaveRoom cleanup error:", e);
+      }
     }
 
-    const roomId = room.id;
-    const playerId = myPlayerId;
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+    clearSession();
 
-    try {
-      const { error: leaveErr } = await supabase.rpc("leave_match", {
-        p_room_id: roomId,
-      });
-
-      if (leaveErr) {
-        const me = players.find((p) => p.id === playerId);
-        if (me?.is_host) {
-          const remaining = [...players]
-            .filter((p) => p.id !== playerId)
-            .sort(
-              (a, b) =>
-                new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-            );
-          const nextHost = remaining[0];
-          if (nextHost) {
-            await supabase.from("players").update({ is_host: true }).eq("id", nextHost.id);
-            await supabase
-              .from("rooms")
-              .update({
-                host_user_id: nextHost.user_id,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", roomId);
-          } else {
-            await supabase
-              .from("rooms")
-              .update({
-                status: "finished" as const,
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", roomId);
-          }
-        }
-
-        await supabase
-          .from("answers")
-          .delete()
-          .eq("player_id", playerId)
-          .eq("room_id", roomId);
-
-        await supabase.from("players").delete().eq("id", playerId);
-      }
-    } catch (e) {
-      console.error("leaveRoom cleanup error:", e);
+    if (isGuest) {
+      router.replace(guestNext);
+      await signOut();
+      return;
     }
 
     goHome();
@@ -1897,6 +1914,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     setRoundTimedOut(false);
     setRevealHoldActive(false);
     clearSession();
+
+    if (isGuest) {
+      router.replace(resolveGuestExitPath());
+      void signOut();
+      return;
+    }
 
     if (typeof window !== "undefined" && window.location.search.includes("join=")) {
       router.replace("/");

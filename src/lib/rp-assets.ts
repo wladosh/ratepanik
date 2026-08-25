@@ -28,6 +28,7 @@ export const TROPHY_GOLD_512 = "/rp/rp_trophy_gold_512.png";
 export const HOME_CREATE_ROOM_256 = "/rp/rp_home_create_room_256.png";
 export const RANK_BADGE_GOLD_128 = "/rp/rp_badge_rank_1_128@2x.png";
 export const LOOT_BOX_RARE_128 = "/rp/rp_loot_box_rare_128@2x.png";
+export const LOOT_BOX_LEGENDARY_256 = "/rp/rp_loot_box_legendary_256.png";
 
 // ── Game mode art ───────────────────────────────────────────────────
 export const MODE_ORDER_IT_256 = "/rp/rp_mode_order_it_256.png";

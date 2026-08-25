@@ -10,26 +10,43 @@ import { AvatarOnboardingScreen } from "@/components/avatar-onboarding-screen";
 import { GameProvider } from "@/lib/game-context";
 import { Game } from "@/components/game";
 import { useProfile } from "@/lib/use-profile";
-
-function hasActiveGameSession(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    return !!JSON.parse(sessionStorage.getItem("ratepanik-session") || "{}").roomId;
-  } catch {
-    return false;
-  }
-}
+import { GuestExitToLogin, JoinSessionGate } from "@/components/joining-screen";
+import {
+  hasActiveGameSession,
+  isJoinCode,
+  shouldRestoreMatchOnBareHome,
+} from "@/lib/guest-flow";
 
 function HomeContent() {
   const { t } = useI18n();
-  const { user, isAuthenticated, isGuest, loading, needsUsername, needsAvatarOnboarding, refetchProfile, markAvatarOnboardingDone } = useAuth();
+  const {
+    user,
+    isAuthenticated,
+    isGuest,
+    loading,
+    needsUsername,
+    needsAvatarOnboarding,
+    refetchProfile,
+    markAvatarOnboardingDone,
+  } = useAuth();
   const { claimUsername, checkUsername } = useProfile(user);
   const searchParams = useSearchParams();
-  const joinCode = searchParams.get("join") ?? undefined;
+  const joinParam = searchParams.get("join") ?? undefined;
+  const joinCode = isJoinCode(joinParam) ? joinParam.toUpperCase() : undefined;
 
   const activeGame = hasActiveGameSession();
 
-  if (loading && !activeGame) {
+  if (joinCode) {
+    return (
+      <JoinSessionGate joinCode={joinCode}>
+        <GameProvider joinCode={joinCode}>
+          <Game />
+        </GameProvider>
+      </JoinSessionGate>
+    );
+  }
+
+  if (loading) {
     return (
       <div
         className="flex flex-1 items-center justify-center"
@@ -42,24 +59,20 @@ function HomeContent() {
     );
   }
 
-  if (activeGame) {
-    return (
-      <GameProvider joinCode={joinCode}>
-        <Game />
-      </GameProvider>
-    );
+  if (isGuest) {
+    return <GuestExitToLogin />;
   }
 
-  if (joinCode && isAuthenticated) {
+  if (activeGame && shouldRestoreMatchOnBareHome(isGuest)) {
     return (
-      <GameProvider joinCode={joinCode}>
+      <GameProvider>
         <Game />
       </GameProvider>
     );
   }
 
   if (!isAuthenticated) {
-    return <LandingScreen initialCode={joinCode} />;
+    return <LandingScreen />;
   }
 
   if (needsUsername) {
@@ -92,7 +105,7 @@ function HomeContent() {
   }
 
   return (
-    <GameProvider joinCode={joinCode}>
+    <GameProvider>
       <Game />
     </GameProvider>
   );

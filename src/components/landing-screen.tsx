@@ -1,14 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { useRouter } from "next/navigation";
 import { LandingHero } from "@/components/landing-hero";
 
 export function LandingScreen({ initialCode }: { initialCode?: string }) {
   const { t } = useI18n();
-  const { isAuthenticated } = useAuth();
   const router = useRouter();
   const sanitized = initialCode
     ? initialCode.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 6)
@@ -22,7 +20,7 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
     if (code.length === 6) joinBtnRef.current?.focus();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function handleJoin() {
+  function handleJoin() {
     const trimmed = code.trim();
     if (trimmed.length !== 6) {
       setError(t.landing.codeError);
@@ -30,20 +28,7 @@ export function LandingScreen({ initialCode }: { initialCode?: string }) {
     }
     setLoading(true);
     setError(null);
-
-    if (!isAuthenticated) {
-      const { createBrowserSupabase } = await import("@/lib/supabase/client");
-      const supabase = createBrowserSupabase();
-      const { error: authError } = await supabase.auth.signInAnonymously();
-      if (authError) {
-        setError(t.landing.connectionError);
-        setLoading(false);
-        return;
-      }
-    }
-
-    router.push(`/?join=${trimmed}`);
-    router.refresh();
+    router.replace(`/?join=${trimmed}`);
   }
 
   return (

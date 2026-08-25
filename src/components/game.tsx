@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGame, type GamePhase } from "@/lib/game-context";
 import { useAchievementUnlockWatcher } from "@/lib/use-achievement-unlock";
 import { usePresenceHeartbeat } from "@/lib/use-presence-heartbeat";
 import { useI18n } from "@/lib/i18n-context";
+import { useAuth } from "@/lib/auth-context";
+import { generateGuestName } from "@/lib/guest-name";
 import { HomeScreen } from "./home-screen";
 import { LobbyScreen } from "./lobby-screen";
+import { GuestExitToLogin, JoiningScreen } from "./joining-screen";
 import { ThemePickScreen } from "./theme-pick-screen";
 import { NumberGuessScreen } from "./number-guess-screen";
 import { NumberGuessRevealScreen } from "./number-guess-reveal-screen";
@@ -96,13 +99,32 @@ function LeaveMatchDialog({
   );
 }
 
+function useGuestLobbyBack(active: boolean, onLeave: () => void) {
+  const onLeaveRef = useRef(onLeave);
+  onLeaveRef.current = onLeave;
+
+  useEffect(() => {
+    if (!active) return;
+    window.history.pushState({ rpGuestLock: true }, "");
+    const onPop = () => {
+      onLeaveRef.current();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [active]);
+}
+
 export function Game() {
   const game = useGame();
   const { t } = useI18n();
+  const { isGuest } = useAuth();
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   useAchievementUnlockWatcher(game.phase);
   usePresenceHeartbeat();
+  useGuestLobbyBack(Boolean(isGuest && game.phase === "lobby"), () => {
+    void game.leaveRoom();
+  });
 
   const isMatchPhase = MATCH_PHASES.includes(game.phase);
 
@@ -111,7 +133,7 @@ export function Game() {
       {(() => {
         switch (game.phase) {
           case "home":
-            return <HomeScreen />;
+            return isGuest ? <GuestExitToLogin /> : <HomeScreen />;
           case "lobby":
             return <LobbyScreen />;
           case "vs_intro":
@@ -119,7 +141,7 @@ export function Game() {
           case "theme_pick":
             return <ThemePickScreen />;
           case "playing_loading":
-            return (
+            return game.room || game.restoring ? (
               <div
                 className="flex flex-1 items-center justify-center"
                 style={{ background: "var(--rp-bg-hero)" }}
@@ -128,6 +150,18 @@ export function Game() {
                   {t.game.playingLoading}
                 </div>
               </div>
+            ) : (
+              <JoiningScreen
+                error={game.error}
+                onRetry={
+                  game.error
+                    ? () => {
+                        const code = new URLSearchParams(window.location.search).get("join");
+                        if (code) void game.joinRoom(code, generateGuestName());
+                      }
+                    : undefined
+                }
+              />
             );
           case "number_guess":
           case "number_guess_waiting":
@@ -151,7 +185,7 @@ export function Game() {
           case "final":
             return <FinalScreen />;
           default:
-            return <HomeScreen />;
+            return isGuest ? <GuestExitToLogin /> : <HomeScreen />;
         }
       })()}
 
@@ -190,7 +224,7 @@ export function Game() {
         </div>
       )}
 
-      {game.error && (
+      {game.error && game.room && (
         <div
           className="rp-shell-banner rounded-2xl bg-red-500 px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
           role="alert"
