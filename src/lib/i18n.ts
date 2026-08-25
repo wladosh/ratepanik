@@ -291,6 +291,7 @@ const de = {
     renameEmpty: "Name darf nicht leer sein.",
     renameTaken: "Dieser Name ist in diesem Raum schon vergeben.",
     renameFailed: "Name konnte nicht geändert werden.",
+    renameAccountLocked: "Mit Account bleibt dein Nutzername in der Lobby fest.",
   },
   lobby: {
     roomCode: "Raumcode",
@@ -657,6 +658,7 @@ const en: StringTree<typeof de> = {
     renameEmpty: "Name must not be empty.",
     renameTaken: "That name is already taken in this room.",
     renameFailed: "Couldn't change the name.",
+    renameAccountLocked: "Signed-in accounts keep their username in the lobby.",
   },
   lobby: {
     roomCode: "Room code",

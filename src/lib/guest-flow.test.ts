@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  guestMayRenameInLobby,
   guestMaySeeAppHome,
   isJoinCode,
   resolveGuestExitPath,
@@ -24,6 +25,13 @@ describe("guest home access", () => {
   it("never lets a guest see the app home", () => {
     expect(guestMaySeeAppHome(true)).toBe(false);
     expect(guestMaySeeAppHome(false)).toBe(true);
+  });
+});
+
+describe("lobby rename", () => {
+  it("is only allowed for guests", () => {
+    expect(guestMayRenameInLobby(true)).toBe(true);
+    expect(guestMayRenameInLobby(false)).toBe(false);
   });
 });
 

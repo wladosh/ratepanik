@@ -56,7 +56,12 @@ import {
 import { useAuth } from "./auth-context";
 import { useAchievementGrant } from "./use-achievement-grant";
 import { generateGuestName } from "./guest-name";
-import { displayNameForJoin, resolveGuestExitPath, shouldSkipSessionRestore } from "./guest-flow";
+import {
+  displayNameForJoin,
+  guestMayRenameInLobby,
+  resolveGuestExitPath,
+  shouldSkipSessionRestore,
+} from "./guest-flow";
 import { useRoomLoadouts } from "./use-room-loadouts";
 import {
   isVsIntroActive,
@@ -1765,6 +1770,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   };
 
   const updateDisplayName = async (newName: string): Promise<string | null> => {
+    if (!guestMayRenameInLobby(isGuest)) return t.game.renameAccountLocked;
     if (!room || !myPlayerId) return t.game.renameFailed;
     const trimmed = newName.trim();
     if (!trimmed) return t.game.renameEmpty;
