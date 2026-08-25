@@ -107,24 +107,6 @@
   background: rgba(255, 255, 255, 0.28);
 }
 
-.standard {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.idle .standard {
-  color: var(--rp-purple);
-}
-
-.selected .standard {
-  color: rgba(255, 255, 255, 0.86);
-}
-
 @media (max-width: 360px) {
   .card {
     min-height: 98px;

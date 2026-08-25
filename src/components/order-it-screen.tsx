@@ -9,47 +9,36 @@ import { MODE_ORDER_IT_256 } from "@/lib/rp-assets";
 import { AnswerWaitingPanel } from "./answer-waiting-panel";
 import { MatchPlayShell } from "./match-play-shell";
 import { MatchStatusHeader } from "./match-status-header";
+import { shuffleOrderItItems } from "@/lib/shuffle";
 import { OrderItSortable, type OrderItItem } from "./order-it-sortable";
 import { QuestionStage } from "./question-stage";
 import { QuestionTimerBar } from "./question-timer-bar";
 import { TimerPill } from "./timer-pill";
 import styles from "./order-it-screen.module.css";
 
-function shuffleEntries(items: string[], correctOrder: number[]): OrderItItem[] {
-  const entries: OrderItItem[] = items.map((text, orig) => ({ orig, text }));
-  for (let i = entries.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [entries[i], entries[j]] = [entries[j], entries[i]];
-  }
-  const alreadyCorrect =
-    entries.length === correctOrder.length &&
-    entries.every((entry, index) => entry.orig === correctOrder[index]);
-  if (alreadyCorrect && entries.length > 1) {
-    [entries[0], entries[1]] = [entries[1], entries[0]];
-  }
-  return entries;
-}
-
 export function OrderItScreen() {
   const game = useGame();
   const [submitted, setSubmitted] = useState(false);
   const [entries, setEntries] = useState<OrderItItem[]>([]);
-  const lastPromptRef = useRef<string | null>(null);
+  const lastShuffleKeyRef = useRef<string | null>(null);
 
   const prompt = game.currentPrompt;
   const payload = prompt?.payload as OrderItPayload | undefined;
   const hasAnswered = game.phase === "order_it_waiting";
+  const shuffleKey = `${game.currentBlock?.id ?? "block"}:${game.currentBlock?.current_round ?? 0}:${prompt?.id ?? ""}`;
 
   useEffect(() => {
     if (!prompt?.id || !payload?.items) return;
-    if (prompt.id === lastPromptRef.current) return;
-    lastPromptRef.current = prompt.id;
+    if (shuffleKey === lastShuffleKeyRef.current) return;
+    lastShuffleKeyRef.current = shuffleKey;
     setSubmitted(false);
-    setEntries(shuffleEntries(payload.items, payload.correct_order ?? []));
-  }, [payload, prompt?.id]);
+    setEntries(shuffleOrderItItems(payload.items, payload.correct_order ?? []));
+  }, [payload, prompt?.id, shuffleKey]);
 
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
-  const totalBlocks = game.room?.total_blocks ?? 4;
+  const totalBlocks = game.room?.total_blocks ?? 5;
+  const roundNum = (game.currentBlock?.current_round ?? 0) + 1;
+  const roundsTotal = game.currentBlock?.rounds_total ?? 1;
 
   const handleSubmit = useCallback(async () => {
     if (submitted || hasAnswered || entries.length === 0) return;
@@ -95,6 +84,9 @@ export function OrderItScreen() {
         total={totalBlocks}
         mode="order_it"
         questionLabel="Block"
+        modeLabel={
+          roundsTotal > 1 ? `Reihenfolge ${roundNum}/${roundsTotal}` : undefined
+        }
         timer={
           showQuestionTimer ? (
             <TimerPill

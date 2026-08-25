@@ -30,6 +30,9 @@ export function OrderItRevealScreen() {
 
   if (!prompt || items.length === 0 || correctOrder.length === 0) return null;
 
+  const isLastRound =
+    (game.currentBlock?.current_round ?? 0) >= (game.currentBlock?.rounds_total ?? 1) - 1;
+
   return (
     <div
       className="flex flex-1 flex-col items-center justify-center px-4 py-6"
@@ -119,13 +122,14 @@ export function OrderItRevealScreen() {
         {game.isHost ? (
           <button
             onClick={() => void game.advanceFromReveal()}
-            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97]"
+            disabled={game.hostActionLock}
+            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-60"
             style={{
               background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
               boxShadow: "0 6px 20px rgba(255, 138, 113, 0.35)",
             }}
           >
-            Block-Ergebnis anzeigen
+            {isLastRound ? "Block-Ergebnis anzeigen" : "Nächste Runde →"}
           </button>
         ) : (
           <div
@@ -136,7 +140,7 @@ export function OrderItRevealScreen() {
             }}
           >
             <p className="text-base font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-              Der Host zeigt das Block-Ergebnis…
+              {isLastRound ? "Der Host zeigt das Block-Ergebnis…" : "Der Host startet die nächste Runde…"}
             </p>
           </div>
         )}

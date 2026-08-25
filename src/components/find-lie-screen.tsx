@@ -23,17 +23,20 @@ export function FindLieScreen() {
   const prompt = game.currentPrompt;
   const payload = prompt?.payload as FindLiePayload | undefined;
   const hasAnswered = game.phase === "find_lie_waiting";
+  const roundKey = `${game.currentBlock?.id ?? ""}:${game.currentBlock?.current_round ?? 0}:${prompt?.id ?? ""}`;
 
   useEffect(() => {
-    if (prompt?.id && prompt.id !== lastPromptRef.current) {
-      lastPromptRef.current = prompt.id;
+    if (prompt?.id && roundKey !== lastPromptRef.current) {
+      lastPromptRef.current = roundKey;
       setSubmitted(false);
       setSelectedIndex(null);
     }
-  }, [prompt?.id]);
+  }, [prompt?.id, roundKey]);
 
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
-  const totalBlocks = game.room?.total_blocks ?? 4;
+  const totalBlocks = game.room?.total_blocks ?? 5;
+  const roundNum = (game.currentBlock?.current_round ?? 0) + 1;
+  const roundsTotal = game.currentBlock?.rounds_total ?? 1;
   const statements = payload?.statements ?? [];
 
   const handlePick = useCallback(
@@ -87,6 +90,9 @@ export function FindLieScreen() {
         total={totalBlocks}
         mode="find_lie"
         questionLabel="Block"
+        modeLabel={
+          roundsTotal > 1 ? `Lüge ${roundNum}/${roundsTotal}` : undefined
+        }
         timer={
           showQuestionTimer ? (
             <TimerPill

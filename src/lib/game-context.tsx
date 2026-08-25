@@ -63,7 +63,8 @@ import {
   stampVsIntroUntil,
   type SchleimiLayerMap,
 } from "./schleimi-layers";
-import { isLiveQuestionPhase, shouldStampQuestionClock } from "./question-clock";
+import { isLiveQuestionPhase, roundReadyToReveal, shouldStampQuestionClock } from "./question-clock";
+import { isPickCorrectPayload, shufflePickCorrectPayload } from "./shuffle";
 
 export type GamePhase =
   | "home"
@@ -157,6 +158,72 @@ function generateRoomCode(): string {
   return code;
 }
 
+type BrowserSupabase = ReturnType<typeof createBrowserSupabase>;
+
+async function awardPickCorrectAndAdvance(
+  supabase: BrowserSupabase,
+  roomId: string,
+  block: DbMatchBlock,
+  players: DbPlayer[],
+  roundTurns: DbPickCorrectTurn[],
+) {
+  const playerCorrects = new Map<string, number>();
+  for (const turn of roundTurns) {
+    if (!turn.is_correct) continue;
+    playerCorrects.set(turn.player_id, (playerCorrects.get(turn.player_id) ?? 0) + 1);
+  }
+
+  for (const player of players) {
+    const pts = calculatePickCorrectPoints(playerCorrects.get(player.id) ?? 0);
+    const { data: existing } = await supabase
+      .from("match_scores")
+      .select("total_points")
+      .eq("room_id", roomId)
+      .eq("player_id", player.id)
+      .eq("block_index", block.block_index)
+      .maybeSingle();
+
+    await supabase.from("match_scores").upsert(
+      {
+        room_id: roomId,
+        player_id: player.id,
+        block_index: block.block_index,
+        total_points: (existing?.total_points ?? 0) + pts,
+      },
+      { onConflict: "room_id,player_id,block_index" },
+    );
+
+    const { data: latest } = await supabase
+      .from("players")
+      .select("score")
+      .eq("id", player.id)
+      .single();
+    await supabase
+      .from("players")
+      .update({ score: (latest?.score ?? player.score) + pts })
+      .eq("id", player.id);
+  }
+
+  const nextRound = block.current_round + 1;
+  if (nextRound < block.rounds_total) {
+    await supabase
+      .from("match_blocks")
+      .update({ current_round: nextRound, started_at: null })
+      .eq("id", block.id)
+      .eq("is_complete", false);
+    return;
+  }
+
+  await supabase
+    .from("match_blocks")
+    .update({
+      is_complete: true,
+      finished_at: new Date().toISOString(),
+    })
+    .eq("id", block.id)
+    .eq("is_complete", false);
+}
+
 export function GameProvider({ children, joinCode }: { children: ReactNode; joinCode?: string }) {
   const { user, isGuest } = useAuth();
   const { t } = useI18n();
@@ -196,7 +263,6 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const [disconnected, setDisconnected] = useState(false);
   const myPlayerIdRef = useRef<string | null>(null);
   const [revealHoldActive, setRevealHoldActive] = useState(false);
-  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [roundTimedOut, setRoundTimedOut] = useState(false);
   const [hostActionLock, setHostActionLock] = useState(false);
   const hostActionLockRef = useRef(false);
@@ -217,10 +283,19 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   const currentPrompt = useMemo(() => {
     if (!currentBlock || !prompts.length) return null;
-    if (currentBlock.mode === "number_guess") {
-      return prompts[currentBlock.current_round] ?? null;
+    const raw = prompts[currentBlock.current_round] ?? null;
+    if (!raw || raw.mode !== currentBlock.mode) return null;
+    if (currentBlock.mode === "pick_correct") {
+      if (!isPickCorrectPayload(raw.payload)) return null;
+      return {
+        ...raw,
+        payload: shufflePickCorrectPayload(
+          raw.payload,
+          `${currentBlock.id}:${currentBlock.current_round}:${raw.id}`,
+        ),
+      };
     }
-    return prompts[0] ?? null;
+    return raw;
   }, [currentBlock, prompts]);
 
   const roundAnswers = useMemo(() => {
@@ -239,8 +314,13 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   const blockTurns = useMemo(() => {
     if (!currentBlock) return [];
+    const round = currentBlock.current_round ?? 0;
     return turns
-      .filter((t) => t.block_index === currentBlock.block_index)
+      .filter(
+        (t) =>
+          t.block_index === currentBlock.block_index &&
+          (t.round_index ?? 0) === round,
+      )
       .sort((a, b) => a.turn_order - b.turn_order);
   }, [turns, currentBlock]);
 
@@ -265,8 +345,9 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   const isMyTurn = useMemo(() => {
     if (!myPlayerId || !sortedPlayers.length) return false;
+    if (currentBlock?.mode === "pick_correct") return true;
     return sortedPlayers[activePlayerIndex]?.id === myPlayerId;
-  }, [myPlayerId, sortedPlayers, activePlayerIndex]);
+  }, [myPlayerId, sortedPlayers, activePlayerIndex, currentBlock?.mode]);
 
   const themePickerPlayerId = useMemo(() => {
     if (!room || !sortedPlayers.length) return null;
@@ -298,9 +379,14 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     if (currentBlock.mode === "number_guess") {
-      const roundOver =
-        roundTimedOut ||
-        (roundAnswers.length >= players.length && players.length > 0);
+      const roundOver = roundReadyToReveal({
+        timedOut: roundTimedOut,
+        answeredCount: roundAnswers.length,
+        playerCount: players.length,
+        startedAt: currentBlock.started_at,
+        nowMs,
+        timerMs: questionTimerMsFromBlock(currentBlock.timer_seconds),
+      });
       if (roundOver) {
         return "number_guess_reveal";
       }
@@ -310,9 +396,14 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     if (currentBlock.mode === "find_lie") {
-      const roundOver =
-        roundTimedOut ||
-        (roundAnswers.length >= players.length && players.length > 0);
+      const roundOver = roundReadyToReveal({
+        timedOut: roundTimedOut,
+        answeredCount: roundAnswers.length,
+        playerCount: players.length,
+        startedAt: currentBlock.started_at,
+        nowMs,
+        timerMs: questionTimerMsFromBlock(currentBlock.timer_seconds),
+      });
       if (roundOver) {
         return "find_lie_reveal";
       }
@@ -322,9 +413,14 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     if (currentBlock.mode === "order_it") {
-      const roundOver =
-        roundTimedOut ||
-        (roundAnswers.length >= players.length && players.length > 0);
+      const roundOver = roundReadyToReveal({
+        timedOut: roundTimedOut,
+        answeredCount: roundAnswers.length,
+        playerCount: players.length,
+        startedAt: currentBlock.started_at,
+        nowMs,
+        timerMs: questionTimerMsFromBlock(currentBlock.timer_seconds),
+      });
       if (roundOver) {
         return "order_it_reveal";
       }
@@ -334,12 +430,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     if (currentBlock.mode === "pick_correct") {
-      if (correctTurnsCount >= 4 && !revealHoldActive) return "block_scoreboard";
       return "pick_correct";
     }
 
     return "playing_loading";
-  }, [room, currentBlock, roundAnswers, players.length, myPlayerId, correctTurnsCount, restoring, revealHoldActive, roundTimedOut, nowMs]);
+  }, [room, currentBlock, roundAnswers, players.length, myPlayerId, restoring, revealHoldActive, roundTimedOut, nowMs]);
 
   currentBlockRef.current = currentBlock;
   phaseRef.current = phase;
@@ -370,6 +465,24 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }, 100);
     return () => window.clearInterval(id);
   }, [room?.status, room?.settings]);
+
+  useEffect(() => {
+    if (room?.status !== "playing") return;
+    const waiting =
+      phase === "number_guess_waiting" ||
+      phase === "find_lie_waiting" ||
+      phase === "order_it_waiting";
+    const allIn = players.length > 0 && roundAnswers.length >= players.length;
+    if (!waiting || !allIn || roundTimedOut) return;
+    const id = window.setInterval(() => setNowMs(Date.now()), 250);
+    return () => window.clearInterval(id);
+  }, [
+    room?.status,
+    phase,
+    players.length,
+    roundAnswers.length,
+    roundTimedOut,
+  ]);
 
   useEffect(() => { myPlayerIdRef.current = myPlayerId; }, [myPlayerId]);
 
@@ -539,16 +652,17 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   useEffect(() => {
     if (!currentBlock?.theme_id || !currentBlock.prompt_ids?.length) return;
     let cancelled = false;
+    const promptIds = currentBlock.prompt_ids;
 
     (async () => {
       const { data } = await supabase
         .from("prompts")
         .select("id, theme_id, mode, difficulty, prompt, hint, payload")
-        .in("id", currentBlock.prompt_ids);
+        .in("id", promptIds);
 
       if (cancelled || !data) return;
 
-      const ordered = currentBlock.prompt_ids
+      const ordered = promptIds
         .map((pid) => data.find((p) => p.id === pid))
         .filter((p): p is Prompt => p !== undefined);
 
@@ -556,7 +670,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     })();
 
     return () => { cancelled = true; };
-  }, [currentBlock?.theme_id, currentBlock?.prompt_ids, supabase]);
+  }, [currentBlock?.theme_id, currentBlock?.prompt_ids?.join(","), supabase]);
 
   // --- load theme options when theme_vote_active ---
 
@@ -581,102 +695,67 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   useEffect(() => {
     if (!room || room.status !== "playing") return;
-    const key = `${room.current_block_index}:${room.theme_vote_active}`;
+    const key = String(room.current_block_index);
     if (key !== lastStateKeyRef.current) {
       lastStateKeyRef.current = key;
+      setPrompts([]);
+      setThemeOptions([]);
+      setRevealHoldActive(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [room?.status, room?.current_block_index, room?.theme_vote_active]);
+  }, [room?.status, room?.current_block_index]);
 
-  // Activate ~1s reveal hold when pick_correct finds the 4th correct card,
-  // keeping the card highlight visible before transitioning to scoreboard.
-  const prevPickCorrectDoneRef = useRef(false);
+  // Keep the 4th-correct highlight visible, then let the host complete the hunt.
   useEffect(() => {
-    const done =
+    const huntDone =
       !!currentBlock &&
       currentBlock.mode === "pick_correct" &&
       !currentBlock.is_complete &&
       correctTurnsCount >= 4;
 
-    if (done && !prevPickCorrectDoneRef.current) {
-      queueMicrotask(() => setRevealHoldActive(true));
-      revealTimerRef.current = setTimeout(() => {
-        setRevealHoldActive(false);
-        revealTimerRef.current = null;
-      }, roomSettings.revealHoldMs);
+    if (!huntDone) {
+      setRevealHoldActive(false);
+      return;
     }
 
-    prevPickCorrectDoneRef.current = done;
+    setRevealHoldActive(true);
+    const timer = window.setTimeout(() => {
+      setRevealHoldActive(false);
+    }, roomSettings.revealHoldMs);
 
-    return () => {
-      if (revealTimerRef.current) {
-        clearTimeout(revealTimerRef.current);
-        revealTimerRef.current = null;
-      }
-    };
-  }, [correctTurnsCount, currentBlock, roomSettings.revealHoldMs]);
+    return () => window.clearTimeout(timer);
+  }, [
+    correctTurnsCount,
+    currentBlock?.id,
+    currentBlock?.current_round,
+    currentBlock?.mode,
+    currentBlock?.is_complete,
+    roomSettings.revealHoldMs,
+  ]);
 
-  // Handle pick_correct auto-complete: when 4 correct found, host marks block complete
+  // Handle pick_correct auto-complete: after the hold, score the hunt and continue.
   useEffect(() => {
-    if (!isHost || !currentBlock || currentBlock.mode !== "pick_correct") return;
+    if (!isHost || !room || !currentBlock || currentBlock.mode !== "pick_correct") return;
     if (currentBlock.is_complete) return;
     if (correctTurnsCount < 4) return;
     if (revealHoldActive) return;
-    const completeKey = `${currentBlock.id}`;
+    const completeKey = `pc:${currentBlock.id}:${currentBlock.current_round}`;
     if (pickCompleteRef.current === completeKey) return;
     pickCompleteRef.current = completeKey;
 
-    (async () => {
-      const { data: completed } = await supabase
-        .from("match_blocks")
-        .update({
-          is_complete: true,
-          finished_at: new Date().toISOString(),
-        })
-        .eq("id", currentBlock.id)
-        .eq("is_complete", false)
-        .select("id");
-      if (!completed?.length) return;
-
-      const playerCorrects = new Map<string, number>();
-      for (const t of blockTurns) {
-        if (t.is_correct) {
-          playerCorrects.set(t.player_id, (playerCorrects.get(t.player_id) ?? 0) + 1);
-        }
-      }
-
-      for (const player of players) {
-        const found = playerCorrects.get(player.id) ?? 0;
-        const pts = calculatePickCorrectPoints(found);
-
-        await supabase.from("match_scores").upsert(
-          {
-            room_id: room!.id,
-            player_id: player.id,
-            block_index: currentBlock.block_index,
-            total_points: pts,
-          },
-          { onConflict: "room_id,player_id,block_index" }
-        );
-
-        const { data: latest } = await supabase
-          .from("players")
-          .select("score")
-          .eq("id", player.id)
-          .single();
-        await supabase
-          .from("players")
-          .update({ score: (latest?.score ?? player.score) + pts })
-          .eq("id", player.id);
-      }
-    })();
+    void awardPickCorrectAndAdvance(
+      supabase,
+      room.id,
+      currentBlock,
+      players,
+      blockTurns,
+    );
   }, [isHost, currentBlock, correctTurnsCount, blockTurns, players, room, revealHoldActive, supabase]);
 
-  const completeSimultaneousQuizBlock = async (
+  const scoreSimultaneousQuizRound = async (
     block: DbMatchBlock,
     currentPlayers: DbPlayer[],
     currentAnswers: DbAnswer[],
-    promptForRound: Prompt | undefined
+    promptForRound: Prompt | undefined,
   ) => {
     const ptsByPlayer = new Map<string, number>();
 
@@ -711,26 +790,20 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     for (const player of currentPlayers) {
-      const blockPts = ptsByPlayer.get(player.id) ?? 0;
-      await supabase.from("match_scores").upsert(
-        {
-          room_id: room!.id,
-          player_id: player.id,
-          block_index: block.block_index,
-          total_points: blockPts,
-        },
-        { onConflict: "room_id,player_id,block_index" }
-      );
+      const roundPts = ptsByPlayer.get(player.id) ?? 0;
+      if (roundPts === 0) continue;
+      const { data: latest } = await supabase
+        .from("players")
+        .select("score")
+        .eq("id", player.id)
+        .single();
       await supabase
         .from("players")
-        .update({ score: player.score + blockPts })
+        .update({ score: (latest?.score ?? player.score) + roundPts })
         .eq("id", player.id);
     }
 
-    await supabase
-      .from("match_blocks")
-      .update({ is_complete: true, finished_at: new Date().toISOString() })
-      .eq("id", block.id);
+    return ptsByPlayer;
   };
 
   // --- host-driven question timer expiry ---
@@ -753,60 +826,31 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       return;
 
     } else if (block.mode === "pick_correct") {
-      if (pickCompleteRef.current === block.id) return;
-      pickCompleteRef.current = block.id;
+      const { data: roundTurns } = await supabase
+        .from("pick_correct_turns")
+        .select()
+        .eq("room_id", room.id)
+        .eq("block_index", block.block_index);
+      const thisRound = ((roundTurns ?? []) as DbPickCorrectTurn[]).filter(
+        (turn) => (turn.round_index ?? 0) === block.current_round,
+      );
+      if (thisRound.filter((turn) => turn.is_correct).length >= 4) return;
+
+      const completeKey = `pc:${block.id}:${block.current_round}`;
+      if (pickCompleteRef.current === completeKey) return;
+      pickCompleteRef.current = completeKey;
 
       const { data: currentPlayers } = await supabase
         .from("players").select().eq("room_id", room.id);
       if (!currentPlayers?.length) return;
 
-      const { data: currentTurns } = await supabase
-        .from("pick_correct_turns").select()
-        .eq("room_id", room.id)
-        .eq("block_index", block.block_index);
-
-      const playerCorrects = new Map<string, number>();
-      for (const t of currentTurns || []) {
-        if (t.is_correct) {
-          playerCorrects.set(
-            t.player_id,
-            (playerCorrects.get(t.player_id) ?? 0) + 1,
-          );
-        }
-      }
-
-      const { data: completed } = await supabase
-        .from("match_blocks")
-        .update({ is_complete: true, finished_at: new Date().toISOString() })
-        .eq("id", block.id)
-        .eq("is_complete", false)
-        .select("id");
-      if (!completed?.length) return;
-
-      for (const player of currentPlayers) {
-        const found = playerCorrects.get(player.id) ?? 0;
-        const pts = calculatePickCorrectPoints(found);
-
-        await supabase.from("match_scores").upsert(
-          {
-            room_id: room.id,
-            player_id: player.id,
-            block_index: block.block_index,
-            total_points: pts,
-          },
-          { onConflict: "room_id,player_id,block_index" },
-        );
-
-        const { data: latest } = await supabase
-          .from("players")
-          .select("score")
-          .eq("id", player.id)
-          .single();
-        await supabase
-          .from("players")
-          .update({ score: (latest?.score ?? player.score) + pts })
-          .eq("id", player.id);
-      }
+      await awardPickCorrectAndAdvance(
+        supabase,
+        room.id,
+        block,
+        currentPlayers,
+        thisRound,
+      );
     }
   };
 
@@ -1371,6 +1415,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       currentBlock.mode,
       count,
       settings.difficulty,
+      allowedThemeIds(settings),
     );
 
     if (fetchedPrompts.length === 0) {
@@ -1387,6 +1432,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
           currentBlock.mode,
           count,
           settings.difficulty,
+          allowedThemeIds(settings),
         );
         if (fetchedPrompts.length > 0) break;
       }
@@ -1500,13 +1546,13 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   };
 
   const tapCard = async (cardIndex: number) => {
-    if (!room || !myPlayerId || !currentBlock || !currentPrompt || !isMyTurn) return;
-
-    // Check if card already tapped
+    if (!room || !myPlayerId || !currentBlock || !currentPrompt) return;
+    if (currentBlock.mode !== "pick_correct") return;
+    if (correctTurnsCount >= 4) return;
     if (blockTurns.some((t) => t.card_index === cardIndex)) return;
+    if (!isPickCorrectPayload(currentPrompt.payload)) return;
 
-    const payload = currentPrompt.payload as { cards: string[]; correct_indices: number[] };
-    const isCorrect = payload.correct_indices.includes(cardIndex);
+    const isCorrect = currentPrompt.payload.correct_indices.includes(cardIndex);
 
     const { error: tapErr } = await supabase.from("pick_correct_turns").insert({
       room_id: room.id,
@@ -1515,8 +1561,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       turn_order: blockTurns.length,
       card_index: cardIndex,
       is_correct: isCorrect,
+      round_index: currentBlock.current_round,
     });
 
+    if (tapErr?.code === "23505") return;
     if (tapErr) {
       setError(t.game.sendFailed);
     }
@@ -1529,18 +1577,22 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     setHostActionLock(true);
 
     try {
+    const roundPtsByPlayer = new Map<string, number>();
+
     if (currentBlock.mode === "find_lie" || currentBlock.mode === "order_it") {
-      if (pickCompleteRef.current === currentBlock.id) return;
-      pickCompleteRef.current = currentBlock.id;
-      await completeSimultaneousQuizBlock(
+      const completeKey = `quiz:${currentBlock.id}:${currentBlock.current_round}`;
+      if (pickCompleteRef.current === completeKey) return;
+      pickCompleteRef.current = completeKey;
+      const scored = await scoreSimultaneousQuizRound(
         currentBlock,
         players,
         roundAnswers,
         currentPrompt ?? undefined
       );
-      return;
-    }
-
+      for (const [playerId, pts] of scored) {
+        roundPtsByPlayer.set(playerId, pts);
+      }
+    } else {
     const correctAnswer = numberGuessCorrectFromPayload(currentPrompt?.payload);
     if (correctAnswer !== undefined) {
       const scored = scoreNumberGuessAnswers(
@@ -1554,6 +1606,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       );
 
       for (const row of scored) {
+        roundPtsByPlayer.set(
+          row.playerId,
+          (roundPtsByPlayer.get(row.playerId) ?? 0) + row.points,
+        );
         const { data: awarded } = await supabase
           .from("answers")
           .update({
@@ -1580,8 +1636,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         }
       }
     }
+    }
 
-    // Check if more rounds in this block
     const nextRound = currentBlock.current_round + 1;
     if (nextRound < currentBlock.rounds_total) {
       await supabase
@@ -1592,12 +1648,15 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         })
         .eq("id", currentBlock.id);
     } else {
-      // Block complete
-      // Upsert match_scores for this block
       for (const player of players) {
-        const blockPts = allBlockAnswers
-          .filter((a) => a.player_id === player.id)
+        const prior = allBlockAnswers
+          .filter(
+            (a) =>
+              a.player_id === player.id &&
+              a.round_index !== currentBlock.current_round,
+          )
           .reduce((sum, a) => sum + (a.points_awarded || 0), 0);
+        const blockPts = prior + (roundPtsByPlayer.get(player.id) ?? 0);
 
         await supabase.from("match_scores").upsert(
           {

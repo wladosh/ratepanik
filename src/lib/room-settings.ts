@@ -37,8 +37,8 @@ export const GAME_LENGTH_PRESETS: Record<
   { blocks: BlockCount; questionsPerBlock: QuestionsPerBlock; minutes: 5 | 10 | 15 }
 > = {
   short: { blocks: 3, questionsPerBlock: 2, minutes: 5 },
-  medium: { blocks: 4, questionsPerBlock: 3, minutes: 10 },
-  long: { blocks: 6, questionsPerBlock: 3, minutes: 15 },
+  medium: { blocks: 5, questionsPerBlock: 3, minutes: 10 },
+  long: { blocks: 6, questionsPerBlock: 4, minutes: 15 },
 };
 
 export const GAME_LENGTH_OPTIONS: GameLength[] = ["short", "medium", "long"];
@@ -112,7 +112,7 @@ export function parseRoomSettings(raw: unknown): RoomSettings {
     ? src.themeIds.filter((id): id is string => typeof id === "string" && id.length > 0)
     : [];
 
-  const parsedBlocks = asUnion(src.blocks, [1, 2, 3, 4, 5, 6] as const, 4);
+  const parsedBlocks = asUnion(src.blocks, [1, 2, 3, 4, 5, 6] as const, 5);
   const parsedQuestions = asUnion(src.questionsPerBlock, [1, 2, 3, 4] as const, 3);
   const gameLength = asStringUnion(
     src.gameLength,

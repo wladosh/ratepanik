@@ -30,3 +30,23 @@ export function shouldStampQuestionClock(opts: {
   if (!isLiveQuestionPhase(opts.phase)) return false;
   return opts.startedAt == null || opts.startedAt === "";
 }
+
+/** Don’t end a round the instant 2 players answer — keep matches near the labeled length. */
+export const QUESTION_MIN_LIVE_MS = 20_000;
+
+export function roundReadyToReveal(opts: {
+  timedOut: boolean;
+  answeredCount: number;
+  playerCount: number;
+  startedAt: string | null | undefined;
+  nowMs: number;
+  timerMs: number;
+  minLiveMs?: number;
+}): boolean {
+  if (opts.timedOut) return true;
+  if (opts.playerCount <= 0 || opts.answeredCount < opts.playerCount) return false;
+  const started = opts.startedAt ? Date.parse(opts.startedAt) : Number.NaN;
+  if (!Number.isFinite(started)) return false;
+  const minLive = Math.min(opts.timerMs, opts.minLiveMs ?? QUESTION_MIN_LIVE_MS);
+  return opts.nowMs - started >= minLive;
+}

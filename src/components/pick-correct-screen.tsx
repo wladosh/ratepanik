@@ -3,15 +3,13 @@
 import Image from "next/image";
 import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
-import { PlayerSchleimi } from "@/components/player-schleimi";
 import { MODE_PICK_CORRECT_256 } from "@/lib/rp-assets";
-import type { PickCorrectPayload } from "@/lib/content";
+import { isPickCorrectPayload } from "@/lib/shuffle";
 import { MatchPlayShell } from "./match-play-shell";
 import { MatchStatusHeader } from "./match-status-header";
 import { QuestionStage } from "./question-stage";
 import { TimerPill } from "./timer-pill";
 import { QuestionTimerBar } from "./question-timer-bar";
-import { WaitingFooter } from "./waiting-footer";
 import styles from "./pick-correct-screen.module.css";
 
 const ANSWER_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -34,24 +32,10 @@ function PeopleIcon({ className, style }: { className?: string; style?: React.CS
 export function PickCorrectScreen() {
   const game = useGame();
   const prompt = game.currentPrompt;
-  const payload = prompt?.payload as PickCorrectPayload | undefined;
+  const payload = isPickCorrectPayload(prompt?.payload) ? prompt.payload : undefined;
 
-  const sortedPlayers = useMemo(
-    () =>
-      [...game.players].sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-      ),
-    [game.players]
-  );
-
-  const activePlayer = sortedPlayers[game.activePlayerIndex];
   const correctFound = game.turns.filter((t) => t.is_correct).length;
   const huntComplete = correctFound >= CORRECT_TARGET;
-
-  const tappedPlayerCount = useMemo(
-    () => new Set(game.turns.map((t) => t.player_id)).size,
-    [game.turns]
-  );
 
   const tappedIndices = useMemo(
     () => new Set(game.turns.map((t) => t.card_index)),
@@ -72,13 +56,13 @@ export function PickCorrectScreen() {
   );
 
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
-  const totalBlocks = game.room?.total_blocks ?? 4;
+  const totalBlocks = game.room?.total_blocks ?? 5;
+  const roundNum = (game.currentBlock?.current_round ?? 0) + 1;
+  const roundsTotal = game.currentBlock?.rounds_total ?? 1;
   const showQuestionTimer =
     !huntComplete &&
     game.questionDeadlineMs != null &&
     game.questionTimerMs != null;
-  const showWaitingFooter =
-    !huntComplete && !game.isMyTurn && activePlayer != null;
 
   if (!prompt || !payload) {
     return (
@@ -94,22 +78,15 @@ export function PickCorrectScreen() {
     <MatchPlayShell
       ariaLabel="Richtig wählen – Kartenjagd"
       contentClassName={styles.content}
-      footer={
-        showWaitingFooter ? (
-          <WaitingFooter
-            answered={tappedPlayerCount}
-            total={game.players.length}
-            mode="pick_correct"
-            label="haben schon eine Karte gewählt"
-          />
-        ) : undefined
-      }
     >
       <MatchStatusHeader
         current={blockNum}
         total={totalBlocks}
         mode="pick_correct"
         questionLabel="Block"
+        modeLabel={
+          roundsTotal > 1 ? `Passend ${roundNum}/${roundsTotal}` : undefined
+        }
         timer={
           showQuestionTimer ? (
             <TimerPill
@@ -182,31 +159,25 @@ export function PickCorrectScreen() {
       <div
         className={[
           styles.turnStatus,
-          game.isMyTurn ? styles.turnStatusActive : styles.turnStatusWaiting,
+          huntComplete ? styles.turnStatusWaiting : styles.turnStatusActive,
         ].join(" ")}
         role="status"
         aria-live="polite"
         aria-atomic="true"
       >
         <span className={styles.turnIcon}>
-          {activePlayer ? (
-            <PlayerSchleimi playerId={activePlayer.id} size={32} />
-          ) : (
-            <PeopleIcon />
-          )}
+          <PeopleIcon />
         </span>
         <span className={styles.turnCopy}>
           <strong>
-            {game.isMyTurn
-              ? "Du bist dran"
-              : activePlayer
-                ? `${activePlayer.display_name} sucht`
-                : "Nächster Zug wird vorbereitet"}
+            {huntComplete
+              ? "Alle Richtigen gefunden"
+              : "Schnappt euch die richtigen Karten"}
           </strong>
           <span>
-            {game.isMyTurn
-              ? "Tippe auf eine Karte, die noch niemand gewählt hat."
-              : "Die Karten öffnen sich Zug für Zug."}
+            {huntComplete
+              ? "Kurz die Treffer anschauen — dann geht’s weiter."
+              : "Wer zuerst tippt, bekommt die leichten Treffer. Genommene Karten sind weg."}
           </span>
         </span>
         <span className={styles.turnPulse} aria-hidden="true" />
@@ -223,7 +194,7 @@ export function PickCorrectScreen() {
           const isCorrect = result?.is_correct === true;
           const state = tapped ? (isCorrect ? "correct" : "wrong") : "available";
           const tappedBy = result ? playerNames.get(result.player_id) : undefined;
-          const canTap = game.isMyTurn && !tapped && !huntComplete;
+          const canTap = !tapped && !huntComplete;
           const stateLabel = tapped
             ? `${isCorrect ? "Richtig" : "Falsch"}${tappedBy ? `, gewählt von ${tappedBy}` : ""}`
             : canTap

@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 import { roundsForMode, type DifficultyFilter, type RoomSettings } from "./room-settings";
 import type { PlayableMode } from "./game-store";
+import { shuffleCopy } from "./shuffle";
 
 export interface Theme {
   id: string;
@@ -129,28 +130,66 @@ export async function fetchPromptsForBlock(
   mode: string,
   count: number = 2,
   difficulty: DifficultyFilter = "mix",
+  allowedIds?: string[],
 ): Promise<Prompt[]> {
+  const primary = shuffleCopy(await queryPromptsForMode({ themeId, mode, difficulty }));
+  if (primary.length >= count) return primary.slice(0, count);
+
+  const extras = shuffleCopy(
+    (await queryPromptsForMode({ mode, difficulty, themeIds: allowedIds })).filter(
+      (prompt) => prompt.theme_id !== themeId,
+    ),
+  );
+
+  return pickPromptsForBlock(primary, extras, count);
+}
+
+export function pickPromptsForBlock<T extends { id: string }>(
+  primary: T[],
+  extras: T[],
+  count: number,
+): T[] {
+  const seen = new Set<string>();
+  const selected: T[] = [];
+  for (const pool of [primary, extras]) {
+    for (const prompt of pool) {
+      if (seen.has(prompt.id)) continue;
+      seen.add(prompt.id);
+      selected.push(prompt);
+      if (selected.length >= count) return selected;
+    }
+  }
+  return selected;
+}
+
+async function queryPromptsForMode(opts: {
+  mode: string;
+  difficulty: DifficultyFilter;
+  themeId?: string;
+  themeIds?: string[];
+}): Promise<Prompt[]> {
   let query = supabase
     .from("prompts")
     .select("id, theme_id, mode, difficulty, prompt, hint, payload")
-    .eq("theme_id", themeId)
-    .eq("mode", mode)
+    .eq("mode", opts.mode)
     .eq("active", true);
 
-  if (difficulty !== "mix") {
-    query = query.eq("difficulty", difficulty);
+  if (opts.themeId) {
+    query = query.eq("theme_id", opts.themeId);
+  } else if (opts.themeIds && opts.themeIds.length > 0) {
+    query = query.in("theme_id", opts.themeIds);
+  }
+
+  if (opts.difficulty !== "mix") {
+    query = query.eq("difficulty", opts.difficulty);
   }
 
   const { data, error } = await query;
-
   if (error) {
     console.error("Error fetching block prompts:", error);
     return [];
   }
-
-  const prompts = (data ?? []) as Prompt[];
-  const shuffled = [...prompts].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, count);
+  return (data ?? []) as Prompt[];
 }
 
 export async function countPromptsForFilter(opts: {
@@ -224,6 +263,7 @@ export async function prepareBlockTheme(
       mode,
       count,
       settings.difficulty,
+      allowed,
     );
     if (fetched.length === 0) return "empty";
     const { error } = await supabase

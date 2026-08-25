@@ -77,6 +77,7 @@ export interface DbPickCorrectTurn {
   turn_order: number;
   card_index: number;
   is_correct: boolean;
+  round_index?: number | null;
   created_at: string;
 }
 

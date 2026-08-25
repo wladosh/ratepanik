@@ -32,6 +32,8 @@ export function FindLieRevealScreen() {
   if (!prompt || lieIndex === undefined) return null;
 
   const lieText = statements[lieIndex] ?? `Aussage ${LABELS[lieIndex] ?? lieIndex + 1}`;
+  const isLastRound =
+    (game.currentBlock?.current_round ?? 0) >= (game.currentBlock?.rounds_total ?? 1) - 1;
 
   return (
     <div
@@ -113,13 +115,14 @@ export function FindLieRevealScreen() {
         {game.isHost ? (
           <button
             onClick={() => void game.advanceFromReveal()}
-            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97]"
+            disabled={game.hostActionLock}
+            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-60"
             style={{
               background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
               boxShadow: "0 6px 20px rgba(255, 138, 113, 0.35)",
             }}
           >
-            Block-Ergebnis anzeigen
+            {isLastRound ? "Block-Ergebnis anzeigen" : "Nächste Runde →"}
           </button>
         ) : (
           <div
@@ -130,7 +133,7 @@ export function FindLieRevealScreen() {
             }}
           >
             <p className="text-base font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-              Der Host zeigt das Block-Ergebnis…
+              {isLastRound ? "Der Host zeigt das Block-Ergebnis…" : "Der Host startet die nächste Runde…"}
             </p>
           </div>
         )}

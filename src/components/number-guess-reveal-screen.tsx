@@ -41,7 +41,7 @@ export function NumberGuessRevealScreen() {
   }, [game.roundAnswers, game.players, correctAnswer]);
 
   const myRanked = ranked.find((r) => r.player_id === game.myPlayerId);
-  const isLastRound = (game.currentBlock?.current_round ?? 0) >= (game.currentBlock?.rounds_total ?? 2) - 1;
+  const isLastRound = (game.currentBlock?.current_round ?? 0) >= (game.currentBlock?.rounds_total ?? 1) - 1;
 
   if (!prompt || correctAnswer === undefined) return null;
 

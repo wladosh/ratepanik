@@ -363,7 +363,6 @@ export function LobbySettingsPanel({
             }[]
           ).map((opt) => {
             const selected = settings.gameLength === opt.value;
-            const isStandard = opt.value === DEFAULT_ROOM_SETTINGS.gameLength;
             return (
               <button
                 key={opt.value}
@@ -373,9 +372,6 @@ export function LobbySettingsPanel({
                 onClick={() => onChange(applyGameLength(opt.value))}
                 className={`${lengthStyles.card} ${selected ? lengthStyles.selected : lengthStyles.idle}`}
               >
-                {isStandard ? (
-                  <span className={lengthStyles.standard}>{t.lobby.standard}</span>
-                ) : null}
                 <span className={lengthStyles.timeRow}>
                   <span className={lengthStyles.time}>{opt.minutes}</span>
                   <span className={lengthStyles.unit}>Min</span>
@@ -399,7 +395,6 @@ export function LobbySettingsPanel({
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
             {t.lobby.questionDuration}
-            <StandardMark on={settings.timerSeconds === DEFAULT_ROOM_SETTINGS.timerSeconds} />
           </p>
           <p className="text-[10px] mb-1.5" style={{ color: "var(--rp-text-secondary)" }}>
             {t.lobby.timerHint}

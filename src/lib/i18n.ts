@@ -296,7 +296,7 @@ const de = {
     blocks: "Blöcke",
     questionsPerBlock: "Fragen pro Block",
     questionsHint:
-      "Gilt für Schätzfragen. Kartenwahl bleibt eine Runde pro Block — sonst wird uns schwindelig.",
+      "Gilt für jeden Modus. Reicht das Thema nicht, würfeln wir Fragen aus anderen dazu.",
     questionDuration: "Fragedauer",
     timerHint: "Gleicher Timer für alle. Läuft, sobald die Frage da ist.",
     maxPlayers: "Max. Spieler",
@@ -609,7 +609,7 @@ const en: StringTree<typeof de> = {
     blocks: "Blocks",
     questionsPerBlock: "Questions per block",
     questionsHint:
-      "For guess questions. Card pick stays one round per block — otherwise we get dizzy.",
+      "Applies to every mode. If a theme is short, we fill in questions from other themes.",
     questionDuration: "Question timer",
     timerHint: "Same timer for everyone. It starts when the question is up.",
     maxPlayers: "Max players",

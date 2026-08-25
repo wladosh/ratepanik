@@ -27,7 +27,7 @@ describe("parseTimerSeconds", () => {
 describe("game length presets", () => {
   it("defaults to a ~10 minute medium match with 30s questions", () => {
     expect(DEFAULT_ROOM_SETTINGS.gameLength).toBe("medium");
-    expect(DEFAULT_ROOM_SETTINGS.blocks).toBe(4);
+    expect(DEFAULT_ROOM_SETTINGS.blocks).toBe(5);
     expect(DEFAULT_ROOM_SETTINGS.questionsPerBlock).toBe(3);
     expect(DEFAULT_ROOM_SETTINGS.timerSeconds).toBe(30);
   });
@@ -40,13 +40,13 @@ describe("game length presets", () => {
     });
     expect(applyGameLength("medium")).toEqual({
       gameLength: "medium",
-      blocks: 4,
+      blocks: 5,
       questionsPerBlock: 3,
     });
     expect(applyGameLength("long")).toEqual({
       gameLength: "long",
       blocks: 6,
-      questionsPerBlock: 3,
+      questionsPerBlock: 4,
     });
   });
 
@@ -63,7 +63,7 @@ describe("game length presets", () => {
       timerSeconds: 15,
     });
     expect(parsed.gameLength).toBe("medium");
-    expect(parsed.blocks).toBe(4);
+    expect(parsed.blocks).toBe(5);
     expect(parsed.questionsPerBlock).toBe(3);
     expect(parsed.timerSeconds).toBe(30);
   });
