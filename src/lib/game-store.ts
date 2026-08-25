@@ -157,13 +157,35 @@ export function scoreNumberGuessAnswers<
   });
 }
 
+/** How many correct cards a pick_correct hunt is looking for. */
+export const PICK_CORRECT_TARGET = 4;
+
 /** Contribution-based scoring for pick_correct (§9.2) */
 export function calculatePickCorrectPoints(
   correctFound: number,
-  totalCorrect: number = 4
+  totalCorrect: number = PICK_CORRECT_TARGET
 ): number {
   if (totalCorrect <= 0) return 0;
   return Math.round((correctFound / totalCorrect) * 1000);
+}
+
+export function playerHasPickCorrectTap(
+  turns: { player_id: string }[],
+  playerId: string | null | undefined,
+): boolean {
+  if (!playerId) return false;
+  return turns.some((turn) => turn.player_id === playerId);
+}
+
+/** Hunt ends when 4 correct are found, or every player has used their one tap. */
+export function pickCorrectHuntComplete(opts: {
+  correctFound: number;
+  tappedPlayerCount: number;
+  playerCount: number;
+  target?: number;
+}): boolean {
+  if (opts.correctFound >= (opts.target ?? PICK_CORRECT_TARGET)) return true;
+  return opts.playerCount > 0 && opts.tappedPlayerCount >= opts.playerCount;
 }
 
 /** Binary scoring for find_lie — 400 if the lie was tapped. */

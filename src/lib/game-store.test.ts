@@ -4,6 +4,8 @@ import {
   calculateNumberGuessPoints,
   calculateOrderItPoints,
   calculatePickCorrectPoints,
+  pickCorrectHuntComplete,
+  playerHasPickCorrectTap,
   generateBlockModes,
   NUMBER_GUESS_FIRST_POINTS,
   numberGuessScoringPool,
@@ -71,6 +73,41 @@ describe("calculatePickCorrectPoints", () => {
   it("awards 1000 for 4/4 and 500 for 2/4", () => {
     expect(calculatePickCorrectPoints(4, 4)).toBe(1000);
     expect(calculatePickCorrectPoints(2, 4)).toBe(500);
+  });
+});
+
+describe("pickCorrect one tap per player", () => {
+  it("knows when this player already tapped", () => {
+    expect(playerHasPickCorrectTap([{ player_id: "a" }], "a")).toBe(true);
+    expect(playerHasPickCorrectTap([{ player_id: "a" }], "b")).toBe(false);
+    expect(playerHasPickCorrectTap([], "a")).toBe(false);
+  });
+
+  it("ends the hunt when everyone has tapped, even without 4 correct", () => {
+    expect(
+      pickCorrectHuntComplete({
+        correctFound: 1,
+        tappedPlayerCount: 2,
+        playerCount: 2,
+      }),
+    ).toBe(true);
+    expect(
+      pickCorrectHuntComplete({
+        correctFound: 1,
+        tappedPlayerCount: 1,
+        playerCount: 2,
+      }),
+    ).toBe(false);
+  });
+
+  it("still ends as soon as 4 correct are found", () => {
+    expect(
+      pickCorrectHuntComplete({
+        correctFound: 4,
+        tappedPlayerCount: 2,
+        playerCount: 4,
+      }),
+    ).toBe(true);
   });
 });
 

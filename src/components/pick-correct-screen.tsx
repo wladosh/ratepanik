@@ -4,16 +4,21 @@ import Image from "next/image";
 import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
 import { MODE_PICK_CORRECT_256 } from "@/lib/rp-assets";
+import {
+  PICK_CORRECT_TARGET,
+  pickCorrectHuntComplete,
+  playerHasPickCorrectTap,
+} from "@/lib/game-store";
 import { isPickCorrectPayload } from "@/lib/shuffle";
 import { MatchPlayShell } from "./match-play-shell";
 import { MatchStatusHeader } from "./match-status-header";
 import { QuestionStage } from "./question-stage";
 import { TimerPill } from "./timer-pill";
 import { QuestionTimerBar } from "./question-timer-bar";
+import { WaitingFooter } from "./waiting-footer";
 import styles from "./pick-correct-screen.module.css";
 
 const ANSWER_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const CORRECT_TARGET = 4;
 
 function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
@@ -35,7 +40,16 @@ export function PickCorrectScreen() {
   const payload = isPickCorrectPayload(prompt?.payload) ? prompt.payload : undefined;
 
   const correctFound = game.turns.filter((t) => t.is_correct).length;
-  const huntComplete = correctFound >= CORRECT_TARGET;
+  const tappedPlayerCount = useMemo(
+    () => new Set(game.turns.map((t) => t.player_id)).size,
+    [game.turns],
+  );
+  const localPlayerTapped = playerHasPickCorrectTap(game.turns, game.myPlayerId);
+  const huntComplete = pickCorrectHuntComplete({
+    correctFound,
+    tappedPlayerCount,
+    playerCount: game.players.length,
+  });
 
   const tappedIndices = useMemo(
     () => new Set(game.turns.map((t) => t.card_index)),
@@ -61,6 +75,7 @@ export function PickCorrectScreen() {
   const roundsTotal = game.currentBlock?.rounds_total ?? 1;
   const showQuestionTimer =
     !huntComplete &&
+    !localPlayerTapped &&
     game.questionDeadlineMs != null &&
     game.questionTimerMs != null;
 
@@ -78,6 +93,15 @@ export function PickCorrectScreen() {
     <MatchPlayShell
       ariaLabel="Richtig wählen – Kartenjagd"
       contentClassName={styles.content}
+      footer={
+        !huntComplete && localPlayerTapped ? (
+          <WaitingFooter
+            answered={tappedPlayerCount}
+            total={game.players.length}
+            mode="pick_correct"
+          />
+        ) : undefined
+      }
     >
       <MatchStatusHeader
         current={blockNum}
@@ -102,14 +126,14 @@ export function PickCorrectScreen() {
             role="progressbar"
             aria-label="Richtige Karten gefunden"
             aria-valuemin={0}
-            aria-valuemax={CORRECT_TARGET}
-            aria-valuenow={Math.min(correctFound, CORRECT_TARGET)}
+            aria-valuemax={PICK_CORRECT_TARGET}
+            aria-valuenow={Math.min(correctFound, PICK_CORRECT_TARGET)}
           >
             <span className={styles.foundCount}>
-              {Math.min(correctFound, CORRECT_TARGET)}/{CORRECT_TARGET}
+              {Math.min(correctFound, PICK_CORRECT_TARGET)}/{PICK_CORRECT_TARGET}
             </span>
             <span className={styles.foundDots} aria-hidden="true">
-              {Array.from({ length: CORRECT_TARGET }, (_, index) => (
+              {Array.from({ length: PICK_CORRECT_TARGET }, (_, index) => (
                 <span
                   key={index}
                   className={
@@ -127,7 +151,7 @@ export function PickCorrectScreen() {
       <QuestionStage
         headingId="pick-correct-question"
         ariaLabel="Aufgabe der Kartenjagd"
-        eyebrow="Finde 4 richtige Karten"
+        eyebrow="Jeder wählt eine Karte"
         question={prompt.prompt}
         accentColor="var(--rp-peach-deep)"
         accentBackground="rgba(255, 138, 113, 0.13)"
@@ -159,7 +183,9 @@ export function PickCorrectScreen() {
       <div
         className={[
           styles.turnStatus,
-          huntComplete ? styles.turnStatusWaiting : styles.turnStatusActive,
+          huntComplete || localPlayerTapped
+            ? styles.turnStatusWaiting
+            : styles.turnStatusActive,
         ].join(" ")}
         role="status"
         aria-live="polite"
@@ -171,13 +197,17 @@ export function PickCorrectScreen() {
         <span className={styles.turnCopy}>
           <strong>
             {huntComplete
-              ? "Alle Richtigen gefunden"
-              : "Schnappt euch die richtigen Karten"}
+              ? "Karten liegen"
+              : localPlayerTapped
+                ? "Du hast gewählt"
+                : "Wähle eine Karte"}
           </strong>
           <span>
             {huntComplete
               ? "Kurz die Treffer anschauen — dann geht’s weiter."
-              : "Wer zuerst tippt, bekommt die leichten Treffer. Genommene Karten sind weg."}
+              : localPlayerTapped
+                ? "Warte, bis alle ihre Karte gelegt haben."
+                : "Nur eine Karte pro Person. Genommene Karten sind weg."}
           </span>
         </span>
         <span className={styles.turnPulse} aria-hidden="true" />
@@ -194,7 +224,7 @@ export function PickCorrectScreen() {
           const isCorrect = result?.is_correct === true;
           const state = tapped ? (isCorrect ? "correct" : "wrong") : "available";
           const tappedBy = result ? playerNames.get(result.player_id) : undefined;
-          const canTap = !tapped && !huntComplete;
+          const canTap = !tapped && !huntComplete && !localPlayerTapped;
           const stateLabel = tapped
             ? `${isCorrect ? "Richtig" : "Falsch"}${tappedBy ? `, gewählt von ${tappedBy}` : ""}`
             : canTap
