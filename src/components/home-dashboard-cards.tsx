@@ -252,9 +252,7 @@ function IconRow({
         className={`${styles.iconItem} ${styles.iconFriends}`}
         onClick={() => onOpenPanel("friends")}
       >
-        <span className={styles.iconWell} aria-hidden="true">
-          <Image src={ICON_FRIENDS_SLIMES_128} alt="" width={30} height={30} />
-        </span>
+        <Image src={ICON_FRIENDS_SLIMES_128} alt="" width={48} height={48} className={styles.iconArt} aria-hidden="true" />
         <span className={styles.iconLabel}>{t.home.friends}</span>
         {friendsMeta && <span className={styles.iconMeta}>{friendsMeta}</span>}
       </button>
@@ -264,9 +262,7 @@ function IconRow({
         className={`${styles.iconItem} ${styles.iconStats}`}
         onClick={() => onOpenPanel("stats")}
       >
-        <span className={styles.iconWell} aria-hidden="true">
-          <Image src={ICON_STATS_CLIPBOARD_128} alt="" width={30} height={30} />
-        </span>
+        <Image src={ICON_STATS_CLIPBOARD_128} alt="" width={48} height={48} className={styles.iconArt} aria-hidden="true" />
         <span className={styles.iconLabel}>{t.home.stats}</span>
         {statsMeta && <span className={styles.iconMeta}>{statsMeta}</span>}
       </button>
@@ -276,9 +272,7 @@ function IconRow({
         className={`${styles.iconItem} ${styles.iconAchievements}`}
         onClick={() => onOpenPanel("achievements")}
       >
-        <span className={styles.iconWell} aria-hidden="true">
-          <Image src={TROPHY_GOLD_512} alt="" width={30} height={30} />
-        </span>
+        <Image src={TROPHY_GOLD_512} alt="" width={48} height={48} className={styles.iconArt} aria-hidden="true" />
         <span className={styles.iconLabel}>{t.home.achievements}</span>
         {achievementsMeta && <span className={styles.iconMeta}>{achievementsMeta}</span>}
       </button>
