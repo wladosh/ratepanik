@@ -11,10 +11,9 @@ import { DecorSchleimi } from "@/components/player-schleimi";
 import {
   HOME_CREATE_ROOM_256,
   LOOT_BOX_LEGENDARY_256,
-  RANK_BADGE_GOLD_128,
   TROPHY_GOLD_512,
+  XP_BADGE_48,
 } from "@/lib/rp-assets";
-import { AchievementSticker } from "@/components/achievement-sticker";
 import styles from "./home-dashboard-cards.module.css";
 
 gsap.registerPlugin(useGSAP);
@@ -196,58 +195,7 @@ function JoinRoomCard({
   );
 }
 
-function FriendsAsset() {
-  return (
-    <span className={`${styles.featureAsset} ${styles.friendAsset}`} data-feature-asset aria-hidden="true">
-      {["friend-a", "friend-b", "friend-c"].map((seed, index) => (
-        <span key={seed} style={{ zIndex: 3 - index }}>
-          <DecorSchleimi seed={seed} size={52} />
-        </span>
-      ))}
-    </span>
-  );
-}
-
-type FeatureCardProps = {
-  panel: HomePanelId;
-  title: string;
-  subtitle: string;
-  className: string;
-  asset: React.ReactNode;
-  onOpen: (panel: HomePanelId) => void;
-};
-
-function FeatureCard({
-  panel,
-  title,
-  subtitle,
-  className,
-  asset,
-  onOpen,
-}: FeatureCardProps) {
-  return (
-    <button
-      type="button"
-      onClick={() => onOpen(panel)}
-      className={`${styles.featureCard} ${className}`}
-      data-home-card
-    >
-      <span className={styles.featureGlow} aria-hidden="true" />
-      <span className={styles.featureHeader}>
-        <strong className={styles.featureTitle}>{title}</strong>
-        <span className={styles.featureSub}>{subtitle}</span>
-      </span>
-      {asset}
-      <span className={styles.featureChevron} aria-hidden="true">
-        <svg viewBox="0 0 20 20" fill="none">
-          <path d="m7.5 5 5 5-5 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </span>
-    </button>
-  );
-}
-
-function FeatureGrid({
+function IconRow({
   isGuest,
   friendCount,
   level,
@@ -268,10 +216,11 @@ function FeatureGrid({
   | "onOpenPanel"
 >) {
   const { t } = useI18n();
+
   const friendsMeta = isGuest
-    ? t.home.connectAccount
+    ? null
     : friendCount === null
-      ? t.home.loadingMeta
+      ? null
       : friendCount === 0
         ? t.home.buildCrew
         : friendCount === 1
@@ -279,69 +228,88 @@ function FeatureGrid({
           : interpolate(t.home.friendsMany, { n: friendCount });
 
   const statsMeta = isGuest
-    ? t.home.connectAccount
+    ? null
     : level === null
-      ? t.home.loadingMeta
+      ? null
       : matchGames && matchGames > 0
-      ? interpolate(t.home.levelGames, { level, games: matchGames })
-      : interpolate(t.home.levelOnly, { level });
+        ? interpolate(t.home.levelGames, { level, games: matchGames })
+        : interpolate(t.home.levelOnly, { level });
 
   const achievementsMeta = isGuest
-    ? t.home.connectAccount
+    ? null
     : achievementsLoaded
       ? interpolate(t.home.achievementsProgress, {
           unlocked: achievementsUnlocked,
           total: achievementsTotal,
         })
-      : t.home.loadingMeta;
+      : null;
 
   return (
-    <div className={styles.featureGrid}>
-      <FeatureCard
-        panel="friends"
-        title={t.home.friends}
-        subtitle={friendsMeta}
-        className={styles.friendsCard}
-        asset={<FriendsAsset />}
-        onOpen={onOpenPanel}
-      />
-      <FeatureCard
-        panel="stats"
-        title={t.home.stats}
-        subtitle={statsMeta}
-        className={styles.statsCard}
-        asset={
-          <span className={styles.featureAsset} data-feature-asset aria-hidden="true">
-            <Image src={RANK_BADGE_GOLD_128} alt="" width={80} height={80} />
+    <div className={styles.iconRow} data-home-card>
+      <button
+        type="button"
+        className={`${styles.iconItem} ${styles.iconFriends}`}
+        onClick={() => onOpenPanel("friends")}
+      >
+        <span className={styles.iconWell} aria-hidden="true">
+          <span className={styles.iconSchleimiCluster}>
+            {["icon-fr-a", "icon-fr-b", "icon-fr-c"].map((seed, i) => (
+              <span key={seed} style={{ zIndex: 3 - i }}>
+                <DecorSchleimi seed={seed} size={26} />
+              </span>
+            ))}
           </span>
-        }
-        onOpen={onOpenPanel}
-      />
-      <FeatureCard
-        panel="achievements"
-        title={t.home.achievements}
-        subtitle={achievementsMeta}
-        className={styles.achievementsCard}
-        asset={
-          <span className={styles.featureAsset} data-feature-asset aria-hidden="true">
-            <AchievementSticker id="first_win" unlocked size={80} />
-          </span>
-        }
-        onOpen={onOpenPanel}
-      />
-      <FeatureCard
-        panel="shop"
-        title={t.home.shop}
-        subtitle={t.home.shopMeta}
-        className={styles.shopCard}
-        asset={
-          <span className={`${styles.featureAsset} ${styles.shopAsset}`} data-feature-asset aria-hidden="true">
-            <Image src={LOOT_BOX_LEGENDARY_256} alt="" width={96} height={96} unoptimized />
-          </span>
-        }
-        onOpen={onOpenPanel}
-      />
+        </span>
+        <span className={styles.iconLabel}>{t.home.friends}</span>
+        {friendsMeta && <span className={styles.iconMeta}>{friendsMeta}</span>}
+      </button>
+
+      <button
+        type="button"
+        className={`${styles.iconItem} ${styles.iconStats}`}
+        onClick={() => onOpenPanel("stats")}
+      >
+        <span className={styles.iconWell} aria-hidden="true">
+          <Image src={XP_BADGE_48} alt="" width={30} height={30} />
+        </span>
+        <span className={styles.iconLabel}>{t.home.stats}</span>
+        {statsMeta && <span className={styles.iconMeta}>{statsMeta}</span>}
+      </button>
+
+      <button
+        type="button"
+        className={`${styles.iconItem} ${styles.iconAchievements}`}
+        onClick={() => onOpenPanel("achievements")}
+      >
+        <span className={styles.iconWell} aria-hidden="true">
+          <Image src={TROPHY_GOLD_512} alt="" width={30} height={30} />
+        </span>
+        <span className={styles.iconLabel}>{t.home.achievements}</span>
+        {achievementsMeta && <span className={styles.iconMeta}>{achievementsMeta}</span>}
+      </button>
     </div>
+  );
+}
+
+function ShopHero({ onOpenPanel }: { onOpenPanel: (panel: HomePanelId) => void }) {
+  const { t } = useI18n();
+  return (
+    <button
+      type="button"
+      onClick={() => onOpenPanel("shop")}
+      className={styles.shopHero}
+      data-home-card
+    >
+      <span className={styles.shopHeroGlow} aria-hidden="true" />
+      <span className={styles.shopHeroCopy}>
+        <strong>{t.home.shop}</strong>
+        <span>{t.home.shopMeta}</span>
+      </span>
+      <span className={styles.shopHeroAsset} data-feature-asset aria-hidden="true">
+        <Image src={LOOT_BOX_LEGENDARY_256} alt="" width={110} height={110} unoptimized />
+      </span>
+      <ArrowMark />
+    </button>
   );
 }
 
@@ -398,7 +366,7 @@ export function HomeDashboardCards(props: HomeDashboardCardsProps) {
         onJoin={props.onJoin}
         onCodeChange={props.onCodeChange}
       />
-      <FeatureGrid
+      <IconRow
         isGuest={props.isGuest}
         friendCount={props.friendCount}
         level={props.level}
@@ -408,6 +376,7 @@ export function HomeDashboardCards(props: HomeDashboardCardsProps) {
         achievementsTotal={props.achievementsTotal}
         onOpenPanel={props.onOpenPanel}
       />
+      <ShopHero onOpenPanel={props.onOpenPanel} />
     </div>
   );
 }
