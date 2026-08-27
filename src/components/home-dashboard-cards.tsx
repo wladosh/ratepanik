@@ -10,30 +10,14 @@ import type { HomePanelId } from "@/components/home-panels";
 import { DecorSchleimi } from "@/components/player-schleimi";
 import {
   HOME_CREATE_ROOM_256,
+  ICON_FRIENDS_SLIMES_128,
+  ICON_STATS_CLIPBOARD_128,
   TROPHY_GOLD_512,
 } from "@/lib/rp-assets";
 import { LOOTBOX_CLOSED_PATH } from "@/lib/schleimi-catalog";
 import styles from "./home-dashboard-cards.module.css";
 
 gsap.registerPlugin(useGSAP);
-
-const STATS_CLIPBOARD_PATH = "/rp/rp_icon_stats_clipboard_128@2x.png";
-
-/** Claymorphic clipboard placeholder until the raster at STATS_CLIPBOARD_PATH ships. */
-function StatsClipboardIcon({ size = 30 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 56 56" fill="none" aria-hidden="true">
-      <rect x="10" y="12" width="36" height="40" rx="6" fill="#FFF8EC" />
-      <rect x="10" y="12" width="36" height="40" rx="6" stroke="#F5E6D0" strokeWidth="1.2" />
-      <rect x="19" y="8" width="18" height="8" rx="3.5" fill="#FFAD8F" />
-      <rect x="22" y="6" width="12" height="5" rx="2.5" fill="#FFC4A8" />
-      <rect x="16" y="26" width="14" height="4" rx="2" fill="#B8E6D4" />
-      <rect x="16" y="33" width="20" height="4" rx="2" fill="#D4C6F9" />
-      <rect x="16" y="40" width="10" height="4" rx="2" fill="#FFD4B8" />
-      <polyline points="30,42 34,38 37,40 41,34 44,36" stroke="#C989FF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </svg>
-  );
-}
 
 type HomeDashboardCardsProps = {
   roomCode: string;
@@ -269,13 +253,7 @@ function IconRow({
         onClick={() => onOpenPanel("friends")}
       >
         <span className={styles.iconWell} aria-hidden="true">
-          <span className={styles.iconSchleimiCluster}>
-            {["icon-fr-a", "icon-fr-b", "icon-fr-c"].map((seed, i) => (
-              <span key={seed} style={{ zIndex: 3 - i }}>
-                <DecorSchleimi seed={seed} size={26} />
-              </span>
-            ))}
-          </span>
+          <Image src={ICON_FRIENDS_SLIMES_128} alt="" width={30} height={30} />
         </span>
         <span className={styles.iconLabel}>{t.home.friends}</span>
         {friendsMeta && <span className={styles.iconMeta}>{friendsMeta}</span>}
@@ -287,7 +265,7 @@ function IconRow({
         onClick={() => onOpenPanel("stats")}
       >
         <span className={styles.iconWell} aria-hidden="true">
-          <StatsClipboardIcon size={30} />
+          <Image src={ICON_STATS_CLIPBOARD_128} alt="" width={30} height={30} />
         </span>
         <span className={styles.iconLabel}>{t.home.stats}</span>
         {statsMeta && <span className={styles.iconMeta}>{statsMeta}</span>}

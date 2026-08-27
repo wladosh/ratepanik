@@ -30,6 +30,10 @@ export const RANK_BADGE_GOLD_128 = "/rp/rp_badge_rank_1_128@2x.png";
 export const LOOT_BOX_RARE_128 = "/rp/rp_loot_box_rare_128@2x.png";
 export const LOOT_BOX_LEGENDARY_256 = "/rp/rp_loot_box_legendary_256.png";
 
+// ── Home icon-row art ─────────────────────────────────────────────
+export const ICON_FRIENDS_SLIMES_128 = "/rp/rp_icon_friends_slimes_128@2x.png";
+export const ICON_STATS_CLIPBOARD_128 = "/rp/rp_icon_stats_clipboard_128@2x.png";
+
 // ── Game mode art ───────────────────────────────────────────────────
 export const MODE_ORDER_IT_256 = "/rp/rp_mode_order_it_256.png";
 export const MODE_NUMBER_GUESS_256 = "/rp/rp_mode_number_guess_256.png";
