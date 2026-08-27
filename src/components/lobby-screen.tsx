@@ -57,6 +57,15 @@ function PencilIcon({ className }: { className?: string }) {
   );
 }
 
+function KickIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
 function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg viewBox="0 0 24 24" className={className} style={style} fill="currentColor">
@@ -160,12 +169,78 @@ function RenameSheet({
   );
 }
 
+function KickConfirmSheet({
+  playerName,
+  onConfirm,
+  onClose,
+}: {
+  playerName: string;
+  onConfirm: () => Promise<void>;
+  onClose: () => void;
+}) {
+  const { t } = useI18n();
+  const [busy, setBusy] = useState(false);
+
+  async function handleKick() {
+    setBusy(true);
+    await onConfirm();
+    setBusy(false);
+    onClose();
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ background: "rgba(0,0,0,0.35)" }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div
+        className="w-full max-w-md animate-fade-in"
+        style={{
+          background: "var(--rp-bg-elevated)",
+          borderRadius: "var(--rp-radius-lg) var(--rp-radius-lg) 0 0",
+          boxShadow: "0 -8px 30px rgba(0,0,0,0.12)",
+          padding: "24px 20px max(env(safe-area-inset-bottom, 16px), 24px)",
+        }}
+      >
+        <p
+          className="text-base font-bold text-center mb-5"
+          style={{ color: "var(--rp-text)" }}
+        >
+          {interpolate(t.game.kickConfirm, { name: playerName })}
+        </p>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97]"
+            style={{
+              background: "var(--rp-bg-hero)",
+              color: "var(--rp-text-secondary)",
+            }}
+          >
+            {t.game.kickCancel}
+          </button>
+          <button
+            onClick={() => void handleKick()}
+            disabled={busy}
+            className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.97] disabled:opacity-50"
+            style={{ background: "var(--rp-danger, #e53e3e)" }}
+          >
+            {busy ? "…" : t.game.kickAction}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function LobbyScreen() {
   const game = useGame();
   const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
   const [renameOpen, setRenameOpen] = useState(false);
+  const [kickTarget, setKickTarget] = useState<{ id: string; name: string } | null>(null);
 
   const playersSorted = [...game.players].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -324,48 +399,63 @@ export function LobbyScreen() {
 
         {/* Player list */}
         <div className="space-y-2.5 mb-3">
-          {playersSorted.map((player) => (
-            <div
-              key={player.id}
-              className="flex items-center gap-3 px-4 py-3 animate-fade-in"
-              style={{
-                background: "var(--rp-bg-elevated)",
-                borderRadius: "var(--rp-radius-md)",
-                boxShadow: "var(--rp-shadow-card)",
-              }}
-            >
-              <PlayerSchleimi playerId={player.id} size={48} label={player.display_name} />
-              {player.id === game.myPlayerId ? (
-                <button
-                  className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold text-left active:opacity-70 transition-opacity"
-                  style={{ color: "var(--rp-text)" }}
-                  onClick={() => setRenameOpen(true)}
-                >
-                  <span className="min-w-0 truncate">{player.display_name}</span>
-                  <PencilIcon className="w-3.5 h-3.5 shrink-0 opacity-50" />
-                  <span className="shrink-0 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>
-                    {t.game.youBadge}
+          {playersSorted.map((player) => {
+            const isMe = player.id === game.myPlayerId;
+            const canKick = game.isHost && !isMe && !player.is_host;
+
+            return (
+              <div
+                key={player.id}
+                className="flex items-center gap-3 px-4 py-3 animate-fade-in"
+                style={{
+                  background: "var(--rp-bg-elevated)",
+                  borderRadius: "var(--rp-radius-md)",
+                  boxShadow: "var(--rp-shadow-card)",
+                }}
+              >
+                <PlayerSchleimi playerId={player.id} size={48} label={player.display_name} />
+                {isMe ? (
+                  <button
+                    className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold text-left active:opacity-70 transition-opacity"
+                    style={{ color: "var(--rp-text)" }}
+                    onClick={() => setRenameOpen(true)}
+                  >
+                    <span className="min-w-0 truncate">{player.display_name}</span>
+                    <PencilIcon className="w-3.5 h-3.5 shrink-0 opacity-50" />
+                    <span className="shrink-0 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>
+                      {t.game.youBadge}
+                    </span>
+                  </button>
+                ) : (
+                  <span className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold" style={{ color: "var(--rp-text)" }}>
+                    <span className="min-w-0 truncate">{player.display_name}</span>
                   </span>
-                </button>
-              ) : (
-                <span className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold" style={{ color: "var(--rp-text)" }}>
-                  <span className="min-w-0 truncate">{player.display_name}</span>
-                </span>
-              )}
-              {player.is_host && (
-                <span
-                  className="flex items-center gap-1 h-7 px-3 rounded-full text-xs font-bold"
-                  style={{
-                    background: "rgba(139, 124, 255, 0.12)",
-                    color: "var(--rp-purple)",
-                  }}
-                >
-                  <CrownIcon className="w-3.5 h-3.5" />
-                  Host
-                </span>
-              )}
-            </div>
-          ))}
+                )}
+                {player.is_host && (
+                  <span
+                    className="flex items-center gap-1 h-7 px-3 rounded-full text-xs font-bold"
+                    style={{
+                      background: "rgba(139, 124, 255, 0.12)",
+                      color: "var(--rp-purple)",
+                    }}
+                  >
+                    <CrownIcon className="w-3.5 h-3.5" />
+                    Host
+                  </span>
+                )}
+                {canKick && (
+                  <button
+                    onClick={() => setKickTarget({ id: player.id, name: player.display_name })}
+                    className="flex items-center justify-center shrink-0 w-11 h-11 -mr-2 rounded-full transition-all active:scale-90 active:opacity-70"
+                    style={{ color: "var(--rp-text-secondary)" }}
+                    aria-label={interpolate(t.game.kickConfirm, { name: player.display_name })}
+                  >
+                    <KickIcon className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="flex-1 overflow-y-auto -mx-1 px-1 min-h-0">
@@ -434,6 +524,14 @@ export function LobbyScreen() {
           }
           onSave={(name) => game.updateDisplayName(name)}
           onClose={() => setRenameOpen(false)}
+        />
+      )}
+
+      {kickTarget && (
+        <KickConfirmSheet
+          playerName={kickTarget.name}
+          onConfirm={() => game.kickPlayer(kickTarget.id).then(() => {})}
+          onClose={() => setKickTarget(null)}
         />
       )}
     </div>

@@ -291,6 +291,11 @@ const de = {
     renameEmpty: "Name darf nicht leer sein.",
     renameTaken: "Dieser Name ist in diesem Raum schon vergeben.",
     renameFailed: "Name konnte nicht geändert werden.",
+    kickConfirm: "{name} wirklich rauswerfen?",
+    kickCancel: "Abbrechen",
+    kickAction: "Rauswerfen",
+    kickFailed: "Rauswerfen fehlgeschlagen.",
+    kickedNotice: "Der Host hat dich aus der Lobby entfernt.",
   },
   lobby: {
     roomCode: "Raumcode",
@@ -657,6 +662,11 @@ const en: StringTree<typeof de> = {
     renameEmpty: "Name must not be empty.",
     renameTaken: "That name is already taken in this room.",
     renameFailed: "Couldn't change the name.",
+    kickConfirm: "Really kick {name}?",
+    kickCancel: "Cancel",
+    kickAction: "Kick",
+    kickFailed: "Kick failed.",
+    kickedNotice: "The host removed you from the lobby.",
   },
   lobby: {
     roomCode: "Room code",
