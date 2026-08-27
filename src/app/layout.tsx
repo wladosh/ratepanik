@@ -16,6 +16,10 @@ export const metadata: Metadata = {
   title: "Ratepanik — Das Party-Quiz!",
   description:
     "Ratepanik ist das schnelle Party-Quiz für Freunde. Tritt gegen deine Freunde an und zeige dein Wissen!",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
 };
 
 export const viewport: Viewport = {
