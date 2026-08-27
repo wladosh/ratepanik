@@ -393,9 +393,6 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         timedOut: roundTimedOut,
         answeredCount: roundAnswers.length,
         playerCount: players.length,
-        startedAt: currentBlock.started_at,
-        nowMs,
-        timerMs: questionTimerMsFromBlock(currentBlock.timer_seconds),
       });
       if (roundOver) {
         return "number_guess_reveal";
@@ -410,9 +407,6 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         timedOut: roundTimedOut,
         answeredCount: roundAnswers.length,
         playerCount: players.length,
-        startedAt: currentBlock.started_at,
-        nowMs,
-        timerMs: questionTimerMsFromBlock(currentBlock.timer_seconds),
       });
       if (roundOver) {
         return "find_lie_reveal";
@@ -427,9 +421,6 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         timedOut: roundTimedOut,
         answeredCount: roundAnswers.length,
         playerCount: players.length,
-        startedAt: currentBlock.started_at,
-        nowMs,
-        timerMs: questionTimerMsFromBlock(currentBlock.timer_seconds),
       });
       if (roundOver) {
         return "order_it_reveal";
