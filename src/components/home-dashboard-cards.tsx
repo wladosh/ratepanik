@@ -10,10 +10,10 @@ import type { HomePanelId } from "@/components/home-panels";
 import { DecorSchleimi } from "@/components/player-schleimi";
 import {
   HOME_CREATE_ROOM_256,
-  LOOT_BOX_LEGENDARY_256,
   RANK_BADGE_GOLD_128,
   TROPHY_GOLD_512,
 } from "@/lib/rp-assets";
+import { LOOTBOX_CLOSED_PATH } from "@/lib/schleimi-catalog";
 import { AchievementSticker } from "@/components/achievement-sticker";
 import styles from "./home-dashboard-cards.module.css";
 
@@ -336,7 +336,7 @@ function FeatureGrid({
         className={styles.shopCard}
         asset={
           <span className={`${styles.featureAsset} ${styles.shopAsset}`} data-feature-asset aria-hidden="true">
-            <Image src={LOOT_BOX_LEGENDARY_256} alt="" width={96} height={96} unoptimized />
+            <Image src={LOOTBOX_CLOSED_PATH} alt="" width={96} height={96} style={{ objectFit: "contain" }} unoptimized />
           </span>
         }
         onOpen={onOpenPanel}
