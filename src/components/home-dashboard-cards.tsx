@@ -10,10 +10,10 @@ import type { HomePanelId } from "@/components/home-panels";
 import { DecorSchleimi } from "@/components/player-schleimi";
 import {
   HOME_CREATE_ROOM_256,
-  LOOT_BOX_LEGENDARY_256,
   TROPHY_GOLD_512,
   XP_BADGE_48,
 } from "@/lib/rp-assets";
+import { LOOTBOX_CLOSED_PATH } from "@/lib/schleimi-catalog";
 import styles from "./home-dashboard-cards.module.css";
 
 gsap.registerPlugin(useGSAP);
@@ -306,7 +306,7 @@ function ShopHero({ onOpenPanel }: { onOpenPanel: (panel: HomePanelId) => void }
         <span>{t.home.shopMeta}</span>
       </span>
       <span className={styles.shopHeroAsset} data-feature-asset aria-hidden="true">
-        <Image src={LOOT_BOX_LEGENDARY_256} alt="" width={110} height={110} unoptimized />
+        <Image src={LOOTBOX_CLOSED_PATH} alt="" width={110} height={110} style={{ objectFit: "contain" }} unoptimized />
       </span>
       <ArrowMark />
     </button>
