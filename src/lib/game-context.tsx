@@ -94,6 +94,7 @@ interface GameContextValue {
   isHost: boolean;
   error: string | null;
   notice: string | null;
+  wasKicked: boolean;
   loading: boolean;
   restoring: boolean;
   disconnected: boolean;
@@ -141,6 +142,7 @@ interface GameContextValue {
   resetGame: () => Promise<void>;
   goHome: () => void;
   updateDisplayName: (newName: string) => Promise<string | null>;
+  kickPlayer: (playerId: string) => Promise<string | null>;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -244,6 +246,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const [themeOptions, setThemeOptions] = useState<Theme[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [wasKicked, setWasKicked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [restoring, setRestoring] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -263,6 +266,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const joinCodeUsedRef = useRef(false);
   const autoStartAttemptRef = useRef<string | null>(null);
   const startGameRef = useRef<() => Promise<void>>(async () => {});
+  const voluntaryLeaveRef = useRef(false);
   const [disconnected, setDisconnected] = useState(false);
   const myPlayerIdRef = useRef<string | null>(null);
   const [revealHoldActive, setRevealHoldActive] = useState(false);
@@ -540,21 +544,41 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
             );
           } else if (payload.eventType === "DELETE") {
             const leftPlayerId = (payload.old as { id: string }).id;
-            setPlayers((prev) => {
-              if (leftPlayerId !== myPlayerIdRef.current) {
-                const leftPlayer = prev.find((p) => p.id === leftPlayerId);
-                if (leftPlayer) {
-                  queueMicrotask(() =>
-                    setNotice(
-                      interpolate(tRef.current.game.playerLeft, {
-                        name: leftPlayer.display_name,
-                      }),
-                    )
-                  );
+            if (leftPlayerId === myPlayerIdRef.current && !voluntaryLeaveRef.current) {
+              queueMicrotask(() => {
+                setWasKicked(true);
+                setNotice(tRef.current.game.kickedNotice);
+                setRoom(null);
+                setPlayers([]);
+                setAllAnswers([]);
+                setBlocks([]);
+                setTurns([]);
+                setMyPlayerId(null);
+                setPrompts([]);
+                setThemeOptions([]);
+                clearSession();
+                if (channelRef.current) {
+                  supabase.removeChannel(channelRef.current);
+                  channelRef.current = null;
                 }
-              }
-              return prev.filter((p) => p.id !== leftPlayerId);
-            });
+              });
+            } else {
+              setPlayers((prev) => {
+                if (leftPlayerId !== myPlayerIdRef.current) {
+                  const leftPlayer = prev.find((p) => p.id === leftPlayerId);
+                  if (leftPlayer) {
+                    queueMicrotask(() =>
+                      setNotice(
+                        interpolate(tRef.current.game.playerLeft, {
+                          name: leftPlayer.display_name,
+                        }),
+                      )
+                    );
+                  }
+                }
+                return prev.filter((p) => p.id !== leftPlayerId);
+              });
+            }
           }
         }
       )
@@ -1790,6 +1814,33 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     return null;
   };
 
+  const kickPlayer = async (playerId: string): Promise<string | null> => {
+    if (!room || !isHost) {
+      setError(t.game.kickFailed);
+      return t.game.kickFailed;
+    }
+    if (room.status !== "lobby") {
+      setError(t.game.kickFailed);
+      return t.game.kickFailed;
+    }
+    if (playerId === myPlayerId) {
+      setError(t.game.kickFailed);
+      return t.game.kickFailed;
+    }
+
+    const { data, error: rpcErr } = await supabase.rpc("kick_player", {
+      p_room_id: room.id,
+      p_player_id: playerId,
+    });
+
+    if (rpcErr || !(data as { ok: boolean })?.ok) {
+      setError(t.game.kickFailed);
+      return t.game.kickFailed;
+    }
+
+    return null;
+  };
+
   const resetGame = async () => {
     if (!room) return;
 
@@ -1822,6 +1873,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   };
 
   const leaveRoom = async (options?: { next?: string }) => {
+    voluntaryLeaveRef.current = true;
     const guestNext = resolveGuestExitPath(options?.next);
 
     if (room && myPlayerId) {
@@ -1942,6 +1994,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     isHost,
     error,
     notice,
+    wasKicked,
     loading,
     restoring,
     disconnected,
@@ -1977,6 +2030,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     resetGame,
     goHome,
     updateDisplayName,
+    kickPlayer,
   };
 
   return (

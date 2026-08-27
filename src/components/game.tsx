@@ -133,7 +133,7 @@ export function Game() {
       {(() => {
         switch (game.phase) {
           case "home":
-            return isGuest ? <GuestExitToLogin /> : <HomeScreen />;
+            return (isGuest && !game.wasKicked) ? <GuestExitToLogin /> : <HomeScreen />;
           case "lobby":
             return <LobbyScreen />;
           case "vs_intro":
@@ -185,7 +185,7 @@ export function Game() {
           case "final":
             return <FinalScreen />;
           default:
-            return isGuest ? <GuestExitToLogin /> : <HomeScreen />;
+            return (isGuest && !game.wasKicked) ? <GuestExitToLogin /> : <HomeScreen />;
         }
       })()}
 
