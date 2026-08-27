@@ -15,15 +15,13 @@ export function RarityBadge({ rarity, compact }: { rarity: CosmeticRarity; compa
   const tone = RARITY_UX_PILL[rarity];
   return (
     <span
-      className="inline-flex items-center rounded-full font-bold"
+      className="inline-flex items-center justify-center rounded-full font-bold"
       style={{
         background: tone.fill,
         color: tone.text,
-        boxShadow: tone.cap ? `inset 3px 0 0 ${tone.cap}` : undefined,
         fontSize: compact ? 9 : 11,
-        padding: compact ? "2px 6px" : "3px 8px",
-        paddingLeft: tone.cap ? (compact ? 8 : 11) : undefined,
-        letterSpacing: 0.2,
+        padding: compact ? "2px 6px" : "3px 10px",
+        lineHeight: 1.2,
       }}
     >
       {rarityLabel(rarity, t)}

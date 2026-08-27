@@ -39,13 +39,11 @@ export function ChancenRow({
           return (
             <li
               key={rarity}
-              className="inline-flex items-center rounded-full text-[10px] font-bold"
+              className="inline-flex items-center justify-center rounded-full text-[10px] font-bold"
               style={{
                 background: tone.fill,
                 color: tone.text,
-                padding: "4px 8px",
-                boxShadow: tone.cap ? `inset 3px 0 0 ${tone.cap}` : undefined,
-                paddingLeft: tone.cap ? 11 : 8,
+                padding: "4px 10px",
               }}
             >
               {values[rarity]}% {rarityName(rarity)}

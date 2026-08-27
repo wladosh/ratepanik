@@ -4,9 +4,9 @@ import type { CosmeticRarity } from "@/lib/schleimi-catalog";
 
 export const REVEAL_SKIP_STORAGE_KEY = "rp_schleimi_reveal_seen";
 
-export const RARITY_UX_PILL: Record<CosmeticRarity, { fill: string; text: string; cap?: string }> = {
+export const RARITY_UX_PILL: Record<CosmeticRarity, { fill: string; text: string }> = {
   gewoehnlich: { fill: "#6B7F9A", text: "#FFFFFF" },
-  selten: { fill: "#C989FF", text: "#FFFFFF", cap: "#FF8A71" },
+  selten: { fill: "#C989FF", text: "#FFFFFF" },
   legendaer: { fill: "#E8C547", text: "#2A2A4A" },
 };
 
