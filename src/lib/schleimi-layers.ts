@@ -85,20 +85,28 @@ export function layersFromLoadoutRows(
   return layersFromSlotIds(slots);
 }
 
+/** @deprecated Replaced by `vsIntroDurationMs`. */
 export const VS_MS_PER_PLAYER = 1800;
+
+/**
+ * Total VS-intro duration in ms for a given player count.
+ * Formula: 1400 + 220 * (n - 1), clamped to [1400, 2500].
+ */
+export function vsIntroDurationMs(playerCount: number): number {
+  const n = Math.max(1, playerCount);
+  return Math.min(2500, 1400 + 220 * (n - 1));
+}
 
 export function stampVsIntroUntil(
   settings: unknown,
   playerCount: number,
   nowMs = Date.now(),
-  perMs = VS_MS_PER_PLAYER,
 ): Record<string, unknown> {
   const base =
     settings && typeof settings === "object" && !Array.isArray(settings)
       ? { ...(settings as Record<string, unknown>) }
       : {};
-  const n = Math.max(1, playerCount);
-  base.vsIntroUntil = new Date(nowMs + n * perMs).toISOString();
+  base.vsIntroUntil = new Date(nowMs + vsIntroDurationMs(playerCount)).toISOString();
   return base;
 }
 
@@ -114,6 +122,7 @@ export function isVsIntroActive(nowMs: number, untilMs: number | null): boolean 
   return untilMs != null && nowMs < untilMs;
 }
 
+/** @deprecated No longer used — the VS intro shows all players at once. */
 export function vsSlideIndex(
   nowMs: number,
   untilMs: number,
