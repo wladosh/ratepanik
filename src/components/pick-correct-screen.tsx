@@ -13,7 +13,6 @@ import { QuestionTimerBar } from "./question-timer-bar";
 import styles from "./pick-correct-screen.module.css";
 
 const ANSWER_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const CORRECT_TARGET = 4;
 
 function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
@@ -33,9 +32,10 @@ export function PickCorrectScreen() {
   const game = useGame();
   const prompt = game.currentPrompt;
   const payload = isPickCorrectPayload(prompt?.payload) ? prompt.payload : undefined;
+  const correctTarget = payload?.correct_indices.length ?? 4;
 
   const correctFound = game.turns.filter((t) => t.is_correct).length;
-  const huntComplete = correctFound >= CORRECT_TARGET;
+  const huntComplete = correctFound >= correctTarget;
 
   const tappedIndices = useMemo(
     () => new Set(game.turns.map((t) => t.card_index)),
@@ -102,14 +102,14 @@ export function PickCorrectScreen() {
             role="progressbar"
             aria-label="Richtige Karten gefunden"
             aria-valuemin={0}
-            aria-valuemax={CORRECT_TARGET}
-            aria-valuenow={Math.min(correctFound, CORRECT_TARGET)}
+            aria-valuemax={correctTarget}
+            aria-valuenow={Math.min(correctFound, correctTarget)}
           >
             <span className={styles.foundCount}>
-              {Math.min(correctFound, CORRECT_TARGET)}/{CORRECT_TARGET}
+              {Math.min(correctFound, correctTarget)}/{correctTarget}
             </span>
             <span className={styles.foundDots} aria-hidden="true">
-              {Array.from({ length: CORRECT_TARGET }, (_, index) => (
+              {Array.from({ length: correctTarget }, (_, index) => (
                 <span
                   key={index}
                   className={
@@ -127,7 +127,7 @@ export function PickCorrectScreen() {
       <QuestionStage
         headingId="pick-correct-question"
         ariaLabel="Aufgabe der Kartenjagd"
-        eyebrow="Finde 4 richtige Karten"
+        eyebrow={`Finde ${correctTarget} richtige Karten`}
         question={prompt.prompt}
         accentColor="var(--rp-peach-deep)"
         accentBackground="rgba(255, 138, 113, 0.13)"
