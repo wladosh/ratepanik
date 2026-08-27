@@ -44,7 +44,8 @@ export const THEME_SLUGS = [
   "musik",
   "film-serie",
   "reise-orte",
-  "alltag-peinlich",
+  "essen-trinken",
+  "tiere",
 ] as const;
 
 export type ThemeSlug = (typeof THEME_SLUGS)[number];
@@ -57,7 +58,8 @@ export const THEME_ART_256: Record<ThemeSlug, string> = {
   musik: "/rp/rp_theme_musik_256.png",
   "film-serie": "/rp/rp_theme_film_serie_256.png",
   "reise-orte": "/rp/rp_theme_reise_orte_256.png",
-  "alltag-peinlich": "/rp/rp_theme_alltag_peinlich_256.png",
+  "essen-trinken": "/rp/rp_theme_essen_trinken_256.png",
+  tiere: "/rp/rp_theme_tiere_256.png",
 };
 
 export const THEME_EMOJI: Record<ThemeSlug, string> = {
@@ -68,7 +70,8 @@ export const THEME_EMOJI: Record<ThemeSlug, string> = {
   musik: "🎵",
   "film-serie": "🎬",
   "reise-orte": "🌍",
-  "alltag-peinlich": "😅",
+  "essen-trinken": "🍕",
+  tiere: "🐾",
 };
 
 export function themeArtSrc(slug: string): string | null {

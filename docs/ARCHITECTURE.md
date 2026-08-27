@@ -193,7 +193,8 @@ themes (8 seeded rows)
 | `musik` | Musik |
 | `film-serie` | Film & Serie |
 | `reise-orte` | Reise & Orte |
-| `alltag-peinlich` | Alltag & Peinlich |
+| `essen-trinken` | Essen & Trinken |
+| `tiere` | Tiere |
 
 ### Prompt Payload Shapes
 
