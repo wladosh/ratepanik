@@ -56,7 +56,7 @@ import {
 import { useAuth } from "./auth-context";
 import { useAchievementGrant } from "./use-achievement-grant";
 import { generateGuestName } from "./guest-name";
-import { displayNameForJoin, resolveGuestExitPath, shouldSkipSessionRestore } from "./guest-flow";
+import { displayNameForJoin, resolveGuestExitPath, shouldSkipSessionRestore, saveMatchSession, clearMatchSession as clearGuestSession } from "./guest-flow";
 import { useRoomLoadouts } from "./use-room-loadouts";
 import {
   isVsIntroActive,
@@ -944,15 +944,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   // --- session persistence ---
 
-  function saveSession(roomId: string, playerId: string) {
-    sessionStorage.setItem(
-      "ratepanik-session",
-      JSON.stringify({ roomId, playerId })
-    );
+  function saveSession(roomId: string, playerId: string, roomCode?: string) {
+    saveMatchSession(roomId, playerId, roomCode ?? "");
   }
 
   function clearSession() {
-    sessionStorage.removeItem("ratepanik-session");
+    clearGuestSession();
   }
 
   useEffect(() => {
@@ -997,6 +994,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         setBlocks(blocksData || []);
         setTurns(turnsData || []);
         setMyPlayerId(playerId);
+        saveSession(roomId, playerId, roomData.code);
         subscribeToRoom(roomId);
       } catch {
         if (!cancelled) clearSession();
@@ -1070,7 +1068,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       setTurns([]);
       setPrompts([]);
 
-      saveSession(roomData.id, playerData.id);
+      saveSession(roomData.id, playerData.id, roomData.code);
       subscribeToRoom(roomData.id);
 
       try {
@@ -1140,7 +1138,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         setTurns(turnsData || []);
         setPrompts([]);
 
-        saveSession(roomData.id, existingPlayer.id);
+        saveSession(roomData.id, existingPlayer.id, roomData.code);
         subscribeToRoom(roomData.id);
         return null;
       }
@@ -1265,7 +1263,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       setTurns([]);
       setPrompts([]);
 
-      saveSession(roomData.id, playerData.id);
+      saveSession(roomData.id, playerData.id, roomData.code);
       subscribeToRoom(roomData.id);
       return null;
     } catch (err: unknown) {
@@ -1925,6 +1923,62 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       router.replace("/");
     }
   };
+
+  // --- visibility-change reconnection ---
+  // When the tab returns from background, proactively reconnect realtime and
+  // refetch state. Browsers throttle timers in hidden tabs, so the retry in the
+  // subscribe error callback may not have fired yet.
+
+  const roomRef = useRef(room);
+  useEffect(() => { roomRef.current = room; }, [room]);
+
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState !== "visible") return;
+      const currentRoom = roomRef.current;
+      if (!currentRoom) return;
+
+      const channel = channelRef.current;
+      const needsReconnect =
+        !channel ||
+        (channel.state !== "joined" && channel.state !== "joining");
+
+      if (!needsReconnect && !disconnected) return;
+
+      // Force reconnect
+      if (channel) {
+        supabase.removeChannel(channel);
+        channelRef.current = null;
+      }
+      subscribeRef.current?.(currentRoom.id);
+
+      // Refetch all state to recover any missed updates
+      void (async () => {
+        const [
+          { data: roomData },
+          { data: playersData },
+          { data: answersData },
+          { data: blocksData },
+          { data: turnsData },
+        ] = await Promise.all([
+          supabase.from("rooms").select().eq("id", currentRoom.id).single(),
+          supabase.from("players").select().eq("room_id", currentRoom.id),
+          supabase.from("answers").select().eq("room_id", currentRoom.id),
+          supabase.from("match_blocks").select().eq("room_id", currentRoom.id),
+          supabase.from("pick_correct_turns").select().eq("room_id", currentRoom.id),
+        ]);
+        if (roomData) setRoom(roomData);
+        if (playersData) setPlayers(playersData);
+        if (answersData) setAllAnswers(answersData);
+        if (blocksData) setBlocks(blocksData);
+        if (turnsData) setTurns(turnsData);
+        setDisconnected(false);
+      })();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [supabase, disconnected]);
 
   useEffect(() => {
     return () => {
