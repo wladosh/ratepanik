@@ -244,11 +244,12 @@
 .rp-shell-banner {
   position: absolute;
   top: calc(8px + var(--ps-notch-inset, 0px));
-  left: 50%;
+  left: 1rem;
+  right: 1rem;
   z-index: 70;
-  width: calc(100% - 2rem);
+  width: auto;
   max-width: 24rem;
-  transform: translateX(-50%);
+  margin-inline: auto;
   pointer-events: none;
 }
 
