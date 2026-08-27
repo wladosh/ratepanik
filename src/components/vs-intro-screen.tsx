@@ -1,24 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { useGame } from "@/lib/game-context";
 import { useI18n } from "@/lib/i18n-context";
 import { PlayerSchleimi } from "@/components/player-schleimi";
-import {
-  VS_MS_PER_PLAYER,
-  readVsIntroUntil,
-  vsSlideIndex,
-} from "@/lib/schleimi-layers";
 
 gsap.registerPlugin(useGSAP);
+
+const SCHLEIMI_SIZE: Record<number, number> = {
+  1: 140,
+  2: 130,
+  3: 100,
+  4: 86,
+};
+
+function schleimiSize(count: number): number {
+  return SCHLEIMI_SIZE[Math.min(count, 4)] ?? 86;
+}
 
 export function VsIntroScreen() {
   const game = useGame();
   const { t } = useI18n();
   const rootRef = useRef<HTMLDivElement>(null);
-  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const players = useMemo(
     () =>
@@ -28,31 +33,55 @@ export function VsIntroScreen() {
     [game.players],
   );
 
-  const untilMs = readVsIntroUntil(game.room?.settings);
-
-  useEffect(() => {
-    const id = window.setInterval(() => setNowMs(Date.now()), 100);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const index =
-    untilMs == null ? 0 : vsSlideIndex(nowMs, untilMs, Math.max(players.length, 1), VS_MS_PER_PLAYER);
-  const player = players[index] ?? players[0];
+  const size = schleimiSize(players.length);
 
   useGSAP(
     () => {
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduced || !player) return;
-      gsap.fromTo(
-        "[data-vs-card]",
-        { opacity: 0, scale: 0.86, y: 18 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.42, ease: "back.out(1.6)" },
-      );
+      if (reduced || players.length === 0) return;
+
+      const items = gsap.utils.toArray<HTMLElement>("[data-vs-player]");
+      const names = gsap.utils.toArray<HTMLElement>("[data-vs-name]");
+
+      gsap.set(items, { opacity: 0, y: 60 });
+      gsap.set(names, { opacity: 0, y: 10 });
+
+      gsap.to(items, {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        ease: "back.out(1.7)",
+        stagger: {
+          each: 0.12,
+          from: "edges",
+        },
+      });
+
+      gsap.to(names, {
+        opacity: 1,
+        y: 0,
+        duration: 0.3,
+        ease: "power2.out",
+        stagger: {
+          each: 0.12,
+          from: "edges",
+        },
+        delay: 0.22,
+      });
+
+      gsap.to("[data-vs-crew]", {
+        y: -3,
+        duration: 1.4,
+        ease: "sine.inOut",
+        repeat: -1,
+        yoyo: true,
+        delay: 0.7,
+      });
     },
-    { scope: rootRef, dependencies: [player?.id], revertOnUpdate: true },
+    { scope: rootRef, dependencies: [players.length] },
   );
 
-  if (!player) {
+  if (players.length === 0) {
     return (
       <div
         className="flex flex-1 items-center justify-center"
@@ -65,55 +94,64 @@ export function VsIntroScreen() {
     );
   }
 
-  const isYou = player.id === game.myPlayerId;
-
   return (
     <div
       ref={rootRef}
-      className="flex flex-1 flex-col items-center justify-center px-6 text-center"
+      className="flex flex-1 flex-col items-center justify-center px-4 text-center"
       style={{
         background: "var(--rp-bg-hero)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       <p
-        className="mb-2 text-[11px] font-black uppercase tracking-[0.22em]"
+        className="mb-1 text-[11px] font-black uppercase tracking-[0.22em]"
         style={{ color: "var(--rp-peach-deep)" }}
       >
         {t.match.vsKicker}
       </p>
-      <h1 className="mb-8 text-2xl font-black tracking-[-0.04em]" style={{ color: "var(--rp-text)" }}>
+      <h1
+        className="mb-8 text-2xl font-black tracking-[-0.04em]"
+        style={{ color: "var(--rp-text)" }}
+      >
         {t.match.vsTitle}
       </h1>
 
-      <div data-vs-card className="flex flex-col items-center">
-        <div
-          className="mb-4 flex h-[220px] w-[220px] items-center justify-center rounded-[40px]"
-          style={{
-            background: "rgba(255, 255, 255, 0.72)",
-            boxShadow: "0 18px 40px rgba(108, 58, 41, 0.14)",
-          }}
-        >
-          <PlayerSchleimi playerId={player.id} size={200} label={player.display_name} />
-        </div>
-        <p className="max-w-[260px] truncate text-[22px] font-black" style={{ color: "var(--rp-text)" }}>
-          {player.display_name}
-        </p>
-        <p className="mt-1 text-sm font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
-          {isYou ? t.match.vsYou : player.is_host ? t.match.vsHost : t.common.player}
-        </p>
-      </div>
-
-      <div className="mt-10 flex gap-2" aria-hidden="true">
-        {players.map((p, i) => (
-          <span
-            key={p.id}
-            className="h-2 w-2 rounded-full"
-            style={{
-              background: i === index ? "var(--rp-purple)" : "rgba(42, 42, 74, 0.18)",
-            }}
-          />
-        ))}
+      <div
+        data-vs-crew
+        className="flex flex-wrap items-end justify-center"
+        style={{ gap: players.length <= 2 ? "28px" : "16px" }}
+      >
+        {players.map((player) => {
+          const isYou = player.id === game.myPlayerId;
+          return (
+            <div key={player.id} className="flex flex-col items-center" data-vs-player>
+              <div
+                className="flex items-center justify-center rounded-[28px]"
+                style={{
+                  width: size + 16,
+                  height: size + 16,
+                  background: "rgba(255, 255, 255, 0.38)",
+                }}
+              >
+                <PlayerSchleimi playerId={player.id} size={size} label={player.display_name} />
+              </div>
+              <p
+                data-vs-name
+                className="mt-2 max-w-[110px] truncate text-sm font-bold leading-tight"
+                style={{ color: "var(--rp-text)" }}
+              >
+                {player.display_name}
+              </p>
+              <span
+                data-vs-name
+                className="mt-0.5 text-[11px] font-semibold"
+                style={{ color: "var(--rp-text-secondary)" }}
+              >
+                {isYou ? t.match.vsYou : player.is_host ? t.match.vsHost : t.common.player}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
