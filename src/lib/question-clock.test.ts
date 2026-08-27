@@ -46,41 +46,22 @@ describe("shouldStampQuestionClock", () => {
 });
 
 describe("roundReadyToReveal", () => {
-  const startedAt = "2026-08-25T08:00:00.000Z";
-  const start = Date.parse(startedAt);
-
   it("waits until everyone answered", () => {
     expect(
       roundReadyToReveal({
         timedOut: false,
         answeredCount: 1,
         playerCount: 2,
-        startedAt,
-        nowMs: start + 30_000,
-        timerMs: 30_000,
       }),
     ).toBe(false);
   });
 
-  it("keeps a 2-player round alive until the min live floor", () => {
+  it("advances immediately when all players have answered", () => {
     expect(
       roundReadyToReveal({
         timedOut: false,
         answeredCount: 2,
         playerCount: 2,
-        startedAt,
-        nowMs: start + 8_000,
-        timerMs: 30_000,
-      }),
-    ).toBe(false);
-    expect(
-      roundReadyToReveal({
-        timedOut: false,
-        answeredCount: 2,
-        playerCount: 2,
-        startedAt,
-        nowMs: start + 20_000,
-        timerMs: 30_000,
       }),
     ).toBe(true);
   });
@@ -91,10 +72,17 @@ describe("roundReadyToReveal", () => {
         timedOut: true,
         answeredCount: 0,
         playerCount: 4,
-        startedAt,
-        nowMs: start + 1_000,
-        timerMs: 30_000,
       }),
     ).toBe(true);
+  });
+
+  it("returns false when playerCount is zero", () => {
+    expect(
+      roundReadyToReveal({
+        timedOut: false,
+        answeredCount: 0,
+        playerCount: 0,
+      }),
+    ).toBe(false);
   });
 });
