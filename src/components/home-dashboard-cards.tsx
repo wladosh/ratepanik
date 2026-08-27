@@ -10,7 +10,7 @@ import type { HomePanelId } from "@/components/home-panels";
 import { DecorSchleimi } from "@/components/player-schleimi";
 import {
   HOME_CREATE_ROOM_256,
-  LOOT_BOX_RARE_128,
+  LOOT_BOX_LEGENDARY_256,
   RANK_BADGE_GOLD_128,
   TROPHY_GOLD_512,
 } from "@/lib/rp-assets";
@@ -201,7 +201,7 @@ function FriendsAsset() {
     <span className={`${styles.featureAsset} ${styles.friendAsset}`} data-feature-asset aria-hidden="true">
       {["friend-a", "friend-b", "friend-c"].map((seed, index) => (
         <span key={seed} style={{ zIndex: 3 - index }}>
-          <DecorSchleimi seed={seed} size={47} />
+          <DecorSchleimi seed={seed} size={52} />
         </span>
       ))}
     </span>
@@ -211,7 +211,7 @@ function FriendsAsset() {
 type FeatureCardProps = {
   panel: HomePanelId;
   title: string;
-  meta: string;
+  subtitle: string;
   className: string;
   asset: React.ReactNode;
   onOpen: (panel: HomePanelId) => void;
@@ -220,7 +220,7 @@ type FeatureCardProps = {
 function FeatureCard({
   panel,
   title,
-  meta,
+  subtitle,
   className,
   asset,
   onOpen,
@@ -233,11 +233,15 @@ function FeatureCard({
       data-home-card
     >
       <span className={styles.featureGlow} aria-hidden="true" />
-      <span className={styles.featureMeta}>{meta}</span>
+      <span className={styles.featureHeader}>
+        <strong className={styles.featureTitle}>{title}</strong>
+        <span className={styles.featureSub}>{subtitle}</span>
+      </span>
       {asset}
-      <span className={styles.featureBottom}>
-        <strong>{title}</strong>
-        <ArrowMark />
+      <span className={styles.featureChevron} aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="none">
+          <path d="m7.5 5 5 5-5 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
       </span>
     </button>
   );
@@ -296,7 +300,7 @@ function FeatureGrid({
       <FeatureCard
         panel="friends"
         title={t.home.friends}
-        meta={friendsMeta}
+        subtitle={friendsMeta}
         className={styles.friendsCard}
         asset={<FriendsAsset />}
         onOpen={onOpenPanel}
@@ -304,11 +308,11 @@ function FeatureGrid({
       <FeatureCard
         panel="stats"
         title={t.home.stats}
-        meta={statsMeta}
+        subtitle={statsMeta}
         className={styles.statsCard}
         asset={
           <span className={styles.featureAsset} data-feature-asset aria-hidden="true">
-            <Image src={RANK_BADGE_GOLD_128} alt="" width={68} height={68} />
+            <Image src={RANK_BADGE_GOLD_128} alt="" width={80} height={80} />
           </span>
         }
         onOpen={onOpenPanel}
@@ -316,11 +320,11 @@ function FeatureGrid({
       <FeatureCard
         panel="achievements"
         title={t.home.achievements}
-        meta={achievementsMeta}
+        subtitle={achievementsMeta}
         className={styles.achievementsCard}
         asset={
           <span className={styles.featureAsset} data-feature-asset aria-hidden="true">
-            <AchievementSticker id="first_win" unlocked size={72} />
+            <AchievementSticker id="first_win" unlocked size={80} />
           </span>
         }
         onOpen={onOpenPanel}
@@ -328,11 +332,11 @@ function FeatureGrid({
       <FeatureCard
         panel="shop"
         title={t.home.shop}
-        meta={t.home.shopMeta}
+        subtitle={t.home.shopMeta}
         className={styles.shopCard}
         asset={
           <span className={`${styles.featureAsset} ${styles.shopAsset}`} data-feature-asset aria-hidden="true">
-            <Image src={LOOT_BOX_RARE_128} alt="" width={78} height={78} />
+            <Image src={LOOT_BOX_LEGENDARY_256} alt="" width={96} height={96} unoptimized />
           </span>
         }
         onOpen={onOpenPanel}
