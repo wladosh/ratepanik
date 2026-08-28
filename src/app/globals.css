@@ -12,7 +12,23 @@
   --rp-bg: #FFF8F5;
   --rp-bg-elevated: #FFFFFF;
   --rp-surface: #FFFFFF;
-  --rp-bg-hero: linear-gradient(160deg, #E8F4FF 0%, #FFE8F3 45%, #FFF3D6 100%);
+  --rp-bg-hero: #f0e6d6;
+
+  /* Paper-craft tokens */
+  --rp-paper-bg: #f0e6d6;
+  --rp-paper-cream: #faf5ed;
+  --rp-paper-champion: #cfc5ff;
+  --rp-paper-champion-deep: #b8adee;
+  --rp-paper-create: #ffc8b8;
+  --rp-paper-create-deep: #f5b0a0;
+  --rp-paper-join: #faf5ed;
+  --rp-paper-friends: #c8e2f8;
+  --rp-paper-stats: #d8d0f0;
+  --rp-paper-achieve: #ffe8a0;
+  --rp-paper-shop: #c8eed8;
+  --rp-paper-shadow: rgba(120, 100, 80, 0.18);
+  --rp-paper-shadow-light: rgba(120, 100, 80, 0.10);
+  --rp-paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
   --rp-purple: #8B7CFF;
   --rp-purple-soft: #C9C0FF;
   --rp-peach: #FF8A71;
@@ -31,7 +47,7 @@
   --rp-radius-lg: 28px;
   --rp-radius-pill: 999px;
   --rp-bg-muted: #F3EEF8;
-  --rp-shadow-card: 0 10px 30px rgba(42, 42, 74, 0.08);
+  --rp-shadow-card: 0 6px 20px var(--rp-paper-shadow);
 
   --rp-xp: #5B9DFF;
   --rp-xp-track: rgba(91, 157, 255, 0.18);
@@ -42,25 +58,6 @@
 
   --ps-notch-inset: 0px;
   --ps-frame-radius: 0px;
-
-  /* Neo-Brutalism tokens – scoped to Home; not used in lobby/match */
-  --rp-nb-border: 3px solid #1a1a2e;
-  --rp-nb-border-w: 3px;
-  --rp-nb-shadow: 4px 4px 0 #1a1a2e;
-  --rp-nb-shadow-lg: 6px 6px 0 #1a1a2e;
-  --rp-nb-radius: 10px;
-  --rp-nb-radius-sm: 8px;
-  --rp-nb-bg: #FFF8F0;
-  --rp-nb-black: #1a1a2e;
-  --rp-nb-purple: #B8A9FF;
-  --rp-nb-purple-deep: #8B7CFF;
-  --rp-nb-yellow: #FFD66B;
-  --rp-nb-blue: #8ECFFF;
-  --rp-nb-lilac: #D7CCFF;
-  --rp-nb-mint: #7EEBC2;
-  --rp-nb-peach: #FF8A71;
-  --rp-nb-cream: #FFF8F0;
-  --rp-nb-white: #FFFFFF;
 }
 
 /* ── PhoneShell ───────────────────────────────────────── */
@@ -109,7 +106,7 @@
 
   .ps-stage {
     padding: 24px;
-    background: linear-gradient(160deg, #E0EAFF 0%, #F5E0F0 50%, #FFF0E0 100%);
+    background: linear-gradient(160deg, #e8ddd0 0%, #f0e6d6 50%, #e8ddd0 100%);
     height: 100vh;
     height: 100dvh;
     overflow: hidden;

@@ -1,68 +1,117 @@
-/* ═══════════════════════════════════════════════════════════════════
-   Neo-Brutalism – Ratepanik Home Dashboard Cards
-   Thick black borders, hard offset shadows, flat saturated fills.
-   ═══════════════════════════════════════════════════════════════════ */
+/* ── Paper-craft card base ──────────────────────────────────────── */
 
-.championCard,
-.createCard,
-.joinCard {
+.paperCard {
   position: relative;
   isolation: isolate;
-  overflow: hidden;
+  overflow: visible;
 }
 
-/* ── Champion / Goal Card ─────────────────────────────────────── */
+.paperCard::before,
+.paperCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Back-paper layer (furthest): slightly larger, offset, lighter tint */
+.paperCard::before {
+  inset: -2px -1px -4px -1px;
+  z-index: -2;
+  border-radius: 4px 7px 5px 8px / 6px 4px 7px 5px;
+  filter: drop-shadow(0 5px 12px var(--rp-paper-shadow));
+}
+
+/* Middle-paper layer: medium offset */
+.paperCard::after {
+  inset: -1px 0 -2px 0;
+  z-index: -1;
+  border-radius: 5px 4px 6px 5px / 4px 6px 5px 7px;
+  opacity: 0.75;
+}
+
+/* ── Subtle paper grain texture overlay ───────────────────────── */
+
+.paperGrain {
+  background-image: var(--rp-paper-grain);
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  background-blend-mode: overlay;
+}
+
+/* ── Champion Card ─────────────────────────────────────────────── */
 
 .championCard {
+  composes: paperCard;
   display: block;
   width: 100%;
-  min-height: 148px;
+  min-height: 158px;
   margin-bottom: 14px;
-  padding: 20px 20px 18px 22px;
-  border: var(--rp-nb-border);
-  border-radius: var(--rp-nb-radius);
-  background: var(--rp-nb-purple);
-  box-shadow: var(--rp-nb-shadow-lg);
+  padding: 22px 20px 20px 24px;
+  border: none;
+  border-radius: 4px 8px 6px 5px / 6px 4px 8px 5px;
+  background-color: var(--rp-paper-champion);
+  background-image: var(--rp-paper-grain);
+  background-blend-mode: overlay;
+  box-shadow: 0 6px 22px var(--rp-paper-shadow);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: transform 120ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.championCard::before {
+  background: #ddd5f8;
+  transform: rotate(0.7deg) translate(3px, 4px);
+  border-radius: 5px 6px 4px 7px / 4px 7px 6px 5px;
+}
+
+.championCard::after {
+  background: #d4ccf0;
+  transform: rotate(-0.4deg) translate(1px, 2px);
+  border-radius: 6px 4px 7px 5px / 5px 6px 4px 7px;
+}
+
+.championCard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px var(--rp-paper-shadow);
 }
 
 .championCard:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--rp-nb-black);
-}
-
-.championCard:focus-visible {
-  outline: 3px solid var(--rp-nb-black);
-  outline-offset: 2px;
+  transform: scale(0.985);
 }
 
 .championCopy {
   position: relative;
   z-index: 3;
-  max-width: 210px;
+  max-width: 220px;
 }
 
 .kicker,
 .actionKicker {
+  display: inline-block;
   margin: 0 0 5px;
-  color: var(--rp-nb-black);
+  padding: 2px 8px;
+  border-radius: 3px;
   font-size: 9px;
-  font-weight: 900;
-  line-height: 1.2;
-  letter-spacing: 0.14em;
+  font-weight: 800;
+  line-height: 1.4;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.kicker {
+  color: #fff;
+  background: #8b7cff;
 }
 
 .championTitle {
   margin: 0;
-  color: var(--rp-nb-black);
-  font-size: 22px;
-  font-weight: 900;
+  color: #282649;
+  font-size: 21px;
+  font-weight: 800;
   line-height: 1.04;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
 }
 
 .championTitle span {
@@ -72,55 +121,57 @@
 
 .championBody {
   max-width: 204px;
-  margin: 8px 0 0;
-  color: var(--rp-nb-black);
+  margin: 9px 0 0;
+  color: #4f4c76;
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.38;
-  opacity: 0.78;
 }
 
-.heroGlow,
+/* sparks → paper star cutouts */
+.heroGlow {
+  display: none;
+}
+
 .heroRing {
   display: none;
 }
 
 .spark {
   position: absolute;
-  z-index: 1;
-  width: 8px;
-  height: 8px;
-  border-radius: 0;
-  background: var(--rp-nb-yellow);
-  border: 2px solid var(--rp-nb-black);
-  transform: rotate(45deg);
+  z-index: 4;
+  width: 10px;
+  height: 10px;
+  background: #fff;
+  clip-path: polygon(50% 0%, 65% 35%, 100% 50%, 65% 65%, 50% 100%, 35% 65%, 0% 50%, 35% 35%);
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.10));
 }
 
 .sparkOne {
-  top: 18px;
-  left: 56px;
+  top: 16px;
+  right: 40px;
+  width: 14px;
+  height: 14px;
 }
 
 .sparkTwo {
-  top: 40px;
-  right: 110px;
-  width: 10px;
-  height: 10px;
-  background: var(--rp-nb-peach);
+  top: 52px;
+  right: 105px;
+  width: 9px;
+  height: 9px;
 }
 
 .sparkThree {
-  right: 30px;
-  bottom: 18px;
-  width: 6px;
-  height: 6px;
-  background: var(--rp-nb-white);
+  right: 25px;
+  bottom: 32px;
+  width: 12px;
+  height: 12px;
 }
 
 .trophyScene {
   position: absolute;
   right: 0;
-  bottom: 2px;
+  bottom: 5px;
   z-index: 2;
   width: 130px;
   height: 132px;
@@ -133,34 +184,61 @@
   width: 126px;
   height: 126px;
   object-fit: contain;
-  filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
+  filter: drop-shadow(0 4px 8px rgba(84, 53, 13, 0.18));
 }
 
 .trophyShadow {
-  display: none;
+  position: absolute;
+  right: 20px;
+  bottom: 7px;
+  width: 88px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(90, 70, 110, 0.12);
+  filter: blur(6px);
 }
 
-/* ── Create Room Card ─────────────────────────────────────────── */
+/* ── Create Room Card ──────────────────────────────────────────── */
 
 .createCard {
+  composes: paperCard;
   display: flex;
   width: 100%;
-  min-height: 108px;
+  min-height: 112px;
   align-items: center;
   margin-bottom: 12px;
   padding: 17px 100px 17px 20px;
-  border: var(--rp-nb-border);
-  border-radius: var(--rp-nb-radius);
-  color: var(--rp-nb-black);
+  border: none;
+  border-radius: 6px 4px 7px 5px / 5px 7px 4px 6px;
+  color: #342f51;
   text-align: left;
-  background: var(--rp-nb-white);
-  box-shadow: var(--rp-nb-shadow-lg);
-  transition: transform 120ms ease;
+  background-color: var(--rp-paper-create);
+  background-image: var(--rp-paper-grain);
+  background-blend-mode: overlay;
+  box-shadow: 0 6px 22px var(--rp-paper-shadow);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  cursor: pointer;
+}
+
+.createCard::before {
+  background: #ffe0d0;
+  transform: rotate(-0.6deg) translate(3px, 4px);
+  border-radius: 5px 7px 4px 6px / 7px 5px 6px 4px;
+}
+
+.createCard::after {
+  background: #ffd5c5;
+  transform: rotate(0.4deg) translate(1px, 2px);
+  border-radius: 7px 5px 6px 4px / 4px 6px 7px 5px;
+}
+
+.createCard:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px var(--rp-paper-shadow);
 }
 
 .createCard:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--rp-nb-black);
+  transform: scale(0.985);
 }
 
 .createCard:disabled {
@@ -170,7 +248,7 @@
 
 .createCard:focus-visible,
 .joinButton:focus-visible {
-  outline: 3px solid var(--rp-nb-black);
+  outline: 3px solid rgba(139, 124, 255, 0.48);
   outline-offset: 2px;
 }
 
@@ -183,13 +261,14 @@
 }
 
 .actionKicker {
-  color: var(--rp-nb-peach);
+  color: #fff;
+  background: #d4654e;
 }
 
 .createCopy strong {
-  color: var(--rp-nb-black);
+  color: #302d4d;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.12;
   letter-spacing: -0.02em;
 }
@@ -197,21 +276,21 @@
 .createCopy > span:last-child {
   max-width: 190px;
   margin-top: 4px;
-  color: var(--rp-text-secondary);
+  color: #675d73;
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 550;
   line-height: 1.34;
 }
 
 .hostAsset {
   position: absolute;
-  right: 16px;
+  right: 18px;
   top: 8px;
   z-index: 2;
   width: 92px;
   height: 92px;
   transform-origin: 50% 70%;
-  filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.12));
+  filter: drop-shadow(0 4px 8px rgba(108, 58, 41, 0.15));
 }
 
 .hostAsset img {
@@ -220,19 +299,17 @@
   object-fit: contain;
 }
 
-/* ── Arrow Mark ───────────────────────────────────────────────── */
-
 .arrow {
   display: grid;
-  width: 28px;
-  height: 28px;
+  width: 27px;
+  height: 27px;
   flex: 0 0 auto;
   place-items: center;
-  border: var(--rp-nb-border);
-  border-radius: var(--rp-nb-radius-sm);
-  color: var(--rp-nb-black);
-  background: var(--rp-nb-white);
-  box-shadow: 2px 2px 0 var(--rp-nb-black);
+  border: none;
+  border-radius: 50%;
+  color: rgba(42, 42, 74, 0.62);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 2px 6px rgba(42, 42, 74, 0.08);
 }
 
 .arrow svg {
@@ -247,15 +324,30 @@
   z-index: 4;
 }
 
-/* ── Join Card ────────────────────────────────────────────────── */
+/* ── Join Room Card ────────────────────────────────────────────── */
 
 .joinCard {
+  composes: paperCard;
   margin-bottom: 14px;
   padding: 18px;
-  border: var(--rp-nb-border);
-  border-radius: var(--rp-nb-radius);
-  background: var(--rp-nb-white);
-  box-shadow: var(--rp-nb-shadow-lg);
+  border: none;
+  border-radius: 5px 6px 4px 7px / 6px 5px 7px 4px;
+  background-color: var(--rp-paper-join);
+  background-image: var(--rp-paper-grain);
+  background-blend-mode: overlay;
+  box-shadow: 0 6px 22px var(--rp-paper-shadow);
+}
+
+.joinCard::before {
+  background: #f5efe6;
+  transform: rotate(0.5deg) translate(3px, 4px);
+  border-radius: 6px 4px 5px 7px / 4px 6px 7px 5px;
+}
+
+.joinCard::after {
+  background: #efe9e0;
+  transform: rotate(-0.3deg) translate(1px, 2px);
+  border-radius: 4px 7px 6px 5px / 7px 5px 4px 6px;
 }
 
 .joinHeading {
@@ -267,14 +359,15 @@
 
 .joinHeading .kicker {
   margin-bottom: 3px;
-  color: var(--rp-text-secondary);
+  color: #80759d;
+  background: rgba(128, 117, 157, 0.12);
 }
 
 .joinHeading h2 {
   margin: 0;
-  color: var(--rp-nb-black);
+  color: #2e2b4c;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.025em;
 }
@@ -290,10 +383,10 @@
   height: 34px;
   margin-left: -9px;
   overflow: hidden;
-  border: 2px solid var(--rp-nb-black);
-  border-radius: var(--rp-nb-radius-sm);
-  background: var(--rp-nb-lilac);
-  box-shadow: 2px 2px 0 var(--rp-nb-black);
+  border: 2px solid var(--rp-paper-join);
+  border-radius: 8px;
+  background: #f3efff;
+  box-shadow: 0 2px 6px rgba(42, 42, 74, 0.10);
 }
 
 .joinDock {
@@ -306,11 +399,11 @@
   position: relative;
   display: block;
   min-width: 0;
-  border-radius: var(--rp-nb-radius-sm);
+  border-radius: 8px;
 }
 
 .codeField:focus-within {
-  box-shadow: 0 0 0 3px var(--rp-nb-purple-deep);
+  box-shadow: 0 0 0 3px rgba(139, 124, 255, 0.17);
 }
 
 .codeSlots {
@@ -325,12 +418,13 @@
   display: grid;
   min-width: 0;
   place-items: center;
-  border: var(--rp-nb-border);
-  border-radius: var(--rp-nb-radius-sm);
-  color: var(--rp-nb-black);
-  background: var(--rp-nb-cream);
+  border: 1.5px dashed rgba(83, 74, 123, 0.18);
+  border-radius: 6px;
+  color: #393556;
+  background: rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 2px rgba(76, 66, 113, 0.04);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 800;
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
@@ -338,14 +432,16 @@
   content: "";
   width: 4px;
   height: 4px;
-  border-radius: 0;
-  background: rgba(26, 26, 46, 0.2);
+  border-radius: 50%;
+  background: rgba(107, 107, 138, 0.2);
 }
 
 .codeSlots > .codeSlotFilled {
   transform: translateY(-1px);
-  background: var(--rp-nb-white);
-  box-shadow: 2px 2px 0 var(--rp-nb-black);
+  border-color: rgba(139, 124, 255, 0.42);
+  border-style: solid;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 3px 8px rgba(99, 83, 190, 0.08);
 }
 
 .codeSlots > .codeSlotFilled::after {
@@ -368,43 +464,40 @@
 
 .joinButton {
   height: 48px;
-  border: var(--rp-nb-border);
-  border-radius: var(--rp-nb-radius-sm);
-  color: var(--rp-nb-white);
-  background: var(--rp-nb-purple-deep);
-  box-shadow: var(--rp-nb-shadow);
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #8b7cff;
+  box-shadow: 0 4px 12px rgba(139, 124, 255, 0.30);
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  transition: transform 120ms ease;
-  cursor: pointer;
+  transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
 }
 
 .joinButton:not(:disabled):active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--rp-nb-black);
+  transform: scale(0.97);
 }
 
 .joinButton:disabled {
-  color: var(--rp-nb-black);
-  background: var(--rp-nb-lilac);
-  box-shadow: var(--rp-nb-shadow);
+  color: #b8b0d8;
+  background: #e0daf0;
+  box-shadow: none;
   cursor: not-allowed;
-  opacity: 0.6;
 }
 
 .joinHint {
   min-height: 16px;
   margin: 7px 2px 0;
-  color: var(--rp-text-secondary);
+  color: #5c5674;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 650;
   text-align: right;
 }
 
 .joinCardError {
-  border-color: var(--rp-danger);
+  border-color: rgba(255, 92, 122, 0.34);
 }
 
 .joinCardError .joinHint {
@@ -421,41 +514,77 @@
 }
 
 .iconItem {
+  composes: paperCard;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
   min-height: 88px;
   padding: 14px 6px 12px;
-  border: var(--rp-nb-border);
-  border-radius: var(--rp-nb-radius);
-  color: var(--rp-nb-black);
+  border: none;
+  border-radius: 4px 6px 5px 7px / 6px 4px 7px 5px;
+  color: #2f2c4f;
   text-align: center;
-  box-shadow: var(--rp-nb-shadow);
-  transition: transform 120ms ease;
-  cursor: pointer;
+  box-shadow: 0 4px 16px var(--rp-paper-shadow);
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  background-image: var(--rp-paper-grain);
+  background-blend-mode: overlay;
+}
+
+.iconItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--rp-paper-shadow);
 }
 
 .iconItem:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 var(--rp-nb-black);
+  transform: scale(0.97);
 }
 
 .iconItem:focus-visible {
-  outline: 3px solid var(--rp-nb-black);
+  outline: 3px solid rgba(139, 124, 255, 0.48);
   outline-offset: 2px;
 }
 
 .iconFriends {
-  background: var(--rp-nb-blue);
+  background-color: var(--rp-paper-friends);
+}
+
+.iconFriends::before {
+  background: #d8ecf8;
+  transform: rotate(0.6deg) translate(2px, 3px);
+}
+
+.iconFriends::after {
+  background: #d0e5f0;
+  transform: rotate(-0.3deg) translate(1px, 1px);
 }
 
 .iconStats {
-  background: var(--rp-nb-lilac);
+  background-color: var(--rp-paper-stats);
+}
+
+.iconStats::before {
+  background: #e0d8f0;
+  transform: rotate(-0.5deg) translate(2px, 3px);
+}
+
+.iconStats::after {
+  background: #d8d0e8;
+  transform: rotate(0.3deg) translate(1px, 1px);
 }
 
 .iconAchievements {
-  background: var(--rp-nb-yellow);
+  background-color: var(--rp-paper-achieve);
+}
+
+.iconAchievements::before {
+  background: #fff0b0;
+  transform: rotate(0.5deg) translate(2px, 3px);
+}
+
+.iconAchievements::after {
+  background: #ffe8a0;
+  transform: rotate(-0.3deg) translate(1px, 1px);
 }
 
 .iconArt {
@@ -463,7 +592,7 @@
   height: 48px;
   object-fit: contain;
   flex-shrink: 0;
-  filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, 0.1));
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
 }
 
 .iconSchleimiCluster {
@@ -478,10 +607,10 @@
   height: 26px;
   margin-left: -8px;
   overflow: hidden;
-  border: 2px solid var(--rp-nb-black);
-  border-radius: 6px;
-  background: var(--rp-nb-white);
-  box-shadow: 1px 1px 0 var(--rp-nb-black);
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  border-radius: 7px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(55, 94, 127, 0.10);
 }
 
 .iconSchleimiCluster > span:first-child {
@@ -490,18 +619,19 @@
 
 .iconLabel {
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 750;
   line-height: 1.1;
   letter-spacing: -0.01em;
-  color: var(--rp-nb-black);
+  color: #2e2b4c;
+  text-transform: uppercase;
 }
 
 .iconMeta {
   display: block;
   margin-top: -2px;
-  color: rgba(26, 26, 46, 0.6);
+  color: rgba(60, 56, 90, 0.58);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -512,32 +642,48 @@
 /* ── Shop Hero ────────────────────────────────────────────────── */
 
 .shopHero {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
+  composes: paperCard;
   display: flex;
   width: 100%;
   min-height: 108px;
   align-items: center;
   margin-bottom: 14px;
   padding: 20px 120px 20px 22px;
-  border: var(--rp-nb-border);
-  border-radius: var(--rp-nb-radius);
-  color: var(--rp-nb-black);
+  border: none;
+  border-radius: 7px 5px 4px 6px / 5px 7px 6px 4px;
+  color: #2f2c4f;
   text-align: left;
-  background: var(--rp-nb-mint);
-  box-shadow: var(--rp-nb-shadow-lg);
-  transition: transform 120ms ease;
+  background-color: var(--rp-paper-shop);
+  background-image: var(--rp-paper-grain);
+  background-blend-mode: overlay;
+  box-shadow: 0 6px 22px var(--rp-paper-shadow);
+  transition: transform 180ms ease, box-shadow 180ms ease;
   cursor: pointer;
 }
 
+.shopHero::before {
+  background: #d0f0e0;
+  transform: rotate(-0.5deg) translate(3px, 4px);
+  border-radius: 5px 6px 7px 4px / 6px 4px 5px 7px;
+}
+
+.shopHero::after {
+  background: #c8e8d8;
+  transform: rotate(0.3deg) translate(1px, 2px);
+  border-radius: 6px 7px 5px 4px / 4px 5px 7px 6px;
+}
+
+.shopHero:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px var(--rp-paper-shadow);
+}
+
 .shopHero:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0 var(--rp-nb-black);
+  transform: scale(0.985);
 }
 
 .shopHero:focus-visible {
-  outline: 3px solid var(--rp-nb-black);
+  outline: 3px solid rgba(139, 124, 255, 0.48);
   outline-offset: 2px;
 }
 
@@ -555,16 +701,16 @@
 
 .shopHeroCopy strong {
   font-size: 20px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.025em;
-  color: var(--rp-nb-black);
+  color: #1f3a2b;
 }
 
 .shopHeroCopy > span {
-  color: rgba(26, 26, 46, 0.7);
+  color: #3d6b52;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 650;
   line-height: 1.3;
 }
 
@@ -577,7 +723,7 @@
   width: 110px;
   height: 110px;
   transform-origin: 50% 60%;
-  filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.12));
+  filter: drop-shadow(0 4px 10px rgba(42, 42, 74, 0.14));
 }
 
 .shopHeroAsset img {
@@ -593,11 +739,11 @@
   z-index: 4;
 }
 
-/* ── Responsive (small screens) ───────────────────────────────── */
+/* ── Responsive ───────────────────────────────────────────────── */
 
 @media (max-width: 360px) {
   .championCard {
-    padding-left: 18px;
+    padding-left: 20px;
   }
 
   .championTitle {
@@ -605,7 +751,7 @@
   }
 
   .championCopy {
-    max-width: 190px;
+    max-width: 198px;
   }
 
   .trophyScene {
@@ -669,7 +815,6 @@
   .iconItem,
   .shopHero,
   .joinButton,
-  .championCard,
   .codeSlots > span {
     transition-duration: 0.01ms;
   }
