@@ -132,10 +132,8 @@ export const SCHLEIMI_ITEMS: readonly SchleimiCatalogItem[] = [
   item("extra", "gewoehnlich", "plaster", "Pflaster", 650),
   item("extra", "gewoehnlich", "bowtie", "Fliege", 660),
   item("extra", "selten", "star_shades", "Sternenbrille", 670),
-  item("extra", "selten", "confetti", "Konfetti-Wolke", 680),
   item("extra", "selten", "mustache", "Schnauzer", 690),
   item("extra", "legendaer", "gold_shades", "Goldbrille", 700),
-  item("extra", "legendaer", "glitch_aura", "Glitch-Aura", 710),
 ];
 
 export const TINT_FILL: Record<string, string> = {
