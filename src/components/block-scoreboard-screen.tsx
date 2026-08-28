@@ -9,14 +9,15 @@ import { useI18n } from "@/lib/i18n-context";
 
 export function BlockScoreboardScreen() {
   const game = useGame();
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
   const totalBlocks = game.room?.total_blocks ?? 4;
   const isLastBlock = blockNum >= totalBlocks;
 
   const sortedPlayers = [...game.players].sort((a, b) => b.score - a.score);
   const ranks = competitionRanks(sortedPlayers.map((player) => player.score));
-  const modeLabel = modeLabelDe(game.currentBlock?.mode);
+  const mixedModes = game.roomSettings.modeFilter === "all";
+  const modeLabel = mixedModes ? t.lobby.chipAllModes : modeLabelDe(game.currentBlock?.mode);
   const leader = sortedPlayers[0];
   const leaderIsMe = leader?.id === game.myPlayerId;
   const leadKind = scoreboardLeadKind(
@@ -55,7 +56,7 @@ export function BlockScoreboardScreen() {
             className="nb-card inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
             style={{ background: "var(--rp-nb-white)", color: "var(--rp-nb-text-secondary)" }}
           >
-            {modeEmoji(game.currentBlock?.mode)} {modeLabel}
+            {mixedModes ? "✦" : modeEmoji(game.currentBlock?.mode)} {modeLabel}
           </span>
           <div
             className="flex items-center gap-1.5"

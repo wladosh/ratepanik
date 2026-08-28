@@ -5,9 +5,11 @@ import {
   calculateOrderItPoints,
   calculatePickCorrectPoints,
   generateBlockModes,
+  modesForFilter,
   NUMBER_GUESS_FIRST_POINTS,
   numberGuessScoringPool,
   scoreNumberGuessAnswers,
+  timerSecondsForPlayMode,
 } from "./game-store";
 
 const ALLOWED_MODES = new Set([
@@ -85,6 +87,34 @@ describe("calculateOrderItPoints", () => {
   it("awards 100 per correct slot", () => {
     expect(calculateOrderItPoints([0, 1, 2, 3], [0, 1, 2, 3])).toBe(400);
     expect(calculateOrderItPoints([0, 2, 1, 3], [0, 1, 2, 3])).toBe(200);
+  });
+});
+
+describe("modesForFilter", () => {
+  it("returns every playable mode when the lobby did not pin one", () => {
+    expect(modesForFilter("all")).toEqual([
+      "number_guess",
+      "pick_correct",
+      "find_lie",
+      "order_it",
+    ]);
+  });
+
+  it("returns only the pinned lobby mode", () => {
+    expect(modesForFilter("number_guess")).toEqual(["number_guess"]);
+    expect(modesForFilter("find_lie")).toEqual(["find_lie"]);
+  });
+});
+
+describe("timerSecondsForPlayMode", () => {
+  it("keeps the lobby timer for non-order modes", () => {
+    expect(timerSecondsForPlayMode("number_guess", 20)).toBe(20);
+    expect(timerSecondsForPlayMode("pick_correct", 45)).toBe(45);
+  });
+
+  it("floors order_it at 30 seconds", () => {
+    expect(timerSecondsForPlayMode("order_it", 20)).toBe(30);
+    expect(timerSecondsForPlayMode("order_it", 45)).toBe(45);
   });
 });
 

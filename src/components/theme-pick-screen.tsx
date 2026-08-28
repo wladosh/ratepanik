@@ -38,7 +38,8 @@ export function ThemePickScreen() {
   const picker = game.players.find((p) => p.id === game.themePickerPlayerId);
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
   const totalBlocks = game.room?.total_blocks ?? 4;
-  const mode = game.currentBlock?.mode;
+  const mode =
+    game.roomSettings.modeFilter === "all" ? undefined : game.currentBlock?.mode;
   const pickerName = picker?.display_name ?? "Der Themenprofi";
   const optionsLoading = game.themeOptions.length === 0;
 

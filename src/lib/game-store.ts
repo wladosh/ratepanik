@@ -184,12 +184,36 @@ export function calculateOrderItPoints(
   return pts;
 }
 
-const ALL_PLAYABLE: PlayableMode[] = [
+export const ALL_PLAYABLE_MODES: PlayableMode[] = [
   "number_guess",
   "pick_correct",
   "find_lie",
   "order_it",
 ];
+
+export function isPlayableMode(value: string | null | undefined): value is PlayableMode {
+  return (
+    value === "number_guess" ||
+    value === "pick_correct" ||
+    value === "find_lie" ||
+    value === "order_it"
+  );
+}
+
+/** Modes the match may draw from. A lobby pin keeps a single type; otherwise all four. */
+export function modesForFilter(filter: ModeFilter = "all"): PlayableMode[] {
+  return filter === "all" ? [...ALL_PLAYABLE_MODES] : [filter];
+}
+
+/**
+ * Per-round timer snapshot. order_it keeps a playable floor; other types use the lobby value.
+ */
+export function timerSecondsForPlayMode(mode: PlayableMode, lobbySeconds: number): number {
+  if (mode === "order_it" && lobbySeconds > 0) {
+    return Math.max(lobbySeconds, Math.round(ORDER_IT_TIMER_MS / 1000));
+  }
+  return lobbySeconds;
+}
 
 /** Mix of playable modes, or a single-mode filter. Count clamped 1–6. */
 export function generateBlockModes(
@@ -203,7 +227,7 @@ export function generateBlockModes(
 
   const result: PlayableMode[] = [];
   while (result.length < n) {
-    const pool = [...ALL_PLAYABLE];
+    const pool = [...ALL_PLAYABLE_MODES];
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [pool[i], pool[j]] = [pool[j], pool[i]];

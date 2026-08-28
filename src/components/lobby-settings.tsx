@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { emptyPromptPoolReason, fetchActiveThemes, type Theme } from "@/lib/content";
-import { generateBlockModes } from "@/lib/game-store";
 import {
   DEFAULT_ROOM_SETTINGS,
   GAME_LENGTH_PRESETS,
@@ -199,8 +198,7 @@ export function LobbySettingsPanel({
 
   useEffect(() => {
     let cancelled = false;
-    const modes = generateBlockModes(settings.blocks, settings.modeFilter);
-    void emptyPromptPoolReason(settings, modes).then((reason) => {
+    void emptyPromptPoolReason(settings).then((reason) => {
       if (!cancelled) setPoolEmpty(reason);
     });
     return () => {

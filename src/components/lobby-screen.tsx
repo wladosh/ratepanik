@@ -5,7 +5,6 @@ import { useGame } from "@/lib/game-context";
 import { PlayerSchleimi } from "@/components/player-schleimi";
 import { LobbySettingsPanel } from "@/components/lobby-settings";
 import { startBlockedReason } from "@/lib/room-settings";
-import { generateBlockModes } from "@/lib/game-store";
 import { emptyPromptPoolReason } from "@/lib/content";
 import { copyJoinLink, shareOrCopyJoinLink } from "@/lib/join-link";
 import { interpolate } from "@/lib/i18n";
@@ -286,11 +285,7 @@ export function LobbyScreen() {
 
   useEffect(() => {
     let cancelled = false;
-    const modes = generateBlockModes(
-      game.roomSettings.blocks,
-      game.roomSettings.modeFilter,
-    );
-    void emptyPromptPoolReason(game.roomSettings, modes).then((reason) => {
+    void emptyPromptPoolReason(game.roomSettings).then((reason) => {
       if (!cancelled) setPoolEmpty(reason);
     });
     return () => {

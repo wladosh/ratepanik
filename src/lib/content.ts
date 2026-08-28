@@ -1,7 +1,15 @@
 import { supabase } from "./supabase";
-import { roundsForMode, type DifficultyFilter, type RoomSettings } from "./room-settings";
-import type { PlayableMode } from "./game-store";
-import { shuffleCopy } from "./shuffle";
+import {
+  roundsForMode,
+  timerSecondsForBlock,
+  type DifficultyFilter,
+  type RoomSettings,
+} from "./room-settings";
+import {
+  modesForFilter,
+  timerSecondsForPlayMode,
+  type PlayableMode,
+} from "./game-store";
 
 export interface Theme {
   id: string;
@@ -95,17 +103,20 @@ export async function fetchRandomThemeOptions(
   return shuffled.slice(0, count);
 }
 
-/** Themes that have at least one active prompt for this mode. */
-export async function fetchRandomThemeOptionsForMode(
-  mode: string,
+/** Themes that have at least one active prompt in the allowed modes. */
+export async function fetchRandomThemeOptionsForModes(
+  modes: readonly PlayableMode[],
   count: number = 2,
   allowedIds?: string[],
 ): Promise<Theme[]> {
-  const { data: promptRows, error } = await supabase
-    .from("prompts")
-    .select("theme_id")
-    .eq("mode", mode)
-    .eq("active", true);
+  let promptQuery = supabase.from("prompts").select("theme_id").eq("active", true);
+  if (modes.length === 1) {
+    promptQuery = promptQuery.eq("mode", modes[0]);
+  } else if (modes.length > 1) {
+    promptQuery = promptQuery.in("mode", [...modes]);
+  }
+
+  const { data: promptRows, error } = await promptQuery;
 
   if (error || !promptRows?.length) {
     return fetchRandomThemeOptions(count, allowedIds);
@@ -128,21 +139,21 @@ export async function fetchRandomThemeOptionsForMode(
 
 export async function fetchPromptsForBlock(
   themeId: string,
-  mode: string,
+  modes: readonly PlayableMode[],
   count: number = 2,
   difficulty: DifficultyFilter = "mix",
   allowedIds?: string[],
 ): Promise<Prompt[]> {
-  const primary = shuffleCopy(await queryPromptsForMode({ themeId, mode, difficulty }));
-  if (primary.length >= count) return primary.slice(0, count);
+  const primary = await queryPromptsForModes({ themeId, modes, difficulty });
+  const picked = pickPromptsAcrossModes(primary, count);
+  if (picked.length >= count) return picked;
 
-  const extras = shuffleCopy(
-    (await queryPromptsForMode({ mode, difficulty, themeIds: allowedIds })).filter(
-      (prompt) => prompt.theme_id !== themeId,
-    ),
+  const taken = new Set(picked.map((prompt) => prompt.id));
+  const extras = (await queryPromptsForModes({ modes, difficulty, themeIds: allowedIds })).filter(
+    (prompt) => prompt.theme_id !== themeId && !taken.has(prompt.id),
   );
 
-  return pickPromptsForBlock(primary, extras, count);
+  return [...picked, ...pickPromptsAcrossModes(extras, count - picked.length)];
 }
 
 export function pickPromptsForBlock<T extends { id: string }>(
@@ -163,17 +174,49 @@ export function pickPromptsForBlock<T extends { id: string }>(
   return selected;
 }
 
-async function queryPromptsForMode(opts: {
-  mode: string;
+/**
+ * Pick `count` prompts with a random play type each round.
+ * Each slot samples uniformly among modes that still have unused prompts, so a
+ * category block is not locked to Schätzen / Lüge / Passend for every question.
+ */
+export function pickPromptsAcrossModes<T extends { id: string; mode: string }>(
+  prompts: T[],
+  count: number,
+  random: () => number = Math.random,
+): T[] {
+  const remaining = [...prompts];
+  const selected: T[] = [];
+
+  while (selected.length < count && remaining.length > 0) {
+    const modes = [...new Set(remaining.map((prompt) => prompt.mode))];
+    const mode = modes[Math.floor(random() * modes.length)];
+    if (!mode) break;
+    const pool = remaining.filter((prompt) => prompt.mode === mode);
+    const pick = pool[Math.floor(random() * pool.length)];
+    if (!pick) break;
+    selected.push(pick);
+    const index = remaining.findIndex((prompt) => prompt.id === pick.id);
+    if (index >= 0) remaining.splice(index, 1);
+  }
+
+  return selected;
+}
+
+async function queryPromptsForModes(opts: {
+  modes: readonly PlayableMode[];
   difficulty: DifficultyFilter;
   themeId?: string;
   themeIds?: string[];
 }): Promise<Prompt[]> {
-  let query = supabase
-    .from("prompts")
-    .select(PROMPT_COLUMNS)
-    .eq("mode", opts.mode)
-    .eq("active", true);
+  if (opts.modes.length === 0) return [];
+
+  let query = supabase.from("prompts").select(PROMPT_COLUMNS).eq("active", true);
+
+  if (opts.modes.length === 1) {
+    query = query.eq("mode", opts.modes[0]);
+  } else {
+    query = query.in("mode", [...opts.modes]);
+  }
 
   if (opts.themeId) {
     query = query.eq("theme_id", opts.themeId);
@@ -221,23 +264,29 @@ export async function countPromptsForFilter(opts: {
 
 export async function emptyPromptPoolReason(
   settings: RoomSettings,
-  modes: PlayableMode[],
 ): Promise<"empty_pool" | null> {
-  const uniqueModes = Array.from(new Set(modes));
+  const modes = modesForFilter(settings.modeFilter);
   const themeIds =
     settings.themeMix === "manual" ? settings.themeIds : undefined;
 
-  for (const mode of uniqueModes) {
+  if (settings.modeFilter !== "all") {
+    const n = await countPromptsForFilter({
+      mode: modes[0],
+      themeIds,
+      difficulty: settings.difficulty,
+    });
+    return n === 0 ? "empty_pool" : null;
+  }
+
+  for (const mode of modes) {
     const n = await countPromptsForFilter({
       mode,
       themeIds,
       difficulty: settings.difficulty,
     });
-    if (n === 0) {
-      return "empty_pool";
-    }
+    if (n > 0) return null;
   }
-  return null;
+  return "empty_pool";
 }
 
 export function allowedThemeIds(settings: RoomSettings): string[] | undefined {
@@ -247,21 +296,40 @@ export function allowedThemeIds(settings: RoomSettings): string[] | undefined {
   return undefined;
 }
 
+export function blockFieldsForPrompts(fetched: Prompt[], settings: RoomSettings) {
+  const first = fetched[0];
+  const lobbySeconds = timerSecondsForBlock(settings);
+  if (!first) {
+    return {
+      prompt_ids: [] as string[],
+      rounds_total: 1,
+      mode: modesForFilter(settings.modeFilter)[0] ?? "number_guess",
+      timer_seconds: lobbySeconds,
+    };
+  }
+  return {
+    prompt_ids: fetched.map((p) => p.id),
+    rounds_total: Math.max(1, fetched.length),
+    mode: first.mode,
+    timer_seconds: timerSecondsForPlayMode(first.mode, lobbySeconds),
+  };
+}
+
 /** Assign theme options (or auto-pick when the pool has one theme). */
 export async function prepareBlockTheme(
   blockId: string,
-  mode: PlayableMode,
   settings: RoomSettings,
 ): Promise<"vote" | "auto" | "empty"> {
+  const modes = modesForFilter(settings.modeFilter);
   const allowed = allowedThemeIds(settings);
-  const themes = await fetchRandomThemeOptionsForMode(mode, 2, allowed);
+  const themes = await fetchRandomThemeOptionsForModes(modes, 2, allowed);
   if (themes.length === 0) return "empty";
 
   if (themes.length === 1) {
-    const count = roundsForMode(mode, settings.questionsPerBlock);
+    const count = roundsForMode(modes[0], settings.questionsPerBlock);
     const fetched = await fetchPromptsForBlock(
       themes[0].id,
-      mode,
+      modes,
       count,
       settings.difficulty,
       allowed,
@@ -272,8 +340,7 @@ export async function prepareBlockTheme(
       .update({
         theme_options: [themes[0].id],
         theme_id: themes[0].id,
-        prompt_ids: fetched.map((p) => p.id),
-        rounds_total: Math.max(1, fetched.length),
+        ...blockFieldsForPrompts(fetched, settings),
       })
       .eq("id", blockId);
     if (error) {
