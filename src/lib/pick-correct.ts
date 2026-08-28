@@ -1,11 +1,29 @@
 export const PICK_CORRECT_CARD_COUNT = 8;
 export const PICK_CORRECT_CORRECT_TARGET = 4;
 export const PICK_CORRECT_PICKS_PER_PLAYER = 2;
+export const PICK_CORRECT_CARD_CLAIM_CONSTRAINT =
+  "uniq_pct_room_block_round_card";
 
 export type PickCorrectTurnLike = {
   player_id: string;
   is_correct: boolean;
 };
+
+type PostgresErrorLike = {
+  code?: string | null;
+  message?: string | null;
+  details?: string | null;
+};
+
+/** Only the first-claim-wins card collision is safe to ignore. */
+export function isPickCorrectCardClaimConflict(
+  error: PostgresErrorLike | null | undefined,
+): boolean {
+  if (error?.code !== "23505") return false;
+  return `${error.message ?? ""} ${error.details ?? ""}`.includes(
+    PICK_CORRECT_CARD_CLAIM_CONSTRAINT,
+  );
+}
 
 export function pickCountForPlayer(
   turns: readonly PickCorrectTurnLike[],

@@ -85,6 +85,7 @@ import {
 } from "./schleimi-layers";
 import { isLiveQuestionPhase, roundReadyToReveal, shouldStampQuestionClock } from "./question-clock";
 import {
+  isPickCorrectCardClaimConflict,
   isPickCorrectRoundComplete,
   pickCountForPlayer,
   PICK_CORRECT_PICKS_PER_PLAYER,
@@ -1714,7 +1715,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       round_index: currentBlock.current_round,
     });
 
-    if (tapErr?.code === "23505") {
+    if (isPickCorrectCardClaimConflict(tapErr)) {
       pendingPickCardsRef.current.delete(cardIndex);
       return;
     }

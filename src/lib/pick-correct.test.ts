@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   allPlayersExhaustedPicks,
+  isPickCorrectCardClaimConflict,
   isPickCorrectRoundComplete,
   pickCorrectHuntComplete,
   pickCountForPlayer,
@@ -17,6 +18,31 @@ describe("pickCountForPlayer / playerHasPicksRemaining", () => {
     expect(pickCountForPlayer(turns, "a")).toBe(2);
     expect(playerHasPicksRemaining(turns, "a")).toBe(false);
     expect(playerHasPicksRemaining([turn("a", false)], "a")).toBe(true);
+  });
+});
+
+describe("isPickCorrectCardClaimConflict", () => {
+  it("only ignores the expected first-claim-wins card collision", () => {
+    expect(
+      isPickCorrectCardClaimConflict({
+        code: "23505",
+        message:
+          'duplicate key value violates unique constraint "uniq_pct_room_block_round_card"',
+      }),
+    ).toBe(true);
+    expect(
+      isPickCorrectCardClaimConflict({
+        code: "23505",
+        message:
+          'duplicate key value violates unique constraint "uniq_pct_room_block_round_player"',
+      }),
+    ).toBe(false);
+    expect(
+      isPickCorrectCardClaimConflict({
+        code: "42501",
+        message: "permission denied",
+      }),
+    ).toBe(false);
   });
 });
 
@@ -92,6 +118,24 @@ describe("isPickCorrectRoundComplete", () => {
           turn("a", true),
           turn("b", true),
           turn("b", true),
+        ],
+        playerIds: ["a", "b", "c", "d"],
+      }),
+    ).toBe(true);
+  });
+
+  it("ends a 4-player round after all 8 taps even with fewer than 4 correct", () => {
+    expect(
+      isPickCorrectRoundComplete({
+        turns: [
+          turn("a", true),
+          turn("a", false),
+          turn("b", false),
+          turn("b", true),
+          turn("c", false),
+          turn("c", false),
+          turn("d", false),
+          turn("d", false),
         ],
         playerIds: ["a", "b", "c", "d"],
       }),
