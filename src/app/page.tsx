@@ -72,9 +72,9 @@ function HomeContent() {
     return (
       <div
         className="flex flex-1 items-center justify-center"
-        style={{ background: "var(--rp-bg-hero)" }}
+        style={{ background: "var(--rp-nb-cream)" }}
       >
-        <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
+        <div className="nb-heading text-lg" style={{ color: "var(--rp-nb-black)" }}>
           {t.common.loading}
         </div>
       </div>

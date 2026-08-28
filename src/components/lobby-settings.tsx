@@ -26,8 +26,8 @@ function StandardMark({ on }: { on: boolean }) {
   if (!on) return null;
   return (
     <span
-      className="text-[9px] font-bold uppercase tracking-wider"
-      style={{ color: "var(--rp-purple)" }}
+      className="nb-kicker"
+      style={{ fontSize: 9 }}
     >
       {t.lobby.standard}
     </span>
@@ -59,10 +59,10 @@ function Segmented<T extends string | number>({
             type="button"
             disabled={off}
             onClick={() => onChange(opt.value)}
-            className="min-h-11 px-3 rounded-full text-xs font-bold whitespace-nowrap transition-all active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
+            className="nb-btn min-h-11 px-3 text-xs whitespace-nowrap disabled:opacity-40"
             style={{
-              background: selected ? "var(--rp-purple)" : "var(--rp-bg-muted)",
-              color: selected ? "#fff" : "var(--rp-text)",
+              background: selected ? "var(--rp-nb-purple)" : "var(--rp-nb-white)",
+              color: selected ? "#fff" : "var(--rp-nb-black)",
             }}
           >
             {opt.label}
@@ -107,12 +107,20 @@ function ToggleRow({
         aria-checked={checked}
         disabled={disabled}
         onClick={() => onChange(!checked)}
-        className="relative w-12 h-7 rounded-full shrink-0 transition-all disabled:opacity-40"
-        style={{ background: checked ? "var(--rp-mint)" : "var(--rp-bg-muted)" }}
+        className="relative w-12 h-7 shrink-0 transition-all disabled:opacity-40"
+        style={{
+          background: checked ? "var(--rp-nb-mint)" : "var(--rp-nb-white)",
+          border: "var(--rp-nb-border)",
+          borderRadius: "var(--rp-nb-radius)",
+        }}
       >
         <span
-          className="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-all"
-          style={{ left: checked ? 22 : 2 }}
+          className="absolute top-0.5 w-6 h-6 bg-white transition-all"
+          style={{
+            left: checked ? 22 : 2,
+            borderRadius: "var(--rp-nb-radius-sm)",
+            border: "2px solid var(--rp-nb-black)",
+          }}
         />
       </button>
     </div>
@@ -148,12 +156,7 @@ function Section({
   const [open, setOpen] = useState(defaultOpen);
   return (
     <section
-      className="p-3.5 mb-2.5"
-      style={{
-        background: "var(--rp-bg-elevated)",
-        borderRadius: "var(--rp-radius-md)",
-        boxShadow: "var(--rp-shadow-card)",
-      }}
+      className="nb-card p-3.5 mb-2.5"
     >
       <button
         type="button"
@@ -162,8 +165,7 @@ function Section({
         className="w-full flex items-center justify-between gap-2 min-h-11 -my-1 py-1 text-left"
       >
         <h3
-          className="text-[10px] font-bold uppercase tracking-wider"
-          style={{ color: "var(--rp-purple)" }}
+          className="nb-kicker"
         >
           {title}
         </h3>
@@ -218,10 +220,14 @@ export function LobbySettingsPanel({
         {chips.map((chip) => (
           <span
             key={chip}
-            className="inline-flex items-center h-7 px-2.5 rounded-full text-[11px] font-semibold"
+            className="inline-flex items-center h-7 px-2.5 text-[11px] font-black uppercase"
             style={{
-              background: "rgba(139, 124, 255, 0.12)",
-              color: "var(--rp-purple)",
+              background: "var(--rp-nb-lilac)",
+              color: "var(--rp-nb-black)",
+              border: "var(--rp-nb-border)",
+              borderRadius: "var(--rp-nb-radius-sm)",
+              boxShadow: "var(--rp-nb-shadow-sm)",
+              letterSpacing: "0.04em",
             }}
           >
             {chip}
@@ -276,10 +282,10 @@ export function LobbySettingsPanel({
                           : [...settings.themeIds, theme.id];
                         onChange({ themeIds });
                       }}
-                      className="min-h-11 px-3 rounded-full text-xs font-bold whitespace-nowrap transition-all active:scale-[0.97]"
+                      className="nb-btn min-h-11 px-3 text-xs whitespace-nowrap"
                       style={{
-                        background: on ? "var(--rp-peach)" : "var(--rp-bg-muted)",
-                        color: on ? "#fff" : "var(--rp-text)",
+                        background: on ? "var(--rp-nb-peach)" : "var(--rp-nb-white)",
+                        color: on ? "#fff" : "var(--rp-nb-black)",
                       }}
                     >
                       {theme.name_de}

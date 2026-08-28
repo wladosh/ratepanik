@@ -64,9 +64,9 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
         />
         <Link
           href="/auth/login"
-          className="mt-4 flex h-11 items-center justify-center rounded-[var(--rp-radius-pill)] text-sm font-bold text-white"
+          className="nb-btn mt-4 flex h-11 items-center justify-center text-sm text-white"
           style={{
-            background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+            background: "var(--rp-nb-peach)",
           }}
         >
           {t.landing.login}
@@ -89,11 +89,10 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
               key={id}
               type="button"
               onClick={() => setSlot(id)}
-              className="h-10 rounded-full text-[11px] font-bold"
+              className="nb-btn h-10 text-[11px]"
               style={{
-                background: active ? "var(--rp-purple)" : "var(--rp-bg-elevated)",
-                color: active ? "#fff" : "var(--rp-text)",
-                boxShadow: "var(--rp-shadow-card)",
+                background: active ? "var(--rp-nb-purple)" : "var(--rp-nb-white)",
+                color: active ? "#fff" : "var(--rp-nb-black)",
               }}
             >
               {id === "body_tint"
@@ -125,13 +124,12 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
               className="flex flex-col items-center gap-1.5"
             >
               <span
-                className="flex items-center justify-center text-xs font-bold"
+                className="nb-card flex items-center justify-center text-xs font-bold"
                 style={{
                   width: 72,
                   height: 72,
-                  borderRadius: 16,
-                  background: loadout[slot] == null ? "var(--rp-purple-soft)" : "var(--rp-bg-muted)",
-                  color: "var(--rp-text-secondary)",
+                  background: loadout[slot] == null ? "var(--rp-nb-lilac)" : "var(--rp-nb-white)",
+                  color: "var(--rp-nb-text-secondary)",
                 }}
               >
                 {t.cosmetics.emptySlot}
@@ -148,8 +146,8 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
                 onClick={() => void handleEquip(item.id)}
                 className="flex flex-col items-center gap-1.5"
                 style={{
-                  outline: equipped ? "2px solid var(--rp-purple)" : "none",
-                  borderRadius: 18,
+                  outline: equipped ? "3px solid var(--rp-nb-black)" : "none",
+                  borderRadius: "var(--rp-nb-radius)",
                   padding: 4,
                 }}
               >

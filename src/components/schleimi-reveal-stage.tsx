@@ -69,8 +69,7 @@ export function SchleimiRevealStage({
       aria-modal="true"
       aria-labelledby="schleimi-reveal-title"
       style={{
-        background: "rgba(42, 42, 74, 0.55)",
-        backdropFilter: "blur(3px)",
+        background: "rgba(26, 26, 46, 0.85)",
       }}
     >
       {beat !== "item" && (
@@ -87,8 +86,8 @@ export function SchleimiRevealStage({
       )}
 
       <div
-        className="w-full rounded-[28px] px-5 py-6 text-center"
-        style={{ background: wash, boxShadow: "var(--rp-shadow-card)" }}
+        className="nb-card-lg w-full px-5 py-6 text-center"
+        style={{ background: wash }}
       >
         {beat !== "item" ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -105,8 +104,7 @@ export function SchleimiRevealStage({
             <RarityBadge rarity={rarity} />
             <h2
               id="schleimi-reveal-title"
-              className="text-xl font-extrabold"
-              style={{ color: "var(--rp-text)" }}
+              className="nb-heading text-xl"
             >
               {nameDe}
             </h2>
@@ -123,10 +121,9 @@ export function SchleimiRevealStage({
             <button
               type="button"
               onClick={onWear}
-              className="h-[52px] rounded-[var(--rp-radius-pill)] text-sm font-bold text-white"
+              className="nb-btn h-[52px] text-sm text-white"
               style={{
-                background:
-                  "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+                background: "var(--rp-nb-peach)",
               }}
             >
               {t.cosmetics.equip}
