@@ -1,17 +1,20 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { xpProgressInLevel } from "@/lib/progression";
 import { dailyPlayStreakDays } from "@/lib/daily-play-streak";
 import { useMatchStats } from "@/lib/use-match-stats";
+import { HIRNCOIN_ICON_48 } from "@/lib/rp-assets";
 import { EmptyCard, PanelShell } from "@/components/home-panel-shell";
 import { FriendsPanel } from "@/components/friends-panel";
 import { ShopPanel } from "@/components/shop-panel";
 import { SchleimiCustomizePanel } from "@/components/schleimi-customize-panel";
 import { SettingsPanel } from "@/components/settings-panel";
 import { AchievementsPanel } from "@/components/achievements-panel";
+import s from "@/components/stats-panel.module.css";
 
 export type HomePanelId =
   | "friends"
@@ -59,53 +62,119 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
   const xp = xpProgressInLevel(profile.xp);
   const streakDays = dailyPlayStreakDays(profile);
 
-  const rows: { label: string; value: string }[] = [
-    { label: "Level", value: String(xp.level) },
-    { label: t.home.statsXpTotal, value: String(profile.xp) },
-    { label: t.home.statsXpInLevel, value: `${xp.current} / ${xp.needed}` },
-    { label: t.cosmetics.hirncoins, value: String(profile.hirncoins) },
-    { label: t.home.statsGames, value: games === null ? "…" : String(games) },
-    { label: t.home.statsWins, value: wins === null ? "…" : String(wins) },
-    { label: t.home.statsStreak, value: streakDays === null ? t.common.soon : String(streakDays) },
-  ];
+  const gamesNum = games ?? 0;
+  const winsNum = wins ?? 0;
+  const gamesLoaded = games !== null;
+  const winsLoaded = wins !== null;
+  const ratioPercent =
+    gamesNum > 0 ? Math.round((winsNum / gamesNum) * 100) : 0;
 
   return (
     <PanelShell title={t.home.stats} onBack={onBack}>
-      {games === 0 && (
-        <div className="mb-4">
-            <EmptyCard
-              headline={t.home.statsEmptyHeadline}
-              body={t.home.statsEmptyBody}
-            />
-        </div>
-      )}
-      <ul className="space-y-2">
-        {rows.map((row) => (
-          <li
-            key={row.label}
-            className="nb-card flex items-center justify-between px-4 py-3"
+      <div className={s.container}>
+        {/* ── 1) HERO — Level + XP bar ─────────────────────────── */}
+        <div className={s.hero}>
+          <span className={s.heroLabel}>LEVEL</span>
+          <span className={s.heroLevel}>{xp.level}</span>
+          <div
+            className={s.xpBarTrack}
+            role="progressbar"
+            aria-valuenow={xp.current}
+            aria-valuemin={0}
+            aria-valuemax={xp.needed}
+            aria-label="XP"
           >
-            <span
-              className="text-sm font-bold"
-              style={{ color: "var(--rp-nb-text-secondary)" }}
-            >
-              {row.label}
+            <div
+              className={s.xpBarFill}
+              style={{ width: `${Math.round(xp.ratio * 100)}%` }}
+            />
+          </div>
+          <span className={s.xpCaption}>
+            {xp.current} / {xp.needed} XP
+          </span>
+          <span className={s.xpTotal}>
+            XP GESAMT&nbsp;&nbsp;{profile.xp.toLocaleString("de-DE")}
+          </span>
+        </div>
+
+        {/* ── 2) Highlight 2-column grid ───────────────────────── */}
+        <div className={s.highlightGrid}>
+          <div className={`${s.tile} ${s.tileCoin}`}>
+            <div className={s.tileLabelRow}>
+              <Image
+                src={HIRNCOIN_ICON_48}
+                alt=""
+                width={20}
+                height={20}
+                className={s.coinIcon}
+                aria-hidden="true"
+              />
+              <span className={s.tileLabel}>HIRNCOINS</span>
+            </div>
+            <span className={s.tileNumber}>
+              {profile.hirncoins.toLocaleString("de-DE")}
             </span>
-            <span
-              className="text-sm font-black"
-              style={{ color: "var(--rp-nb-text)" }}
-            >
-              {row.value}
+          </div>
+
+          <div className={`${s.tile} ${s.tileStreak}`}>
+            <span className={s.tileLabel}>STREAK</span>
+            <span className={s.tileNumber}>
+              {streakDays === null ? "–" : streakDays}
             </span>
-          </li>
-        ))}
-      </ul>
-      <p
-        className="mt-4 text-xs leading-relaxed px-1 font-semibold"
-        style={{ color: "var(--rp-nb-text-secondary)" }}
-      >
-        {t.home.statsDisclaimer}
-      </p>
+            <span className={s.tileSub}>TAGE</span>
+          </div>
+        </div>
+
+        {/* ── 3) MATCHES card ──────────────────────────────────── */}
+        <div className={s.matchesCard}>
+          <div className={s.matchesTitle}>MATCHES</div>
+
+          {gamesLoaded && gamesNum === 0 ? (
+            <div className={s.matchesEmpty}>NOCH KEINE MATCHES</div>
+          ) : (
+            <>
+              <div className={s.matchesCols}>
+                <div className={s.matchesStat}>
+                  <span className={s.matchesBig}>
+                    {gamesLoaded ? gamesNum : "…"}
+                  </span>
+                  <span className={s.matchesCaption}>SPIELE</span>
+                </div>
+                <div className={s.matchesStat}>
+                  <span className={s.matchesBig}>
+                    {winsLoaded ? winsNum : "…"}
+                  </span>
+                  <span className={s.matchesCaption}>SIEGE</span>
+                </div>
+              </div>
+
+              {gamesNum > 0 && (
+                <>
+                  <div
+                    className={s.ratioBarTrack}
+                    role="progressbar"
+                    aria-valuenow={winsNum}
+                    aria-valuemin={0}
+                    aria-valuemax={gamesNum}
+                    aria-label="Siegquote"
+                  >
+                    <div
+                      className={s.ratioBarFill}
+                      style={{ width: `${ratioPercent}%` }}
+                    />
+                  </div>
+                  <div className={s.ratioCaption}>
+                    {winsNum} / {gamesNum}
+                  </div>
+                </>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* ── 4) Disclaimer ────────────────────────────────────── */}
+        <p className={s.disclaimer}>{t.home.statsDisclaimer}</p>
+      </div>
     </PanelShell>
   );
 }

@@ -1,0 +1,234 @@
+/* NeoBrutal Statistik Panel – thick borders, hard shadows, flat fills */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 4px;
+  padding-bottom: 24px;
+}
+
+/* ── 1) HERO — Level + XP bar ────────────────────────────────────── */
+
+.hero {
+  border: 3px solid var(--rp-nb-black);
+  border-radius: 8px;
+  box-shadow: 4px 4px 0 var(--rp-nb-black);
+  background: #fff3ef;
+  padding: 20px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.heroLabel {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rp-text-secondary);
+}
+
+.heroLevel {
+  font-size: 56px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--rp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.xpBarTrack {
+  width: 100%;
+  height: 18px;
+  border: 3px solid var(--rp-nb-black);
+  border-radius: 4px;
+  background: var(--rp-nb-white);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.xpBarFill {
+  height: 100%;
+  background: var(--rp-peach);
+  border-radius: 1px;
+  transition: width 0.4s ease-out;
+  min-width: 0;
+}
+
+.xpCaption {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--rp-text);
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+}
+
+.xpTotal {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--rp-text-secondary);
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── 2) Highlight 2-column grid ──────────────────────────────────── */
+
+.highlightGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tile {
+  border: 3px solid var(--rp-nb-black);
+  border-radius: 8px;
+  box-shadow: 4px 4px 0 var(--rp-nb-black);
+  padding: 14px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  min-height: 96px;
+}
+
+.tileCoin {
+  background: var(--rp-nb-white);
+}
+
+.tileStreak {
+  background: #fff8e0;
+}
+
+.tileLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tileLabel {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rp-text-secondary);
+}
+
+.tileNumber {
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1.1;
+  color: var(--rp-text);
+  margin-top: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.tileSub {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rp-text-secondary);
+  margin-top: 2px;
+}
+
+/* ── 3) MATCHES card ─────────────────────────────────────────────── */
+
+.matchesCard {
+  border: 3px solid var(--rp-nb-black);
+  border-radius: 8px;
+  box-shadow: 4px 4px 0 var(--rp-nb-black);
+  background: var(--rp-nb-white);
+  padding: 16px;
+}
+
+.matchesTitle {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rp-text-secondary);
+  margin-bottom: 12px;
+}
+
+.matchesCols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  text-align: center;
+}
+
+.matchesStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.matchesBig {
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--rp-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.matchesCaption {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--rp-text-secondary);
+  margin-top: 4px;
+}
+
+.ratioBarTrack {
+  width: 100%;
+  height: 14px;
+  border: 3px solid var(--rp-nb-black);
+  border-radius: 4px;
+  background: var(--rp-nb-cream);
+  overflow: hidden;
+  margin-top: 14px;
+}
+
+.ratioBarFill {
+  height: 100%;
+  background: var(--rp-nb-purple-deep);
+  border-radius: 1px;
+  transition: width 0.4s ease-out;
+  min-width: 0;
+}
+
+.ratioCaption {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--rp-text);
+  text-align: center;
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.matchesEmpty {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rp-text-secondary);
+  text-align: center;
+  padding: 16px 0 8px;
+}
+
+/* ── 4) Disclaimer ───────────────────────────────────────────────── */
+
+.disclaimer {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--rp-text-secondary);
+  padding: 0 4px;
+  margin-top: 4px;
+}
+
+/* ── Coin icon inline ────────────────────────────────────────────── */
+
+.coinIcon {
+  flex-shrink: 0;
+}
