@@ -5,6 +5,17 @@ export const COSMETIC_RARITIES = ["gewoehnlich", "selten", "legendaer"] as const
 export type CosmeticRarity = (typeof COSMETIC_RARITIES)[number];
 
 export const LOOTBOX_BASIC_ID = "lootbox_basic";
+export const LOOTBOX_FACE_ID = "lootbox_face";
+export const LOOTBOX_HAT_ID = "lootbox_hat";
+export const LOOTBOX_EXTRA_ID = "lootbox_extra";
+
+export const ALL_LOOTBOX_IDS = [
+  LOOTBOX_BASIC_ID,
+  LOOTBOX_FACE_ID,
+  LOOTBOX_HAT_ID,
+  LOOTBOX_EXTRA_ID,
+] as const;
+export type LootboxId = (typeof ALL_LOOTBOX_IDS)[number];
 
 export const LOOTBOX_BASIC_WEIGHTS = {
   gewoehnlich: 70,
@@ -13,6 +24,67 @@ export const LOOTBOX_BASIC_WEIGHTS = {
 } as const;
 
 export const LOOTBOX_BASIC_PRICE_HC = 100;
+export const LOOTBOX_SLOT_PRICE_HC = 240;
+
+export const DAILY_DEAL_DISCOUNT = 0.3;
+
+export interface LootboxDef {
+  id: LootboxId;
+  name_de: string;
+  name_en: string;
+  subtitle_de: string;
+  subtitle_en: string;
+  price_hc: number;
+  allowed_slots: CosmeticSlot[] | null;
+  accent: string;
+}
+
+export const LOOTBOX_DEFS: readonly LootboxDef[] = [
+  {
+    id: LOOTBOX_BASIC_ID,
+    name_de: "Hirnkiste",
+    name_en: "Brain Crate",
+    subtitle_de: "Alles drin",
+    subtitle_en: "Everything inside",
+    price_hc: LOOTBOX_BASIC_PRICE_HC,
+    allowed_slots: null,
+    accent: "#FF8A71",
+  },
+  {
+    id: LOOTBOX_FACE_ID,
+    name_de: "Mimik-Kiste",
+    name_en: "Face Crate",
+    subtitle_de: "Nur Gesichter",
+    subtitle_en: "Faces only",
+    price_hc: LOOTBOX_SLOT_PRICE_HC,
+    allowed_slots: ["face"],
+    accent: "#C989FF",
+  },
+  {
+    id: LOOTBOX_HAT_ID,
+    name_de: "Hut-Kiste",
+    name_en: "Hat Crate",
+    subtitle_de: "Nur Hüte",
+    subtitle_en: "Hats only",
+    price_hc: LOOTBOX_SLOT_PRICE_HC,
+    allowed_slots: ["hat"],
+    accent: "#7EB6FF",
+  },
+  {
+    id: LOOTBOX_EXTRA_ID,
+    name_de: "Extra-Kiste",
+    name_en: "Extra Crate",
+    subtitle_de: "Nur Extras",
+    subtitle_en: "Extras only",
+    price_hc: LOOTBOX_SLOT_PRICE_HC,
+    allowed_slots: ["extra"],
+    accent: "#6FCF97",
+  },
+] as const;
+
+export function lootboxDefById(id: string): LootboxDef | undefined {
+  return LOOTBOX_DEFS.find((d) => d.id === id);
+}
 
 export const LOOTBOX_DUPE_HC: Record<CosmeticRarity, number> = {
   gewoehnlich: 15,

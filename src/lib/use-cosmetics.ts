@@ -5,6 +5,7 @@ import { useI18n } from "@/lib/i18n-context";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import type { DbCosmeticItem, DbLootboxDef, DbUserLoadout } from "@/lib/supabase";
 import {
+  ALL_LOOTBOX_IDS,
   COSMETIC_SLOTS,
   LOOTBOX_BASIC_ID,
   LOOTBOX_BASIC_PRICE_HC,
@@ -17,6 +18,7 @@ import {
   STARTER_TINT_ID,
   cosmeticAssetPath,
   type CosmeticSlot,
+  type LootboxId,
 } from "@/lib/schleimi-catalog";
 
 export interface CosmeticItemView {
@@ -97,6 +99,9 @@ export function useCosmetics(userId: string | null) {
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [loadout, setLoadout] = useState<LoadoutMap>(EMPTY_LOADOUT);
   const [lootbox, setLootbox] = useState<LootboxView>(stubLootbox);
+  const [lootboxMap, setLootboxMap] = useState<Map<string, LootboxView>>(
+    () => new Map([[LOOTBOX_BASIC_ID, stubLootbox()]]),
+  );
   const [loading, setLoading] = useState(true);
 
   const catalogById = useMemo(() => {
@@ -104,6 +109,7 @@ export function useCosmetics(userId: string | null) {
   }, [catalog]);
 
   const refetch = useCallback(async () => {
+    setLoading(true);
     if (!userId) {
       setOwned(new Set());
       setLoadout(EMPTY_LOADOUT);
@@ -119,7 +125,11 @@ export function useCosmetics(userId: string | null) {
         .order("sort_order"),
       supabase.from("user_cosmetics").select("item_id").eq("user_id", userId),
       supabase.from("user_loadout").select("slot, item_id").eq("user_id", userId),
-      supabase.from("lootbox_defs").select("*").eq("id", LOOTBOX_BASIC_ID).maybeSingle(),
+      supabase
+        .from("lootbox_defs")
+        .select("*")
+        .in("id", ALL_LOOTBOX_IDS as unknown as string[])
+        .eq("active", true),
     ]);
 
     if (itemsRes.data && itemsRes.data.length > 0) {
@@ -142,33 +152,39 @@ export function useCosmetics(userId: string | null) {
 
     setLoadout(emptyLoadoutFromRows((loadoutRes.data as DbUserLoadout[] | null) ?? null));
 
-    if (boxRes.data) {
-      const row = boxRes.data as DbLootboxDef;
-      setLootbox({
-        id: row.id,
-        price_hc: row.price_hc,
-        weight_gewoehnlich: row.weight_gewoehnlich,
-        weight_selten: row.weight_selten,
-        weight_legendaer: row.weight_legendaer,
-        art_closed: row.art_closed,
-        art_open: row.art_open,
-      });
+    if (boxRes.data && boxRes.data.length > 0) {
+      const rows = boxRes.data as DbLootboxDef[];
+      const map = new Map<string, LootboxView>();
+      for (const row of rows) {
+        map.set(row.id, {
+          id: row.id,
+          price_hc: row.price_hc,
+          weight_gewoehnlich: row.weight_gewoehnlich,
+          weight_selten: row.weight_selten,
+          weight_legendaer: row.weight_legendaer,
+          art_closed: row.art_closed,
+          art_open: row.art_open,
+        });
+      }
+      setLootboxMap(map);
+      const basic = map.get(LOOTBOX_BASIC_ID);
+      if (basic) setLootbox(basic);
     }
 
     setLoading(false);
   }, [userId]);
 
   useEffect(() => {
-    setLoading(true);
     void refetch();
   }, [refetch]);
 
   const openLootbox = useCallback(
-    async (requestId: string) => {
+    async (requestId: string, boxId: LootboxId = LOOTBOX_BASIC_ID, useDeal = false) => {
       const supabase = createBrowserSupabase();
       const { data, error } = await supabase.rpc("open_lootbox", {
-        box_id: LOOTBOX_BASIC_ID,
+        box_id: boxId,
         request_id: requestId,
+        use_deal: useDeal,
       });
       if (error) return { ok: false as const, error: error.message };
       const result = data as OpenLootboxSuccess | { ok?: boolean; error?: string };
@@ -213,6 +229,7 @@ export function useCosmetics(userId: string | null) {
     loadout,
     equippedItems,
     lootbox,
+    lootboxMap,
     loading,
     refetch,
     openLootbox,
