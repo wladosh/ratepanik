@@ -161,6 +161,7 @@ export interface DbLootboxDef {
   art_closed: string;
   art_open: string;
   active: boolean;
+  allowed_slots: string[] | null;
 }
 
 export interface DbAchievement {

@@ -1,5 +1,11 @@
 import { AVATAR_IDS, type AvatarId } from "@/lib/rp-assets";
-import { LOOTBOX_BASIC_ID, LOOTBOX_BASIC_PRICE_HC } from "@/lib/schleimi-catalog";
+import {
+  ALL_LOOTBOX_IDS,
+  LOOTBOX_BASIC_ID,
+  LOOTBOX_BASIC_PRICE_HC,
+  LOOTBOX_DEFS,
+  type LootboxId,
+} from "@/lib/schleimi-catalog";
 
 /** @deprecated Phase B grid. Shop no longer sells these. */
 export const STARTER_AVATAR_ID: AvatarId = "default_01";
@@ -26,6 +32,7 @@ export const SHOP_AVATARS: readonly ShopAvatar[] = [
 
 export const SHOP_LOOTBOX_ID = LOOTBOX_BASIC_ID;
 export const SHOP_LOOTBOX_PRICE_FALLBACK = LOOTBOX_BASIC_PRICE_HC;
+export { ALL_LOOTBOX_IDS, LOOTBOX_DEFS, type LootboxId };
 
 export function isAvatarId(id: string): id is AvatarId {
   return (AVATAR_IDS as readonly string[]).includes(id);
