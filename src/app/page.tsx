@@ -81,16 +81,17 @@ function HomeContent() {
     );
   }
 
-  if (isGuest) {
-    return <GuestExitToLogin />;
-  }
-
-  if (activeGame && shouldRestoreMatchOnBareHome(isGuest)) {
+  // Guests with an active session should resume their game, not be destroyed.
+  if (activeGame && shouldRestoreMatchOnBareHome()) {
     return (
       <GameProvider>
         <Game />
       </GameProvider>
     );
+  }
+
+  if (isGuest) {
+    return <GuestExitToLogin />;
   }
 
   if (!isAuthenticated) {
