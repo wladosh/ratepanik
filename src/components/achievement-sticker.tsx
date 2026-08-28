@@ -280,8 +280,8 @@ const ART: Record<AchievementId, (props: StickerArtProps) => ReactNode> = {
 };
 
 const LOCKED = {
-  from: "#D8D8E4",
-  to: "#A8A8BA",
+  from: "#C8C8D4",
+  to: "#C8C8D4",
   ink: "#6E6E82",
 };
 
@@ -314,9 +314,15 @@ export function AchievementSticker({
       style={{ overflow: "visible", display: "block" }}
     >
       <defs>
-        <filter id={`${uid}-shadow`} x="-30%" y="-20%" width="160%" height="170%">
-          <feDropShadow dx="0" dy="7" stdDeviation="5" floodColor="#2A2A4A" floodOpacity="0.22" />
-        </filter>
+        {unlocked ? (
+          <filter id={`${uid}-shadow`} x="-10%" y="-10%" width="140%" height="140%">
+            <feDropShadow dx="4" dy="4" stdDeviation="0" floodColor="#1a1a2e" floodOpacity="0.22" />
+          </filter>
+        ) : (
+          <filter id={`${uid}-shadow`} x="-10%" y="-10%" width="130%" height="130%">
+            <feDropShadow dx="3" dy="3" stdDeviation="0" floodColor="#1a1a2e" floodOpacity="0.16" />
+          </filter>
+        )}
         <linearGradient id={`${uid}-face`} x1="18%" y1="8%" x2="86%" y2="94%">
           <stop offset="0%" stopColor={colors.from} />
           <stop offset="100%" stopColor={colors.to} />
@@ -333,29 +339,33 @@ export function AchievementSticker({
       <path
         d={path}
         fill={`url(#${uid}-face)`}
-        stroke="#FFFFFF"
-        strokeWidth={hero ? 14 : unlocked ? 11 : 10}
+        stroke={unlocked ? "#FFFFFF" : "#1a1a2e"}
+        strokeWidth={hero ? 14 : unlocked ? 11 : 6}
         strokeLinejoin="round"
         paintOrder="stroke fill"
         filter={`url(#${uid}-shadow)`}
       />
       <g clipPath={`url(#${uid}-clip)`}>
-        <ellipse cx="62" cy="44" rx="42" ry="22" fill={`url(#${uid}-gloss)`} />
-        <path d={path} fill="none" stroke="#fff" strokeOpacity="0.28" strokeWidth="3" />
+        {unlocked && (
+          <>
+            <ellipse cx="62" cy="44" rx="42" ry="22" fill={`url(#${uid}-gloss)`} />
+            <path d={path} fill="none" stroke="#fff" strokeOpacity="0.28" strokeWidth="3" />
+          </>
+        )}
         <Art ink={colors.ink} locked={!unlocked} />
         {!unlocked ? (
           <g>
             <rect x="0" y="0" width="160" height="160" fill="#8B8B9C" opacity="0.18" />
             <g transform="translate(80 118)">
-              <circle r="13" fill="#6B6B7E" />
+              <circle r="13" fill="#6B6B7E" stroke="#1a1a2e" strokeWidth="1.5" />
               <path
                 d="M-5 1v-5a5 5 0 0 1 10 0v5"
                 fill="none"
                 stroke="#fff"
                 strokeWidth="2.4"
-                strokeLinecap="round"
+                strokeLinecap="square"
               />
-              <rect x="-7" y="1" width="14" height="10" rx="2" fill="#fff" />
+              <rect x="-7" y="1" width="14" height="10" rx="0" fill="#fff" />
             </g>
           </g>
         ) : null}
