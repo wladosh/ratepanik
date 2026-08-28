@@ -271,12 +271,23 @@ export function HomeScreen() {
                   >
                     {displayName}
                   </h2>
-                  <p
-                    className="text-[var(--rp-text-secondary)] truncate"
-                    style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.3 }}
-                  >
-                    {isGuest ? t.common.guest : t.home.partyPlayer}
-                  </p>
+                  {isGuest ? (
+                    <p
+                      className="text-[var(--rp-text-secondary)] truncate"
+                      style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.3 }}
+                    >
+                      {t.common.guest}
+                    </p>
+                  ) : xpProgress ? (
+                    <p
+                      className="flex items-center gap-1 text-[var(--rp-text-secondary)]"
+                      style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.3 }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={XP_BADGE_16} alt="" width={14} height={14} className="w-3.5 h-3.5" />
+                      XP {xpProgress.current} / {xpProgress.needed}
+                    </p>
+                  ) : null}
                 </div>
 
                 {/* Hirncoin pill */}
@@ -343,14 +354,6 @@ export function HomeScreen() {
                       }}
                     />
                   </div>
-                  <p
-                    className="flex items-center gap-1 text-[var(--rp-text-secondary)]"
-                    style={{ fontSize: 11, fontWeight: 500, marginTop: 2 }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={XP_BADGE_16} alt="" width={14} height={14} className="w-3.5 h-3.5" />
-                    XP {xpProgress.current} / {xpProgress.needed}
-                  </p>
                 </div>
               )}
             </div>
