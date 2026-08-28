@@ -6,8 +6,8 @@ type JoinDoc = {
   hidden?: boolean;
   visibilityState?: string;
   prerendering?: boolean;
-  addEventListener?: typeof document.addEventListener;
-  removeEventListener?: typeof document.removeEventListener;
+  addEventListener?: (type: string, listener: () => void) => void;
+  removeEventListener?: (type: string, listener: () => void) => void;
 };
 
 export function isLiveJoinViewport(doc?: {
@@ -30,7 +30,7 @@ export function waitForStableForeground(
   return new Promise((resolve) => {
     let visibleSince: number | null = null;
     let settled = false;
-    let interval = 0;
+    let interval: ReturnType<typeof setInterval> | undefined;
     const timers = typeof window !== "undefined" ? window : globalThis;
 
     const settle = (ok: boolean) => {
