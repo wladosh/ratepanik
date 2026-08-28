@@ -109,15 +109,18 @@ function RenameSheet({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center"
-      style={{ background: "rgba(0,0,0,0.35)" }}
+      style={{ background: "rgba(26,26,46,0.7)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         className="w-full max-w-md animate-fade-in"
         style={{
-          background: "var(--rp-bg-elevated)",
-          borderRadius: "var(--rp-radius-lg) var(--rp-radius-lg) 0 0",
-          boxShadow: "0 -8px 30px rgba(0,0,0,0.12)",
+          background: "var(--rp-nb-white)",
+          borderRadius: "var(--rp-nb-radius) var(--rp-nb-radius) 0 0",
+          borderTop: "var(--rp-nb-border)",
+          borderLeft: "var(--rp-nb-border)",
+          borderRight: "var(--rp-nb-border)",
+          boxShadow: "0 -4px 0 var(--rp-nb-black)",
           padding: "24px 20px max(env(safe-area-inset-bottom, 16px), 24px)",
         }}
       >
@@ -132,25 +135,23 @@ function RenameSheet({
             setError(null);
           }}
           onKeyDown={(e) => { if (e.key === "Enter") void handleSave(); }}
-          className="w-full px-4 py-3 text-base font-bold rounded-xl outline-none"
+          className="nb-input w-full px-4 py-3 text-base font-bold"
           style={{
-            background: "var(--rp-bg-hero)",
-            border: error ? "2px solid var(--rp-danger)" : "2px solid var(--rp-border)",
-            color: "var(--rp-text)",
+            borderColor: error ? "var(--rp-nb-red)" : "var(--rp-nb-black)",
           }}
         />
         {error && (
-          <p className="text-xs font-semibold mt-1.5 px-1" style={{ color: "var(--rp-danger)" }}>
+          <p className="text-xs font-bold mt-1.5 px-1" style={{ color: "var(--rp-nb-red)" }}>
             {error}
           </p>
         )}
         <div className="flex gap-3 mt-4">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97]"
+            className="nb-btn flex-1 py-3 text-sm"
             style={{
-              background: "var(--rp-bg-hero)",
-              color: "var(--rp-text-secondary)",
+              background: "var(--rp-nb-cream)",
+              color: "var(--rp-nb-text-secondary)",
             }}
           >
             {t.game.renameCancel}
@@ -158,8 +159,8 @@ function RenameSheet({
           <button
             onClick={() => void handleSave()}
             disabled={saving}
-            className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.97] disabled:opacity-50"
-            style={{ background: "var(--rp-purple)" }}
+            className="nb-btn flex-1 py-3 text-sm text-white"
+            style={{ background: "var(--rp-nb-purple-deep)" }}
           >
             {saving ? "…" : t.game.renameSave}
           </button>
@@ -191,31 +192,34 @@ function KickConfirmSheet({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center"
-      style={{ background: "rgba(0,0,0,0.35)" }}
+      style={{ background: "rgba(26,26,46,0.7)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div
         className="w-full max-w-md animate-fade-in"
         style={{
-          background: "var(--rp-bg-elevated)",
-          borderRadius: "var(--rp-radius-lg) var(--rp-radius-lg) 0 0",
-          boxShadow: "0 -8px 30px rgba(0,0,0,0.12)",
+          background: "var(--rp-nb-white)",
+          borderRadius: "var(--rp-nb-radius) var(--rp-nb-radius) 0 0",
+          borderTop: "var(--rp-nb-border)",
+          borderLeft: "var(--rp-nb-border)",
+          borderRight: "var(--rp-nb-border)",
+          boxShadow: "0 -4px 0 var(--rp-nb-black)",
           padding: "24px 20px max(env(safe-area-inset-bottom, 16px), 24px)",
         }}
       >
         <p
-          className="text-base font-bold text-center mb-5"
-          style={{ color: "var(--rp-text)" }}
+          className="text-base font-black text-center mb-5 uppercase"
+          style={{ color: "var(--rp-nb-text)" }}
         >
           {interpolate(t.game.kickConfirm, { name: playerName })}
         </p>
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97]"
+            className="nb-btn flex-1 py-3 text-sm"
             style={{
-              background: "var(--rp-bg-hero)",
-              color: "var(--rp-text-secondary)",
+              background: "var(--rp-nb-cream)",
+              color: "var(--rp-nb-text-secondary)",
             }}
           >
             {t.game.kickCancel}
@@ -223,8 +227,8 @@ function KickConfirmSheet({
           <button
             onClick={() => void handleKick()}
             disabled={busy}
-            className="flex-1 py-3 rounded-xl text-sm font-bold text-white transition-all active:scale-[0.97] disabled:opacity-50"
-            style={{ background: "var(--rp-danger, #e53e3e)" }}
+            className="nb-btn flex-1 py-3 text-sm text-white"
+            style={{ background: "var(--rp-nb-red)" }}
           >
             {busy ? "…" : t.game.kickAction}
           </button>
@@ -304,26 +308,23 @@ export function LobbyScreen() {
     <div
       className="relative flex flex-1 flex-col"
       style={{
-        background: "var(--rp-bg-hero)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
-      {/* Confetti decorations */}
+      {/* Decorative sparks */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute top-[6%] left-[8%] text-lg opacity-80">&#10022;</div>
-        <div className="absolute top-[10%] right-[10%] text-sm opacity-60" style={{ color: "var(--rp-peach)" }}>&#10022;</div>
-        <div className="absolute top-[4%] left-[40%] text-xs opacity-50" style={{ color: "var(--rp-yellow)" }}>&#10022;</div>
-        <div className="absolute top-[14%] right-[30%] w-2 h-2 rounded-full opacity-40" style={{ background: "var(--rp-sky)" }} />
-        <div className="absolute top-[8%] left-[25%] w-1.5 h-1.5 rounded-full opacity-50" style={{ background: "var(--rp-purple-soft)" }} />
-        <div className="absolute top-[18%] right-[8%] w-1.5 h-4 rounded-full opacity-30 rotate-45" style={{ background: "var(--rp-pink)" }} />
-        <div className="absolute top-[12%] left-[60%] w-1 h-3 rounded-full opacity-30 -rotate-12" style={{ background: "var(--rp-mint)" }} />
+        <div className="absolute top-[6%] left-[8%] w-2.5 h-2.5 border-2 border-[var(--rp-nb-black)] bg-[var(--rp-nb-yellow)] rotate-45" />
+        <div className="absolute top-[10%] right-[10%] w-2 h-2 border-2 border-[var(--rp-nb-black)] bg-[var(--rp-nb-peach)] rotate-45" />
+        <div className="absolute top-[4%] left-[40%] w-1.5 h-1.5 border-2 border-[var(--rp-nb-black)] bg-[var(--rp-nb-blue)] rotate-45" />
+        <div className="absolute top-[14%] right-[30%] w-2 h-2 border-2 border-[var(--rp-nb-black)] bg-[var(--rp-nb-mint)] rotate-45" />
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col min-h-0 px-5 pb-6">
         {(shareToast || copied) && (
           <div
-            className="rp-shell-banner rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
-            style={{ background: "var(--rp-purple)" }}
+            className="rp-shell-banner nb-card px-6 py-3 text-center font-black text-white animate-fade-in uppercase"
+            style={{ background: "var(--rp-nb-purple-deep)" }}
           >
             {shareToast ?? t.lobby.linkCopied}
           </div>
@@ -331,8 +332,8 @@ export function LobbyScreen() {
         <div className="flex items-center justify-between gap-3 mt-1 mb-1">
           <button
             onClick={() => void game.leaveRoom()}
-            className="self-start inline-flex items-center min-h-11 min-w-11 -ml-2 px-2 text-sm font-medium transition-colors"
-            style={{ color: "var(--rp-text-secondary)" }}
+            className="nb-btn self-start inline-flex items-center min-h-11 min-w-11 -ml-2 px-2 text-sm"
+            style={{ background: "var(--rp-nb-white)", color: "var(--rp-nb-text-secondary)" }}
           >
             &larr; {t.lobby.leave}
           </button>
@@ -348,50 +349,40 @@ export function LobbyScreen() {
 
         {/* Room code card */}
         <div className="flex flex-col items-center mb-5">
-          <span
-            className="text-xs font-semibold tracking-wider mb-1"
-            style={{ color: "var(--rp-purple)" }}
-          >
+          <span className="nb-kicker mb-1">
             {t.lobby.roomCode}
           </span>
           <div className="flex items-center gap-3">
             <span
               className="text-[2.5rem] font-black tracking-[0.2em] leading-none"
-              style={{ color: "var(--rp-text)" }}
+              style={{ color: "var(--rp-nb-text)", fontFamily: "var(--font-display, var(--font-sans))" }}
             >
               {game.room?.code}
             </span>
             <button
               onClick={handleShare}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-all active:scale-95"
-              style={{
-                background: "var(--rp-peach)",
-                color: "#fff",
-              }}
+              className="nb-btn flex items-center gap-1.5 h-8 px-3 text-xs"
+              style={{ background: "var(--rp-nb-peach)", color: "var(--rp-nb-white)" }}
             >
               <ShareIcon className="w-3.5 h-3.5" />
               {t.lobby.share}
             </button>
             <button
               onClick={handleCopy}
-              className="flex items-center gap-1.5 h-8 px-3 rounded-full text-xs font-semibold transition-all active:scale-95"
-              style={{
-                background: "var(--rp-purple-soft)",
-                color: "var(--rp-purple)",
-              }}
+              className="nb-btn flex items-center gap-1.5 h-8 px-3 text-xs"
+              style={{ background: "var(--rp-nb-lilac)", color: "var(--rp-nb-purple-deep)" }}
             >
               <CopyIcon className="w-3.5 h-3.5" />
               {copied ? t.lobby.copied : t.lobby.copyLink}
             </button>
           </div>
 
-          {/* Status indicator */}
           <div className="flex items-center gap-1.5 mt-3">
             <span
-              className="w-2 h-2 rounded-full"
-              style={{ background: canStart ? "var(--rp-success)" : "var(--rp-yellow)" }}
+              className="w-2.5 h-2.5 border-2 border-[var(--rp-nb-black)]"
+              style={{ background: canStart ? "var(--rp-nb-green)" : "var(--rp-nb-yellow)" }}
             />
-            <span className="text-sm font-semibold" style={{ color: "var(--rp-text)" }}>
+            <span className="text-sm font-bold" style={{ color: "var(--rp-nb-text)" }}>
               {canStart ? t.lobby.canStart : t.lobby.waitingPlayers}
             </span>
           </div>
@@ -406,48 +397,46 @@ export function LobbyScreen() {
             return (
               <div
                 key={player.id}
-                className="flex items-center gap-3 px-4 py-3 animate-fade-in"
-                style={{
-                  background: "var(--rp-bg-elevated)",
-                  borderRadius: "var(--rp-radius-md)",
-                  boxShadow: "var(--rp-shadow-card)",
-                }}
+                className="nb-card flex items-center gap-3 px-4 py-3 animate-fade-in"
               >
                 <PlayerSchleimi playerId={player.id} size={48} label={player.display_name} />
                 {isMe ? (
                   <button
                     className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold text-left active:opacity-70 transition-opacity"
-                    style={{ color: "var(--rp-text)" }}
+                    style={{ color: "var(--rp-nb-text)" }}
                     onClick={() => setRenameOpen(true)}
                   >
                     <span className="min-w-0 truncate">{player.display_name}</span>
                     <PencilIcon className="w-3.5 h-3.5 shrink-0 opacity-50" />
-                    <span className="shrink-0 text-xs font-normal" style={{ color: "var(--rp-text-secondary)" }}>
+                    <span className="shrink-0 text-xs font-black uppercase" style={{ color: "var(--rp-nb-text-secondary)" }}>
                       {t.game.youBadge}
                     </span>
                   </button>
                 ) : (
-                  <span className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold" style={{ color: "var(--rp-text)" }}>
+                  <span className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold" style={{ color: "var(--rp-nb-text)" }}>
                     <span className="min-w-0 truncate">{player.display_name}</span>
                   </span>
                 )}
                 {player.is_host && (
                   <span
-                    className="flex items-center gap-1 h-7 px-3 rounded-full text-xs font-bold"
+                    className="flex items-center gap-1 h-7 px-3 text-xs font-black uppercase"
                     style={{
-                      background: "rgba(139, 124, 255, 0.12)",
-                      color: "var(--rp-purple)",
+                      background: "var(--rp-nb-yellow)",
+                      color: "var(--rp-nb-black)",
+                      border: "2px solid var(--rp-nb-black)",
+                      borderRadius: "var(--rp-nb-radius)",
+                      boxShadow: "var(--rp-nb-shadow-sm)",
                     }}
                   >
                     <CrownIcon className="w-3.5 h-3.5" />
-                    Host
+                    HOST
                   </span>
                 )}
                 {canKick && (
                   <button
                     onClick={() => setKickTarget({ id: player.id, name: player.display_name })}
-                    className="flex items-center justify-center shrink-0 w-11 h-11 -mr-2 rounded-full transition-all active:scale-90 active:opacity-70"
-                    style={{ color: "var(--rp-text-secondary)" }}
+                    className="nb-btn flex items-center justify-center shrink-0 w-11 h-11 -mr-2"
+                    style={{ background: "var(--rp-nb-white)", color: "var(--rp-nb-text-secondary)" }}
                     aria-label={interpolate(t.game.kickConfirm, { name: player.display_name })}
                   >
                     <KickIcon className="w-5 h-5" />
@@ -469,16 +458,16 @@ export function LobbyScreen() {
 
         {/* Micro hint */}
         <div className="flex items-center gap-2.5 mb-4 px-1">
-          <PeopleIcon className="w-6 h-6 shrink-0" style={{ color: "var(--rp-purple-soft)" }} />
+          <PeopleIcon className="w-6 h-6 shrink-0" style={{ color: "var(--rp-nb-purple)" }} />
           <div>
-            <p className="text-sm font-medium" style={{ color: "var(--rp-text)" }}>
+            <p className="text-sm font-bold" style={{ color: "var(--rp-nb-text)" }}>
               {game.players.length < 2
                 ? t.lobby.needOneMore
                 : game.players.length < game.roomSettings.maxPlayers
                   ? interpolate(t.lobby.playersReadyStart, { n: game.players.length })
                   : interpolate(t.lobby.playersReady, { n: game.players.length })}
             </p>
-            <p className="text-xs" style={{ color: "var(--rp-text-secondary)" }}>
+            <p className="text-xs font-semibold" style={{ color: "var(--rp-nb-text-secondary)" }}>
               {game.roomSettings.maxPlayers === 2
                 ? t.lobby.twoPlayerHint
                 : interpolate(t.lobby.rangeHint, { n: game.roomSettings.maxPlayers })}
@@ -491,12 +480,10 @@ export function LobbyScreen() {
           <button
             onClick={handleStart}
             disabled={!canStart}
-            className="w-full flex items-center justify-center gap-3 py-4 rounded-[var(--rp-radius-md)] text-lg font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40 disabled:active:scale-100"
+            className="nb-btn w-full flex items-center justify-center gap-3 py-4 text-lg text-white"
             style={{
-              background: canStart
-                ? "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)"
-                : "var(--rp-peach)",
-              boxShadow: canStart ? "0 8px 24px rgba(255, 138, 113, 0.35)" : "none",
+              background: "var(--rp-nb-peach)",
+              boxShadow: "var(--rp-nb-shadow-lg)",
             }}
           >
             <PlayIcon className="w-7 h-7" />
@@ -504,13 +491,14 @@ export function LobbyScreen() {
           </button>
         ) : (
           <div
-            className="w-full py-4 text-center rounded-[var(--rp-radius-md)]"
+            className="w-full py-4 text-center"
             style={{
-              background: "rgba(139, 124, 255, 0.08)",
-              border: "2px dashed var(--rp-purple-soft)",
+              background: "var(--rp-nb-lilac)",
+              border: "3px dashed var(--rp-nb-black)",
+              borderRadius: "var(--rp-nb-radius)",
             }}
           >
-            <p className="text-base font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+            <p className="text-base font-black uppercase" style={{ color: "var(--rp-nb-text-secondary)" }}>
               {t.lobby.waitHost}
             </p>
           </div>

@@ -120,7 +120,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
   if (!isGuest && profileLoading) {
     return (
       <PanelShell title={t.home.friends} onBack={onBack}>
-        <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+        <p className="text-sm font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
           {t.friends.loading}
         </p>
       </PanelShell>
@@ -136,10 +136,8 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
         />
         <Link
           href="/auth/login"
-          className="mt-4 flex h-11 items-center justify-center rounded-[var(--rp-radius-pill)] text-sm font-bold text-white"
-          style={{
-            background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-          }}
+          className="nb-btn mt-4 flex h-11 items-center justify-center text-sm text-white"
+          style={{ background: "var(--rp-nb-peach)" }}
         >
           {t.landing.login}
         </Link>
@@ -151,31 +149,21 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
     <PanelShell title={t.home.friends} onBack={onBack}>
       {toast && (
         <div
-          className="rp-shell-banner rounded-2xl px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
-          style={{ background: "var(--rp-purple)" }}
+          className="rp-shell-banner nb-card px-6 py-3 text-center font-black text-white animate-fade-in uppercase"
+          style={{ background: "var(--rp-nb-purple-deep)" }}
         >
           {toast}
         </div>
       )}
 
-      <section
-        className="flex items-center justify-between gap-3 px-4 py-3 mb-4"
-        style={{
-          background: "var(--rp-bg-elevated)",
-          borderRadius: "var(--rp-radius-md)",
-          boxShadow: "var(--rp-shadow-card)",
-        }}
-      >
+      <section className="nb-card flex items-center justify-between gap-3 px-4 py-3 mb-4">
         <div>
-          <p
-            className="text-[10px] font-bold uppercase tracking-wider"
-            style={{ color: "var(--rp-purple)" }}
-          >
+          <p className="nb-kicker">
             {t.friends.yourCode}
           </p>
           <p
             className="text-lg font-black tracking-[0.18em]"
-            style={{ color: "var(--rp-text)" }}
+            style={{ color: "var(--rp-nb-text)", fontFamily: "var(--font-display, var(--font-sans))" }}
           >
             {friendCode ?? "······"}
           </p>
@@ -184,11 +172,8 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
           type="button"
           onClick={() => void handleCopyCode()}
           disabled={!friendCode}
-          className="h-11 px-4 rounded-full text-xs font-bold transition-all active:scale-95 disabled:opacity-40"
-          style={{
-            background: "var(--rp-purple-soft)",
-            color: "var(--rp-purple)",
-          }}
+          className="nb-btn h-11 px-4 text-xs"
+          style={{ background: "var(--rp-nb-lilac)", color: "var(--rp-nb-purple-deep)" }}
         >
           {t.friends.copy}
         </button>
@@ -197,8 +182,8 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
       <form onSubmit={(e) => void handleAdd(e)} className="mb-5">
         <label
           htmlFor="friend-ident"
-          className="block text-xs font-bold mb-1.5 px-1"
-          style={{ color: "var(--rp-text-secondary)" }}
+          className="block text-xs font-black uppercase mb-1.5 px-1"
+          style={{ color: "var(--rp-nb-text-secondary)" }}
         >
           {t.friends.addLabel}
         </label>
@@ -212,75 +197,56 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
             }}
             placeholder={t.friends.addPlaceholder}
             autoComplete="off"
-            className="flex-1 h-11 rounded-xl border-2 px-3 text-sm font-medium text-[var(--rp-text)] placeholder:text-gray-300 focus:outline-none"
+            className="nb-input flex-1 h-11 px-3 text-sm"
             style={{
-              borderColor: formError ? "var(--rp-danger)" : "var(--rp-border)",
-              background: "#FAFAFA",
+              borderColor: formError ? "var(--rp-nb-red)" : "var(--rp-nb-black)",
             }}
           />
           <button
             type="submit"
             disabled={busy}
-            className="h-11 px-4 rounded-xl text-sm font-bold text-white shrink-0 transition-all active:scale-[0.97] disabled:opacity-50"
-            style={{
-              background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-            }}
+            className="nb-btn h-11 px-4 text-sm text-white shrink-0"
+            style={{ background: "var(--rp-nb-peach)" }}
           >
             {t.friends.add}
           </button>
         </div>
         {formError && (
-          <p className="mt-1.5 text-xs font-medium px-1" style={{ color: "var(--rp-danger)" }}>
+          <p className="mt-1.5 text-xs font-bold px-1" style={{ color: "var(--rp-nb-red)" }}>
             {formError}
           </p>
         )}
       </form>
 
       {loading ? (
-        <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+        <p className="text-sm font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
           Laden…
         </p>
       ) : (
         <>
           {incoming.length > 0 && (
             <section className="mb-5">
-              <h2
-                className="text-xs font-bold uppercase tracking-wider mb-2 px-1"
-                style={{ color: "var(--rp-text-secondary)" }}
-              >
-                Anfragen
-              </h2>
+              <h2 className="nb-kicker mb-2 px-1">Anfragen</h2>
               <ul className="space-y-2">
                 {incoming.map((entry) => (
-                  <li
-                    key={entry.friendshipId}
-                    className="flex items-center gap-3 px-3 py-2.5"
-                    style={{
-                      background: "var(--rp-bg-elevated)",
-                      borderRadius: "var(--rp-radius-md)",
-                      boxShadow: "var(--rp-shadow-card)",
-                    }}
-                  >
+                  <li key={entry.friendshipId} className="nb-card flex items-center gap-3 px-3 py-2.5">
                     <FriendAvatar profile={entry.profile} />
-                    <span
-                      className="flex-1 text-sm font-extrabold truncate"
-                      style={{ color: "var(--rp-text)" }}
-                    >
+                    <span className="flex-1 text-sm font-black truncate" style={{ color: "var(--rp-nb-text)" }}>
                       {entry.profile.username}
                     </span>
                     <button
                       type="button"
                       onClick={() => void respond(entry.friendshipId, false)}
-                      className="h-11 px-3 rounded-full text-xs font-bold"
-                      style={{ color: "var(--rp-text-secondary)" }}
+                      className="nb-btn h-11 px-3 text-xs"
+                      style={{ background: "var(--rp-nb-cream)", color: "var(--rp-nb-text-secondary)" }}
                     >
                       Ablehnen
                     </button>
                     <button
                       type="button"
                       onClick={() => void respond(entry.friendshipId, true)}
-                      className="h-11 px-3 rounded-full text-xs font-bold text-white"
-                      style={{ background: "var(--rp-purple)" }}
+                      className="nb-btn h-11 px-3 text-xs text-white"
+                      style={{ background: "var(--rp-nb-purple-deep)" }}
                     >
                       Annehmen
                     </button>
@@ -292,40 +258,24 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
 
           {outgoing.length > 0 && (
             <section className="mb-5">
-              <h2
-                className="text-xs font-bold uppercase tracking-wider mb-2 px-1"
-                style={{ color: "var(--rp-text-secondary)" }}
-              >
-                Gesendet
-              </h2>
+              <h2 className="nb-kicker mb-2 px-1">Gesendet</h2>
               <ul className="space-y-2">
                 {outgoing.map((entry) => (
-                  <li
-                    key={entry.friendshipId}
-                    className="flex items-center gap-3 px-3 py-2.5"
-                    style={{
-                      background: "var(--rp-bg-elevated)",
-                      borderRadius: "var(--rp-radius-md)",
-                      boxShadow: "var(--rp-shadow-card)",
-                    }}
-                  >
+                  <li key={entry.friendshipId} className="nb-card flex items-center gap-3 px-3 py-2.5">
                     <FriendAvatar profile={entry.profile} />
                     <div className="flex-1 min-w-0">
-                      <p
-                        className="text-sm font-extrabold truncate"
-                        style={{ color: "var(--rp-text)" }}
-                      >
+                      <p className="text-sm font-black truncate" style={{ color: "var(--rp-nb-text)" }}>
                         {entry.profile.username}
                       </p>
-                      <p className="text-[10px]" style={{ color: "var(--rp-text-secondary)" }}>
+                      <p className="text-[10px] font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
                         Anfrage läuft
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => void remove(entry.friendshipId)}
-                      className="h-11 px-3 rounded-full text-xs font-bold"
-                      style={{ color: "var(--rp-text-secondary)" }}
+                      className="nb-btn h-11 px-3 text-xs"
+                      style={{ background: "var(--rp-nb-cream)", color: "var(--rp-nb-text-secondary)" }}
                     >
                       Abbrechen
                     </button>
@@ -336,10 +286,7 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
           )}
 
           <section>
-            <h2
-              className="text-xs font-bold uppercase tracking-wider mb-2 px-1"
-              style={{ color: "var(--rp-text-secondary)" }}
-            >
+            <h2 className="nb-kicker mb-2 px-1">
               {t.friends.listTitle}
             </h2>
             {friends.length === 0 ? (
@@ -352,27 +299,16 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
                 {friends.map((entry) => {
                   const presence = formatPresence(entry.profile.last_seen_at);
                   return (
-                    <li
-                      key={entry.friendshipId}
-                      className="flex items-center gap-3 px-3 py-2.5"
-                      style={{
-                        background: "var(--rp-bg-elevated)",
-                        borderRadius: "var(--rp-radius-md)",
-                        boxShadow: "var(--rp-shadow-card)",
-                      }}
-                    >
+                    <li key={entry.friendshipId} className="nb-card flex items-center gap-3 px-3 py-2.5">
                       <FriendAvatar profile={entry.profile} />
                       <div className="flex-1 min-w-0">
-                        <p
-                          className="text-sm font-extrabold truncate"
-                          style={{ color: "var(--rp-text)" }}
-                        >
+                        <p className="text-sm font-black truncate" style={{ color: "var(--rp-nb-text)" }}>
                           {entry.profile.username}
                         </p>
                         <p
-                          className="text-[10px] font-semibold"
+                          className="text-[10px] font-bold"
                           style={{
-                            color: presence.online ? "var(--rp-success)" : "var(--rp-text-secondary)",
+                            color: presence.online ? "var(--rp-nb-green)" : "var(--rp-nb-text-secondary)",
                           }}
                         >
                           {presence.label}
@@ -381,8 +317,8 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
                       <button
                         type="button"
                         onClick={() => void remove(entry.friendshipId)}
-                        className="h-11 px-2 rounded-full text-[10px] font-bold"
-                        style={{ color: "var(--rp-text-secondary)" }}
+                        className="nb-btn h-11 px-2 text-[10px]"
+                        style={{ background: "var(--rp-nb-cream)", color: "var(--rp-nb-text-secondary)" }}
                       >
                         Entfernen
                       </button>
@@ -390,11 +326,8 @@ export function FriendsPanel({ onBack }: { onBack: () => void }) {
                         type="button"
                         disabled={invitingId !== null}
                         onClick={() => void handleInvite()}
-                        className="h-11 px-3 rounded-full text-xs font-bold text-white disabled:opacity-50"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-                        }}
+                        className="nb-btn h-11 px-3 text-xs text-white"
+                        style={{ background: "var(--rp-nb-peach)" }}
                       >
                         Einladen
                       </button>
