@@ -121,19 +121,19 @@
 
 .trophyScene {
   position: absolute;
-  right: -16px;
-  bottom: -2px;
+  right: -12px;
+  bottom: 1px;
   z-index: 2;
-  width: 158px;
-  height: 146px;
+  width: 148px;
+  height: 137px;
   transform-origin: 50% 75%;
 }
 
 .trophy {
   position: relative;
   z-index: 2;
-  width: 154px;
-  height: 142px;
+  width: 144px;
+  height: 133px;
   object-fit: contain;
   filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
 }
@@ -463,9 +463,9 @@
 }
 
 .iconAchievements .iconArt {
-  width: 76px;
-  height: 72px;
-  margin-block: -12px;
+  width: 68px;
+  height: 64px;
+  margin-block: -8px;
 }
 
 .iconSchleimiCluster {
@@ -645,9 +645,9 @@
   }
 
   .iconAchievements .iconArt {
-    width: 66px;
-    height: 62px;
-    margin-block: -10px;
+    width: 60px;
+    height: 56px;
+    margin-block: -7px;
   }
 
   .iconLabel {
