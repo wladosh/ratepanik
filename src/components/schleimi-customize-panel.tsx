@@ -7,7 +7,6 @@ import { useI18n } from "@/lib/i18n-context";
 import { useCosmetics } from "@/lib/use-cosmetics";
 import {
   COSMETIC_SLOTS,
-  RARITY_SOFT,
   type CosmeticSlot,
 } from "@/lib/schleimi-catalog";
 import { CosmeticTileArt, SchleimiPreview } from "@/components/schleimi-preview";
@@ -24,13 +23,16 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const itemsInSlot = useMemo(
-    () =>
-      catalog
-        .filter((item) => item.slot === slot)
-        .sort((a, b) => a.sort_order - b.sort_order),
-    [catalog, slot],
-  );
+  const itemsInSlot = useMemo(() => {
+    const inSlot = catalog.filter((item) => item.slot === slot);
+    const ownedItems = inSlot
+      .filter((item) => owned.has(item.id))
+      .sort((a, b) => a.sort_order - b.sort_order);
+    const unknownItems = inSlot
+      .filter((item) => !owned.has(item.id))
+      .sort((a, b) => a.id.localeCompare(b.id));
+    return [...ownedItems, ...unknownItems];
+  }, [catalog, slot, owned]);
 
   /** owned/total per slot for the collection counters on the chips. */
   const slotProgress = useMemo(() => {
@@ -165,20 +167,12 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
                     style={{
                       width: 72,
                       height: 72,
-                      background: RARITY_SOFT[item.rarity],
-                      color: "var(--rp-text-secondary)",
-                      opacity: 0.75,
+                      background: "#C8C8C8",
+                      color: "var(--rp-nb-black)",
                     }}
-                    aria-label={`${item.name_de} (gesperrt)`}
+                    aria-label={t.cosmetics.unknownItem}
                   >
                     ?
-                  </span>
-                  <RarityBadge rarity={item.rarity} compact />
-                  <span
-                    className="text-center text-[10px] font-bold leading-tight"
-                    style={{ color: "var(--rp-text-secondary)" }}
-                  >
-                    ???
                   </span>
                 </div>
               );

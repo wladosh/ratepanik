@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { generateGuestName } from "@/lib/guest-name";
 import { xpProgressInLevel } from "@/lib/progression";
-import { HIRNCOIN_ICON_20, XP_BADGE_16, BADGE_STREAK_3_48 } from "@/lib/rp-assets";
+import { HIRNCOIN_ICON_20, XP_BADGE_16, BADGE_STREAK_3_128 } from "@/lib/rp-assets";
 import { HomePanel, type HomePanelId } from "@/components/home-panels";
 import { SchleimiPreview } from "@/components/schleimi-preview";
 import { useCosmetics } from "@/lib/use-cosmetics";
@@ -59,11 +59,11 @@ function StreakCard({
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={BADGE_STREAK_3_48}
+        src={BADGE_STREAK_3_128}
         alt=""
-        width={36}
-        height={36}
-        className="h-9 w-9 object-contain"
+        width={52}
+        height={52}
+        className="h-[52px] w-[52px] object-contain"
       />
       <div className="flex-1">
         <h4 className="text-sm font-extrabold text-[var(--rp-nb-black)]">{t.home.streakTitle}</h4>

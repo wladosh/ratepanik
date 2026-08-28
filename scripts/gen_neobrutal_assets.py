@@ -678,7 +678,12 @@ def main():
         save(m, sz, f"{OUT}/rp_icon_stats_clipboard_128{suf}")
         generated.append(f"rp_icon_stats_clipboard_128{suf}")
 
-    # 4. Trophy Gold — retired; home/landing use rp_badge_first_win_128@2x.png
+    # 4. Trophy Gold (master 2048 → 512, 1024)
+    print("\n[4] rp_trophy_gold set")
+    m = gen_trophy(2048)
+    save(m, 512, f"{OUT}/rp_trophy_gold_512.png")
+    save(m, 1024, f"{OUT}/rp_trophy_gold_1024.png")
+    generated.extend(["rp_trophy_gold_512.png", "rp_trophy_gold_1024.png"])
 
     # 5. Hirncoin (master 576 → 24, 48, 72, 96, 144)
     print("\n[5] rp_hirncoin set")

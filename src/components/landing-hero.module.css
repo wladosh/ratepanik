@@ -88,8 +88,8 @@
 .trophyButton {
   position: relative;
   display: grid;
-  width: 140px;
-  height: 140px;
+  width: 132px;
+  height: 132px;
   place-items: center;
   border: 0;
   border-radius: 0;
@@ -107,8 +107,8 @@
 .trophyReact {
   position: relative;
   display: block;
-  width: 128px;
-  height: 128px;
+  width: 88px;
+  height: 82px;
 }
 
 .trophyReact {
@@ -118,14 +118,14 @@
 .trophy {
   position: relative;
   z-index: 1;
-  width: 128px;
-  height: 128px;
+  width: 88px;
+  height: 82px;
   object-fit: contain;
   filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.25));
 }
 
 .shine {
-  display: none;
+  position: absolute;
   top: 17px;
   left: 32px;
   z-index: 2;

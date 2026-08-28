@@ -214,8 +214,8 @@ export function LandingHero() {
               <Image
                 src={TROPHY_ART}
                 alt=""
-                width={128}
-                height={128}
+                width={88}
+                height={82}
                 priority
                 className={styles.trophy}
               />

@@ -26,6 +26,8 @@ export const HOME_CREATE_ROOM_256 = "/rp/rp_home_create_room_256.png";
 export const RANK_BADGE_GOLD_128 = "/rp/rp_badge_rank_1_128@2x.png";
 export const LOOT_BOX_RARE_128 = "/rp/rp_loot_box_rare_128@2x.png";
 export const LOOT_BOX_LEGENDARY_256 = "/rp/rp_loot_box_legendary_256.png";
+export const TROPHY_GOLD_512 = "/rp/rp_trophy_gold_512.png";
+export const TROPHY_ART = TROPHY_GOLD_512;
 
 // ── Home icon-row art ─────────────────────────────────────────────
 export const ICON_FRIENDS_SLIMES_128 = "/rp/rp_icon_friends_slimes_128@2x.png";
@@ -123,7 +125,6 @@ export const AVATAR_BG: Record<AvatarId, string> = {
 // ── Achievement Badges ───────────────────────────────────────────────
 export const BADGE_FIRST_WIN_48 = "/rp/rp_badge_first_win_48@2x.png";
 export const BADGE_FIRST_WIN_128 = "/rp/rp_badge_first_win_128@2x.png";
-export const TROPHY_ART = BADGE_FIRST_WIN_128;
 
 export const BADGE_FIRST_ROOM_48 = "/rp/rp_badge_first_room_48@2x.png";
 export const BADGE_FIRST_ROOM_128 = "/rp/rp_badge_first_room_128@2x.png";

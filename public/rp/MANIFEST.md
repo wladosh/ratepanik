@@ -20,6 +20,10 @@ The following files were overwritten with NeoBrutalism-style artwork:
 - `rp_icon_stats_clipboard_128@2x.png` (256×256)
 - `rp_icon_stats_clipboard_128@3x.png` (384×384)
 
+### Trophy
+- `rp_trophy_gold_512.png` (512×512)
+- `rp_trophy_gold_1024.png` (1024×1024) — **new file**
+
 ### Hirncoins (Currency)
 - `rp_hirncoin_24.png` (24×24)
 - `rp_hirncoin_24@2x.png` (48×48)
@@ -79,6 +83,12 @@ Covers: navigation icons, default avatars, currency coin, trophy, rank badges, a
 | `rp_currency_coin_24.png` | 24×24 |
 | `rp_currency_coin_24@2x.png` | 48×48 |
 | `rp_currency_coin_24@3x.png` | 72×72 |
+
+### Trophy
+
+| File | Size | Usage |
+|------|------|-------|
+| `rp_trophy_gold_512.png` | 512×512 (actual 1024×1024) | Landing page hero |
 
 ### Rank Badges
 
