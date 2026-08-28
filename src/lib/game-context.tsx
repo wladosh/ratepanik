@@ -59,7 +59,13 @@ import {
 import { useAuth } from "./auth-context";
 import { useAchievementGrant } from "./use-achievement-grant";
 import { generateGuestName } from "./guest-name";
-import { displayNameForJoin, resolveGuestExitPath, shouldSkipSessionRestore } from "./guest-flow";
+import {
+  clearMatchSession,
+  displayNameForJoin,
+  resolveGuestExitPath,
+  saveMatchSession,
+  shouldSkipSessionRestore,
+} from "./guest-flow";
 import {
   clearJoinSeat,
   findExistingSeat,
@@ -282,6 +288,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const lastStateKeyRef = useRef("");
   const pickCompleteRef = useRef<string | null>(null);
   const subscribeRef = useRef<((roomId: string) => void) | null>(null);
+  const refetchRoomStateRef = useRef<((roomId: string) => Promise<void>) | null>(null);
   const sessionRestoringRef = useRef(false);
   const joinCodeUsedRef = useRef(false);
   const autoStartAttemptRef = useRef<string | null>(null);
@@ -290,6 +297,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const [disconnected, setDisconnected] = useState(false);
   const myPlayerIdRef = useRef<string | null>(null);
   const roomCodeRef = useRef<string | null>(null);
+  const roomRef = useRef<DbRoom | null>(null);
   const [revealHoldActive, setRevealHoldActive] = useState(false);
   const [roundTimedOut, setRoundTimedOut] = useState(false);
   const [hostActionLock, setHostActionLock] = useState(false);
@@ -514,6 +522,9 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   useEffect(() => {
     roomCodeRef.current = room?.code ?? joinCode ?? null;
   }, [room?.code, joinCode]);
+  useEffect(() => {
+    roomRef.current = room;
+  }, [room]);
 
   // Toast errors during a live match expire. Join/create failures stay until retry.
   useEffect(() => {
@@ -665,26 +676,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
               supabase.removeChannel(channelRef.current);
             }
             subscribeRef.current?.(roomId);
-            void (async () => {
-              const [
-                { data: roomData },
-                { data: playersData },
-                { data: answersData },
-                { data: blocksData },
-                { data: turnsData },
-              ] = await Promise.all([
-                supabase.from("rooms").select().eq("id", roomId).single(),
-                supabase.from("players").select().eq("room_id", roomId),
-                supabase.from("answers").select().eq("room_id", roomId),
-                supabase.from("match_blocks").select().eq("room_id", roomId),
-                supabase.from("pick_correct_turns").select().eq("room_id", roomId),
-              ]);
-              if (roomData) setRoom(roomData);
-              if (playersData) setPlayers(playersData);
-              if (answersData) setAllAnswers(answersData);
-              if (blocksData) setBlocks(blocksData);
-              if (turnsData) setTurns(turnsData);
-            })();
+            void refetchRoomStateRef.current?.(roomId);
           }, 2000);
         }
       });
@@ -695,6 +687,58 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   useEffect(() => {
     subscribeRef.current = subscribeToRoom;
   }, [subscribeToRoom]);
+
+  const refetchRoomState = useCallback(async (roomId: string) => {
+    const [
+      { data: roomData },
+      { data: playersData },
+      { data: answersData },
+      { data: blocksData },
+      { data: turnsData },
+    ] = await Promise.all([
+      supabase.from("rooms").select().eq("id", roomId).single(),
+      supabase.from("players").select().eq("room_id", roomId),
+      supabase.from("answers").select().eq("room_id", roomId),
+      supabase.from("match_blocks").select().eq("room_id", roomId),
+      supabase.from("pick_correct_turns").select().eq("room_id", roomId),
+    ]);
+    if (roomData) setRoom(roomData);
+    if (playersData) setPlayers(playersData);
+    if (answersData) setAllAnswers(answersData);
+    if (blocksData) setBlocks(blocksData);
+    if (turnsData) setTurns(turnsData);
+    setDisconnected(false);
+  }, [supabase]);
+
+  useEffect(() => {
+    refetchRoomStateRef.current = refetchRoomState;
+  }, [refetchRoomState]);
+
+  // Hidden-tab timers are throttled, so reconnect when the tab is foregrounded.
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState !== "visible") return;
+      const currentRoom = roomRef.current;
+      if (!currentRoom) return;
+
+      const channel = channelRef.current;
+      const needsReconnect =
+        !channel ||
+        (channel.state !== "joined" && channel.state !== "joining");
+
+      if (!needsReconnect && !disconnected) return;
+
+      if (channel) {
+        supabase.removeChannel(channel);
+        channelRef.current = null;
+      }
+      subscribeRef.current?.(currentRoom.id);
+      void refetchRoomState(currentRoom.id);
+    }
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [supabase, disconnected, refetchRoomState]);
 
   // --- load prompts when block theme is selected ---
 
@@ -1019,15 +1063,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   // --- session persistence ---
 
-  function saveSession(roomId: string, playerId: string) {
-    sessionStorage.setItem(
-      "ratepanik-session",
-      JSON.stringify({ roomId, playerId })
-    );
+  function saveSession(roomId: string, playerId: string, roomCode?: string) {
+    saveMatchSession(roomId, playerId, roomCode ?? roomCodeRef.current ?? "");
   }
 
   function clearSession() {
-    sessionStorage.removeItem("ratepanik-session");
+    clearMatchSession();
   }
 
   useEffect(() => {
@@ -1072,6 +1113,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         setBlocks(blocksData || []);
         setTurns(turnsData || []);
         setMyPlayerId(playerId);
+        saveSession(roomId, playerId, roomData.code);
+        writeJoinSeat(roomData.code as string, playerId);
         subscribeToRoom(roomId);
       } catch {
         if (!cancelled) clearSession();
@@ -1145,7 +1188,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       setTurns([]);
       setPrompts([]);
 
-      saveSession(roomData.id, playerData.id);
+      saveSession(roomData.id, playerData.id, roomData.code);
       writeJoinSeat(roomData.code as string, playerData.id);
       subscribeToRoom(roomData.id);
 
@@ -1228,7 +1271,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         setTurns(turnsData || []);
         setPrompts([]);
 
-        saveSession(roomData.id, player.id);
+        saveSession(roomData.id, player.id, normalizedCode);
         writeJoinSeat(normalizedCode, player.id);
         subscribeToRoom(roomData.id);
         return null;
@@ -1298,7 +1341,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       setTurns([]);
       setPrompts([]);
 
-      saveSession(roomData.id, playerData.id);
+      saveSession(roomData.id, playerData.id, normalizedCode);
       writeJoinSeat(normalizedCode, playerData.id);
       subscribeToRoom(roomData.id);
       return null;

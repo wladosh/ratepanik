@@ -14,27 +14,44 @@ export function resolveGuestExitPath(next?: string): string {
   return "/auth/login";
 }
 
-/** A join link wins over a leftover match session so QR scans don't flash the old room. */
+/**
+ * A join link wins over a leftover match session only when it targets a
+ * different room. Same-room `/?join=CODE` (tab return / iOS app-switch)
+ * keeps the seat so we do not wipe playerId and force a second join.
+ */
 export function shouldSkipSessionRestore(joinCode: string | undefined): boolean {
-  return isJoinCode(joinCode);
+  if (!isJoinCode(joinCode)) return false;
+  const stored = readMatchSession();
+  if (stored && stored.roomCode === joinCode.toUpperCase()) return false;
+  return true;
 }
 
-/** Guests restore only through `/?join=CODE`. A bare `/` is an exit, not home. */
-export function shouldRestoreMatchOnBareHome(isGuest: boolean): boolean {
-  return !isGuest;
+/**
+ * Guests with an active session can restore on bare `/`.
+ * iOS often drops `?join=` after an app-switch; destroying the session
+ * would send them through GuestExitToLogin.
+ */
+export function shouldRestoreMatchOnBareHome(_isGuest?: boolean): boolean {
+  return true;
 }
 
-export function readMatchSession(): { roomId: string; playerId: string } | null {
+export function readMatchSession(): {
+  roomId: string;
+  playerId: string;
+  roomCode: string;
+} | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = JSON.parse(sessionStorage.getItem(MATCH_SESSION_KEY) || "{}") as {
       roomId?: unknown;
       playerId?: unknown;
+      roomCode?: unknown;
     };
     if (typeof raw.roomId !== "string" || !raw.roomId) return null;
     return {
       roomId: raw.roomId,
       playerId: typeof raw.playerId === "string" ? raw.playerId : "",
+      roomCode: typeof raw.roomCode === "string" ? raw.roomCode : "",
     };
   } catch {
     return null;
@@ -48,6 +65,14 @@ export function hasActiveGameSession(): boolean {
 export function clearMatchSession(): void {
   if (typeof window === "undefined") return;
   sessionStorage.removeItem(MATCH_SESSION_KEY);
+}
+
+export function saveMatchSession(roomId: string, playerId: string, roomCode: string): void {
+  if (typeof window === "undefined") return;
+  sessionStorage.setItem(
+    MATCH_SESSION_KEY,
+    JSON.stringify({ roomId, playerId, roomCode }),
+  );
 }
 
 export function displayNameForJoin(user: {
