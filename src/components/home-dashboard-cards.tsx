@@ -71,8 +71,8 @@ function ChampionCard({ onCreate }: { onCreate: () => void }) {
         <Image
           src={TROPHY_ART}
           alt=""
-          width={144}
-          height={133}
+          width={120}
+          height={111}
           className={styles.trophy}
           priority
         />
@@ -268,7 +268,7 @@ function IconRow({
         className={`${styles.iconItem} ${styles.iconAchievements}`}
         onClick={() => onOpenPanel("achievements")}
       >
-        <Image src={TROPHY_ART} alt="" width={68} height={64} className={styles.iconArt} aria-hidden="true" />
+        <Image src={TROPHY_ART} alt="" width={56} height={52} className={styles.iconArt} aria-hidden="true" />
         <span className={styles.iconLabel}>{t.home.achievements}</span>
         {achievementsMeta && <span className={styles.iconMeta}>{achievementsMeta}</span>}
       </button>
