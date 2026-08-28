@@ -42,6 +42,25 @@
 
   --ps-notch-inset: 0px;
   --ps-frame-radius: 0px;
+
+  /* Neo-Brutalism tokens – scoped to Home; not used in lobby/match */
+  --rp-nb-border: 3px solid #1a1a2e;
+  --rp-nb-border-w: 3px;
+  --rp-nb-shadow: 4px 4px 0 #1a1a2e;
+  --rp-nb-shadow-lg: 6px 6px 0 #1a1a2e;
+  --rp-nb-radius: 10px;
+  --rp-nb-radius-sm: 8px;
+  --rp-nb-bg: #FFF8F0;
+  --rp-nb-black: #1a1a2e;
+  --rp-nb-purple: #B8A9FF;
+  --rp-nb-purple-deep: #8B7CFF;
+  --rp-nb-yellow: #FFD66B;
+  --rp-nb-blue: #8ECFFF;
+  --rp-nb-lilac: #D7CCFF;
+  --rp-nb-mint: #7EEBC2;
+  --rp-nb-peach: #FF8A71;
+  --rp-nb-cream: #FFF8F0;
+  --rp-nb-white: #FFFFFF;
 }
 
 /* ── PhoneShell ───────────────────────────────────────── */

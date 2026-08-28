@@ -1,3 +1,8 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Neo-Brutalism – Ratepanik Home Dashboard Cards
+   Thick black borders, hard offset shadows, flat saturated fills.
+   ═══════════════════════════════════════════════════════════════════ */
+
 .championCard,
 .createCard,
 .joinCard {
@@ -6,49 +11,58 @@
   overflow: hidden;
 }
 
+/* ── Champion / Goal Card ─────────────────────────────────────── */
+
 .championCard {
   display: block;
   width: 100%;
-  min-height: 158px;
+  min-height: 148px;
   margin-bottom: 14px;
-  padding: 22px 20px 20px 24px;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 30px;
-  background:
-    radial-gradient(circle at 76% 25%, rgba(255, 255, 255, 0.66), transparent 28%),
-    linear-gradient(135deg, #cfc5ff 0%, #c7c3ff 46%, #a9d8ff 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.58),
-    0 16px 34px rgba(83, 73, 162, 0.14);
+  padding: 20px 20px 18px 22px;
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-purple);
+  box-shadow: var(--rp-nb-shadow-lg);
   font: inherit;
   text-align: left;
   cursor: pointer;
+  transition: transform 120ms ease;
+}
+
+.championCard:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--rp-nb-black);
+}
+
+.championCard:focus-visible {
+  outline: 3px solid var(--rp-nb-black);
+  outline-offset: 2px;
 }
 
 .championCopy {
   position: relative;
   z-index: 3;
-  max-width: 220px;
+  max-width: 210px;
 }
 
 .kicker,
 .actionKicker {
   margin: 0 0 5px;
-  color: #655a9e;
+  color: var(--rp-nb-black);
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1.2;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .championTitle {
   margin: 0;
-  color: #282649;
-  font-size: 21px;
-  font-weight: 800;
+  color: var(--rp-nb-black);
+  font-size: 22px;
+  font-weight: 900;
   line-height: 1.04;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
 }
 
 .championTitle span {
@@ -58,73 +72,55 @@
 
 .championBody {
   max-width: 204px;
-  margin: 9px 0 0;
-  color: #4f4c76;
+  margin: 8px 0 0;
+  color: var(--rp-nb-black);
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.38;
+  opacity: 0.78;
 }
 
-.heroGlow {
-  position: absolute;
-  right: -28px;
-  bottom: -52px;
-  z-index: -1;
-  width: 190px;
-  height: 190px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 223, 137, 0.52), rgba(255, 255, 255, 0.14) 42%, transparent 68%);
-}
-
+.heroGlow,
 .heroRing {
-  position: absolute;
-  right: 13px;
-  top: 25px;
-  z-index: -1;
-  width: 123px;
-  height: 93px;
-  transform: rotate(-9deg);
-  border: 1px solid rgba(255, 255, 255, 0.54);
-  border-radius: 50%;
-  box-shadow: inset 0 0 22px rgba(255, 255, 255, 0.24);
+  display: none;
 }
 
 .spark {
   position: absolute;
   z-index: 1;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.68);
+  width: 8px;
+  height: 8px;
+  border-radius: 0;
+  background: var(--rp-nb-yellow);
+  border: 2px solid var(--rp-nb-black);
+  transform: rotate(45deg);
 }
 
 .sparkOne {
-  top: 21px;
+  top: 18px;
   left: 56px;
 }
 
 .sparkTwo {
-  top: 43px;
-  right: 116px;
-  width: 9px;
-  height: 9px;
-  background: rgba(255, 122, 182, 0.46);
+  top: 40px;
+  right: 110px;
+  width: 10px;
+  height: 10px;
+  background: var(--rp-nb-peach);
 }
 
 .sparkThree {
-  right: 32px;
-  bottom: 20px;
-  width: 5px;
-  height: 14px;
-  transform: rotate(-17deg);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.62);
+  right: 30px;
+  bottom: 18px;
+  width: 6px;
+  height: 6px;
+  background: var(--rp-nb-white);
 }
 
 .trophyScene {
   position: absolute;
   right: 0;
-  bottom: 5px;
+  bottom: 2px;
   z-index: 2;
   width: 130px;
   height: 132px;
@@ -137,48 +133,34 @@
   width: 126px;
   height: 126px;
   object-fit: contain;
-  filter:
-    drop-shadow(0 9px 13px rgba(84, 53, 13, 0.22))
-    drop-shadow(0 0 18px rgba(255, 214, 107, 0.25));
+  filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.18));
 }
 
 .trophyShadow {
-  position: absolute;
-  right: 20px;
-  bottom: 7px;
-  width: 88px;
-  height: 17px;
-  border-radius: 50%;
-  background: rgba(69, 50, 81, 0.17);
-  filter: blur(7px);
+  display: none;
 }
+
+/* ── Create Room Card ─────────────────────────────────────────── */
 
 .createCard {
   display: flex;
   width: 100%;
-  min-height: 112px;
+  min-height: 108px;
   align-items: center;
   margin-bottom: 12px;
   padding: 17px 100px 17px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 25px;
-  color: #342f51;
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-black);
   text-align: left;
-  background: linear-gradient(125deg, #ffe7cd 0%, #ffd9c7 54%, #ffc8c1 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.65),
-    0 13px 27px rgba(184, 103, 73, 0.13);
-  transition: transform 180ms ease, box-shadow 180ms ease;
-}
-
-.createCard:hover {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.7),
-    0 17px 32px rgba(184, 103, 73, 0.18);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow-lg);
+  transition: transform 120ms ease;
 }
 
 .createCard:active {
-  transform: scale(0.985);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--rp-nb-black);
 }
 
 .createCard:disabled {
@@ -188,7 +170,7 @@
 
 .createCard:focus-visible,
 .joinButton:focus-visible {
-  outline: 3px solid rgba(139, 124, 255, 0.48);
+  outline: 3px solid var(--rp-nb-black);
   outline-offset: 2px;
 }
 
@@ -201,13 +183,13 @@
 }
 
 .actionKicker {
-  color: #b5544f;
+  color: var(--rp-nb-peach);
 }
 
 .createCopy strong {
-  color: #302d4d;
+  color: var(--rp-nb-black);
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1.12;
   letter-spacing: -0.02em;
 }
@@ -215,21 +197,21 @@
 .createCopy > span:last-child {
   max-width: 190px;
   margin-top: 4px;
-  color: #675d73;
+  color: var(--rp-text-secondary);
   font-size: 11px;
-  font-weight: 550;
+  font-weight: 650;
   line-height: 1.34;
 }
 
 .hostAsset {
   position: absolute;
-  right: 18px;
+  right: 16px;
   top: 8px;
   z-index: 2;
   width: 92px;
   height: 92px;
   transform-origin: 50% 70%;
-  filter: drop-shadow(0 8px 9px rgba(108, 58, 41, 0.15));
+  filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.12));
 }
 
 .hostAsset img {
@@ -238,17 +220,19 @@
   object-fit: contain;
 }
 
+/* ── Arrow Mark ───────────────────────────────────────────────── */
+
 .arrow {
   display: grid;
-  width: 27px;
-  height: 27px;
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid rgba(42, 42, 74, 0.08);
-  border-radius: 50%;
-  color: rgba(42, 42, 74, 0.62);
-  background: rgba(255, 255, 255, 0.54);
-  box-shadow: 0 4px 10px rgba(42, 42, 74, 0.06);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius-sm);
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-white);
+  box-shadow: 2px 2px 0 var(--rp-nb-black);
 }
 
 .arrow svg {
@@ -263,17 +247,15 @@
   z-index: 4;
 }
 
+/* ── Join Card ────────────────────────────────────────────────── */
+
 .joinCard {
   margin-bottom: 14px;
   padding: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  border-radius: 25px;
-  background:
-    radial-gradient(circle at 92% 2%, rgba(201, 192, 255, 0.2), transparent 27%),
-    rgba(255, 255, 255, 0.92);
-  box-shadow:
-    inset 0 1px 0 #fff,
-    0 14px 30px rgba(42, 42, 74, 0.09);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow-lg);
 }
 
 .joinHeading {
@@ -285,14 +267,14 @@
 
 .joinHeading .kicker {
   margin-bottom: 3px;
-  color: #80759d;
+  color: var(--rp-text-secondary);
 }
 
 .joinHeading h2 {
   margin: 0;
-  color: #2e2b4c;
+  color: var(--rp-nb-black);
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.025em;
 }
@@ -308,10 +290,10 @@
   height: 34px;
   margin-left: -9px;
   overflow: hidden;
-  border: 2px solid #fff;
-  border-radius: 12px;
-  background: #f3efff;
-  box-shadow: 0 4px 9px rgba(42, 42, 74, 0.12);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius-sm);
+  background: var(--rp-nb-lilac);
+  box-shadow: 2px 2px 0 var(--rp-nb-black);
 }
 
 .joinDock {
@@ -324,11 +306,11 @@
   position: relative;
   display: block;
   min-width: 0;
-  border-radius: 15px;
+  border-radius: var(--rp-nb-radius-sm);
 }
 
 .codeField:focus-within {
-  box-shadow: 0 0 0 3px rgba(139, 124, 255, 0.17);
+  box-shadow: 0 0 0 3px var(--rp-nb-purple-deep);
 }
 
 .codeSlots {
@@ -343,13 +325,12 @@
   display: grid;
   min-width: 0;
   place-items: center;
-  border: 1.5px solid rgba(83, 74, 123, 0.1);
-  border-radius: 12px;
-  color: #393556;
-  background: linear-gradient(180deg, #f8f6ff 0%, #f1effa 100%);
-  box-shadow: inset 0 1px 2px rgba(76, 66, 113, 0.05);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius-sm);
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-cream);
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 900;
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
 }
 
@@ -357,15 +338,14 @@
   content: "";
   width: 4px;
   height: 4px;
-  border-radius: 50%;
-  background: rgba(107, 107, 138, 0.2);
+  border-radius: 0;
+  background: rgba(26, 26, 46, 0.2);
 }
 
 .codeSlots > .codeSlotFilled {
   transform: translateY(-1px);
-  border-color: rgba(139, 124, 255, 0.42);
-  background: linear-gradient(180deg, #fff 0%, #eeeaff 100%);
-  box-shadow: 0 5px 10px rgba(99, 83, 190, 0.1);
+  background: var(--rp-nb-white);
+  box-shadow: 2px 2px 0 var(--rp-nb-black);
 }
 
 .codeSlots > .codeSlotFilled::after {
@@ -388,45 +368,50 @@
 
 .joinButton {
   height: 48px;
-  border: 0;
-  border-radius: 15px;
-  color: #fff;
-  background: linear-gradient(135deg, #ff9078 0%, #f66f5a 100%);
-  box-shadow: 0 9px 17px rgba(245, 107, 82, 0.25);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius-sm);
+  color: var(--rp-nb-white);
+  background: var(--rp-nb-purple-deep);
+  box-shadow: var(--rp-nb-shadow);
   font-size: 12px;
-  font-weight: 800;
-  transition: transform 160ms ease, opacity 160ms ease, box-shadow 160ms ease;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: transform 120ms ease;
+  cursor: pointer;
 }
 
 .joinButton:not(:disabled):active {
-  transform: scale(0.97);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--rp-nb-black);
 }
 
 .joinButton:disabled {
-  color: #7a3d32;
-  background: #ffd8cf;
-  box-shadow: none;
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-lilac);
+  box-shadow: var(--rp-nb-shadow);
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .joinHint {
   min-height: 16px;
   margin: 7px 2px 0;
-  color: #5c5674;
+  color: var(--rp-text-secondary);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 700;
   text-align: right;
 }
 
 .joinCardError {
-  border-color: rgba(255, 92, 122, 0.34);
+  border-color: var(--rp-danger);
 }
 
 .joinCardError .joinHint {
   color: var(--rp-danger);
 }
 
-/* ── Icon Row ─────────────────────────────────────────────────────── */
+/* ── Icon Row ─────────────────────────────────────────────────── */
 
 .iconRow {
   display: grid;
@@ -442,48 +427,35 @@
   gap: 6px;
   min-height: 88px;
   padding: 14px 6px 12px;
-  border: 1.5px solid rgba(255, 255, 255, 0.72);
-  border-radius: 22px;
-  color: #2f2c4f;
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-black);
   text-align: center;
-  box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
-    0 8px 20px rgba(42, 42, 74, 0.08);
-  transition: transform 180ms ease, box-shadow 180ms ease;
-}
-
-.iconItem:hover {
-  transform: translateY(-2px);
-  box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.68),
-    0 12px 26px rgba(42, 42, 74, 0.12);
+  box-shadow: var(--rp-nb-shadow);
+  transition: transform 120ms ease;
+  cursor: pointer;
 }
 
 .iconItem:active {
-  transform: scale(0.97);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--rp-nb-black);
 }
 
 .iconItem:focus-visible {
-  outline: 3px solid rgba(139, 124, 255, 0.48);
+  outline: 3px solid var(--rp-nb-black);
   outline-offset: 2px;
 }
 
 .iconFriends {
-  background:
-    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.5), transparent 60%),
-    linear-gradient(160deg, #d7f0ff 0%, #b9dfff 100%);
+  background: var(--rp-nb-blue);
 }
 
 .iconStats {
-  background:
-    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.44), transparent 60%),
-    linear-gradient(160deg, #e7deff 0%, #cfc3ff 100%);
+  background: var(--rp-nb-lilac);
 }
 
 .iconAchievements {
-  background:
-    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.48), transparent 60%),
-    linear-gradient(160deg, #fff2c9 0%, #ffe29e 100%);
+  background: var(--rp-nb-yellow);
 }
 
 .iconArt {
@@ -491,6 +463,7 @@
   height: 48px;
   object-fit: contain;
   flex-shrink: 0;
+  filter: drop-shadow(1px 2px 0 rgba(0, 0, 0, 0.1));
 }
 
 .iconSchleimiCluster {
@@ -505,10 +478,10 @@
   height: 26px;
   margin-left: -8px;
   overflow: hidden;
-  border: 1.5px solid rgba(255, 255, 255, 0.9);
-  border-radius: 9px;
-  background: #fff;
-  box-shadow: 0 3px 7px rgba(55, 94, 127, 0.14);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: 6px;
+  background: var(--rp-nb-white);
+  box-shadow: 1px 1px 0 var(--rp-nb-black);
 }
 
 .iconSchleimiCluster > span:first-child {
@@ -517,18 +490,18 @@
 
 .iconLabel {
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.01em;
-  color: #2e2b4c;
+  color: var(--rp-nb-black);
 }
 
 .iconMeta {
   display: block;
   margin-top: -2px;
-  color: rgba(60, 56, 90, 0.58);
+  color: rgba(26, 26, 46, 0.6);
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -536,7 +509,7 @@
   max-width: 100%;
 }
 
-/* ── Shop Hero ────────────────────────────────────────────────────── */
+/* ── Shop Hero ────────────────────────────────────────────────── */
 
 .shopHero {
   position: relative;
@@ -548,44 +521,28 @@
   align-items: center;
   margin-bottom: 14px;
   padding: 20px 120px 20px 22px;
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
-  border-radius: 26px;
-  color: #2f2c4f;
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-black);
   text-align: left;
-  background:
-    radial-gradient(circle at 82% 38%, rgba(255, 255, 255, 0.52), transparent 36%),
-    linear-gradient(125deg, #d4ffef 0%, #aeeed9 54%, #c2f5e2 100%);
-  box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.65),
-    0 14px 30px rgba(42, 74, 60, 0.12);
-  transition: transform 180ms ease, box-shadow 180ms ease;
+  background: var(--rp-nb-mint);
+  box-shadow: var(--rp-nb-shadow-lg);
+  transition: transform 120ms ease;
   cursor: pointer;
 }
 
-.shopHero:hover {
-  box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.72),
-    0 18px 36px rgba(42, 74, 60, 0.16);
-}
-
 .shopHero:active {
-  transform: scale(0.985);
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--rp-nb-black);
 }
 
 .shopHero:focus-visible {
-  outline: 3px solid rgba(139, 124, 255, 0.48);
+  outline: 3px solid var(--rp-nb-black);
   outline-offset: 2px;
 }
 
 .shopHeroGlow {
-  position: absolute;
-  right: -20px;
-  bottom: -40px;
-  z-index: -1;
-  width: 170px;
-  height: 170px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 223, 137, 0.36), rgba(255, 255, 255, 0.1) 44%, transparent 68%);
+  display: none;
 }
 
 .shopHeroCopy {
@@ -598,16 +555,16 @@
 
 .shopHeroCopy strong {
   font-size: 20px;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.025em;
-  color: #1f3a2b;
+  color: var(--rp-nb-black);
 }
 
 .shopHeroCopy > span {
-  color: #3d6b52;
+  color: rgba(26, 26, 46, 0.7);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1.3;
 }
 
@@ -620,7 +577,7 @@
   width: 110px;
   height: 110px;
   transform-origin: 50% 60%;
-  filter: drop-shadow(0 10px 16px rgba(42, 42, 74, 0.18));
+  filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.12));
 }
 
 .shopHeroAsset img {
@@ -636,9 +593,11 @@
   z-index: 4;
 }
 
+/* ── Responsive (small screens) ───────────────────────────────── */
+
 @media (max-width: 360px) {
   .championCard {
-    padding-left: 20px;
+    padding-left: 18px;
   }
 
   .championTitle {
@@ -646,7 +605,7 @@
   }
 
   .championCopy {
-    max-width: 198px;
+    max-width: 190px;
   }
 
   .trophyScene {
@@ -674,7 +633,6 @@
   .iconItem {
     min-height: 82px;
     padding: 12px 4px 10px;
-    border-radius: 18px;
   }
 
   .iconArt {
@@ -711,6 +669,7 @@
   .iconItem,
   .shopHero,
   .joinButton,
+  .championCard,
   .codeSlots > span {
     transition-duration: 0.01ms;
   }
