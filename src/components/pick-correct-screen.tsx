@@ -3,6 +3,13 @@
 import Image from "next/image";
 import { useMemo } from "react";
 import { useGame } from "@/lib/game-context";
+import {
+  isPickCorrectRoundComplete,
+  pickCorrectHuntComplete,
+  pickCountForPlayer,
+  PICK_CORRECT_CORRECT_TARGET,
+  PICK_CORRECT_PICKS_PER_PLAYER,
+} from "@/lib/pick-correct";
 import { MODE_PICK_CORRECT_256 } from "@/lib/rp-assets";
 import { isPickCorrectPayload } from "@/lib/shuffle";
 import { MatchPlayShell } from "./match-play-shell";
@@ -13,7 +20,6 @@ import { QuestionTimerBar } from "./question-timer-bar";
 import styles from "./pick-correct-screen.module.css";
 
 const ANSWER_LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const CORRECT_TARGET = 4;
 
 function PeopleIcon({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
@@ -24,7 +30,7 @@ function PeopleIcon({ className, style }: { className?: string; style?: React.CS
       fill="currentColor"
       aria-hidden="true"
     >
-      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+      <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S7.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z" />
     </svg>
   );
 }
@@ -34,21 +40,45 @@ export function PickCorrectScreen() {
   const prompt = game.currentPrompt;
   const payload = isPickCorrectPayload(prompt?.payload) ? prompt.payload : undefined;
 
-  const correctFound = game.turns.filter((t) => t.is_correct).length;
-  const huntComplete = correctFound >= CORRECT_TARGET;
+  const roundTurns = useMemo(() => {
+    const block = game.currentBlock;
+    if (!block) return [];
+    const round = block.current_round ?? 0;
+    return game.turns.filter(
+      (turn) =>
+        turn.block_index === block.block_index &&
+        (turn.round_index ?? 0) === round,
+    );
+  }, [game.turns, game.currentBlock]);
+
+  const seatedPlayerIds = useMemo(
+    () => game.players.map((player) => player.id),
+    [game.players],
+  );
+
+  const correctFound = roundTurns.filter((turn) => turn.is_correct).length;
+  const huntComplete = pickCorrectHuntComplete(roundTurns);
+  const roundOver = isPickCorrectRoundComplete({
+    turns: roundTurns,
+    playerIds: seatedPlayerIds,
+  });
+  const myPicks = game.myPlayerId
+    ? pickCountForPlayer(roundTurns, game.myPlayerId)
+    : 0;
+  const picksLeft = Math.max(0, PICK_CORRECT_PICKS_PER_PLAYER - myPicks);
 
   const tappedIndices = useMemo(
-    () => new Set(game.turns.map((t) => t.card_index)),
-    [game.turns]
+    () => new Set(roundTurns.map((t) => t.card_index)),
+    [roundTurns]
   );
 
   const turnResults = useMemo(() => {
     const map = new Map<number, { is_correct: boolean; player_id: string }>();
-    for (const t of game.turns) {
+    for (const t of roundTurns) {
       map.set(t.card_index, { is_correct: t.is_correct, player_id: t.player_id });
     }
     return map;
-  }, [game.turns]);
+  }, [roundTurns]);
 
   const playerNames = useMemo(
     () => new Map(game.players.map((player) => [player.id, player.display_name])),
@@ -60,9 +90,37 @@ export function PickCorrectScreen() {
   const roundNum = (game.currentBlock?.current_round ?? 0) + 1;
   const roundsTotal = game.currentBlock?.rounds_total ?? 1;
   const showQuestionTimer =
-    !huntComplete &&
+    !roundOver &&
     game.questionDeadlineMs != null &&
     game.questionTimerMs != null;
+
+  const statusCopy = huntComplete
+    ? {
+        strong: "Alle Richtigen gefunden",
+        detail: "Kurz die Treffer anschauen — dann geht’s weiter.",
+        waiting: true,
+      }
+    : roundOver
+      ? {
+          strong: "Alle Tipps sind raus",
+          detail: "Kurz die Treffer anschauen — dann geht’s weiter.",
+          waiting: true,
+        }
+      : picksLeft <= 0
+        ? {
+            strong: "Deine Karten sind weg",
+            detail: "Die anderen dürfen noch tippen.",
+            waiting: true,
+          }
+        : {
+            strong:
+              picksLeft === 1
+                ? "Noch 1 Karte für dich"
+                : "Schnappt euch die richtigen Karten",
+            detail:
+              "Jeder darf 2-mal tippen. Falsch zählt. Wer zuerst tippt, bekommt die Karte.",
+            waiting: false,
+          };
 
   if (!prompt || !payload) {
     return (
@@ -97,29 +155,46 @@ export function PickCorrectScreen() {
           ) : undefined
         }
         trailing={
-          <div
-            className={styles.foundProgress}
-            role="progressbar"
-            aria-label="Richtige Karten gefunden"
-            aria-valuemin={0}
-            aria-valuemax={CORRECT_TARGET}
-            aria-valuenow={Math.min(correctFound, CORRECT_TARGET)}
-          >
-            <span className={styles.foundCount}>
-              {Math.min(correctFound, CORRECT_TARGET)}/{CORRECT_TARGET}
-            </span>
-            <span className={styles.foundDots} aria-hidden="true">
-              {Array.from({ length: CORRECT_TARGET }, (_, index) => (
-                <span
-                  key={index}
-                  className={
-                    index < correctFound
-                      ? styles.foundDotComplete
-                      : styles.foundDot
-                  }
-                />
-              ))}
-            </span>
+          <div className={styles.headerStats}>
+            <div
+              className={styles.picksProgress}
+              role="meter"
+              aria-label="Deine Tipps"
+              aria-valuemin={0}
+              aria-valuemax={PICK_CORRECT_PICKS_PER_PLAYER}
+              aria-valuenow={Math.min(myPicks, PICK_CORRECT_PICKS_PER_PLAYER)}
+            >
+              <span className={styles.foundCount}>
+                {Math.min(myPicks, PICK_CORRECT_PICKS_PER_PLAYER)}/
+                {PICK_CORRECT_PICKS_PER_PLAYER}
+              </span>
+              <span className={styles.picksLabel}>Tipps</span>
+            </div>
+            <div
+              className={styles.foundProgress}
+              role="progressbar"
+              aria-label="Richtige Karten gefunden"
+              aria-valuemin={0}
+              aria-valuemax={PICK_CORRECT_CORRECT_TARGET}
+              aria-valuenow={Math.min(correctFound, PICK_CORRECT_CORRECT_TARGET)}
+            >
+              <span className={styles.foundCount}>
+                {Math.min(correctFound, PICK_CORRECT_CORRECT_TARGET)}/
+                {PICK_CORRECT_CORRECT_TARGET}
+              </span>
+              <span className={styles.foundDots} aria-hidden="true">
+                {Array.from({ length: PICK_CORRECT_CORRECT_TARGET }, (_, index) => (
+                  <span
+                    key={index}
+                    className={
+                      index < correctFound
+                        ? styles.foundDotComplete
+                        : styles.foundDot
+                    }
+                  />
+                ))}
+              </span>
+            </div>
           </div>
         }
       />
@@ -159,7 +234,7 @@ export function PickCorrectScreen() {
       <div
         className={[
           styles.turnStatus,
-          huntComplete ? styles.turnStatusWaiting : styles.turnStatusActive,
+          statusCopy.waiting ? styles.turnStatusWaiting : styles.turnStatusActive,
         ].join(" ")}
         role="status"
         aria-live="polite"
@@ -169,16 +244,8 @@ export function PickCorrectScreen() {
           <PeopleIcon />
         </span>
         <span className={styles.turnCopy}>
-          <strong>
-            {huntComplete
-              ? "Alle Richtigen gefunden"
-              : "Schnappt euch die richtigen Karten"}
-          </strong>
-          <span>
-            {huntComplete
-              ? "Kurz die Treffer anschauen — dann geht’s weiter."
-              : "Wer zuerst tippt, bekommt die leichten Treffer. Genommene Karten sind weg."}
-          </span>
+          <strong>{statusCopy.strong}</strong>
+          <span>{statusCopy.detail}</span>
         </span>
         <span className={styles.turnPulse} aria-hidden="true" />
       </div>
@@ -194,12 +261,14 @@ export function PickCorrectScreen() {
           const isCorrect = result?.is_correct === true;
           const state = tapped ? (isCorrect ? "correct" : "wrong") : "available";
           const tappedBy = result ? playerNames.get(result.player_id) : undefined;
-          const canTap = !tapped && !huntComplete;
+          const canTap = !tapped && !roundOver && picksLeft > 0;
           const stateLabel = tapped
             ? `${isCorrect ? "Richtig" : "Falsch"}${tappedBy ? `, gewählt von ${tappedBy}` : ""}`
             : canTap
               ? "Noch nicht gewählt"
-              : "Noch frei";
+              : picksLeft <= 0
+                ? "Keine Tipps mehr"
+                : "Noch frei";
 
           return (
             <button

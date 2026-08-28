@@ -84,6 +84,12 @@ import {
   type SchleimiLayerMap,
 } from "./schleimi-layers";
 import { isLiveQuestionPhase, roundReadyToReveal, shouldStampQuestionClock } from "./question-clock";
+import {
+  isPickCorrectRoundComplete,
+  pickCountForPlayer,
+  PICK_CORRECT_PICKS_PER_PLAYER,
+  playerHasPicksRemaining,
+} from "./pick-correct";
 import { isPickCorrectPayload, shufflePickCorrectPayload } from "./shuffle";
 
 export type GamePhase =
@@ -287,6 +293,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const channelRef = useRef<RealtimeChannel | null>(null);
   const lastStateKeyRef = useRef("");
   const pickCompleteRef = useRef<string | null>(null);
+  const pendingPickCardsRef = useRef<Set<number>>(new Set());
   const subscribeRef = useRef<((roomId: string) => void) | null>(null);
   const refetchRoomStateRef = useRef<((roomId: string) => Promise<void>) | null>(null);
   const sessionRestoringRef = useRef(false);
@@ -363,9 +370,18 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       .sort((a, b) => a.turn_order - b.turn_order);
   }, [turns, currentBlock]);
 
-  const correctTurnsCount = useMemo(
-    () => blockTurns.filter((t) => t.is_correct).length,
-    [blockTurns]
+  const seatedPlayerIds = useMemo(
+    () => players.map((player) => player.id),
+    [players],
+  );
+
+  const pickRoundComplete = useMemo(
+    () =>
+      isPickCorrectRoundComplete({
+        turns: blockTurns,
+        playerIds: seatedPlayerIds,
+      }),
+    [blockTurns, seatedPlayerIds],
   );
 
   const sortedPlayers = useMemo(
@@ -384,9 +400,24 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   const isMyTurn = useMemo(() => {
     if (!myPlayerId || !sortedPlayers.length) return false;
-    if (playMode === "pick_correct") return true;
+    if (playMode === "pick_correct") {
+      return (
+        playerHasPicksRemaining(blockTurns, myPlayerId) &&
+        !isPickCorrectRoundComplete({
+          turns: blockTurns,
+          playerIds: seatedPlayerIds,
+        })
+      );
+    }
     return sortedPlayers[activePlayerIndex]?.id === myPlayerId;
-  }, [myPlayerId, sortedPlayers, activePlayerIndex, playMode]);
+  }, [
+    myPlayerId,
+    sortedPlayers,
+    activePlayerIndex,
+    playMode,
+    blockTurns,
+    seatedPlayerIds,
+  ]);
 
   const themePickerPlayerId = useMemo(() => {
     if (!room || !sortedPlayers.length) return null;
@@ -797,13 +828,13 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
   }, [room?.status, room?.current_block_index]);
 
-  // Keep the 4th-correct highlight visible, then let the host complete the hunt.
+  // Keep the last tap highlight visible, then let the host complete the hunt.
   useEffect(() => {
     const huntDone =
       !!currentBlock &&
       playMode === "pick_correct" &&
       !currentBlock.is_complete &&
-      correctTurnsCount >= 4;
+      pickRoundComplete;
 
     if (!huntDone) {
       setRevealHoldActive(false);
@@ -817,7 +848,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
     return () => window.clearTimeout(timer);
   }, [
-    correctTurnsCount,
+    pickRoundComplete,
     currentBlock?.id,
     currentBlock?.current_round,
     currentBlock?.mode,
@@ -830,7 +861,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   useEffect(() => {
     if (!isHost || !room || !currentBlock || playMode !== "pick_correct") return;
     if (currentBlock.is_complete) return;
-    if (correctTurnsCount < 4) return;
+    if (!pickRoundComplete) return;
     if (revealHoldActive) return;
     const completeKey = `pc:${currentBlock.id}:${currentBlock.current_round}`;
     if (pickCompleteRef.current === completeKey) return;
@@ -856,7 +887,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       blockTurns,
       nextPlay,
     );
-  }, [isHost, currentBlock, playMode, correctTurnsCount, blockTurns, players, prompts, room, roomSettings, revealHoldActive, supabase]);
+  }, [isHost, currentBlock, playMode, pickRoundComplete, blockTurns, players, prompts, room, roomSettings, revealHoldActive, supabase]);
 
   const scoreSimultaneousQuizRound = async (
     block: DbMatchBlock,
@@ -944,15 +975,23 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       const thisRound = ((roundTurns ?? []) as DbPickCorrectTurn[]).filter(
         (turn) => (turn.round_index ?? 0) === block.current_round,
       );
-      if (thisRound.filter((turn) => turn.is_correct).length >= 4) return;
-
-      const completeKey = `pc:${block.id}:${block.current_round}`;
-      if (pickCompleteRef.current === completeKey) return;
-      pickCompleteRef.current = completeKey;
 
       const { data: currentPlayers } = await supabase
         .from("players").select().eq("room_id", room.id);
       if (!currentPlayers?.length) return;
+
+      if (
+        isPickCorrectRoundComplete({
+          turns: thisRound,
+          playerIds: currentPlayers.map((player) => player.id),
+        })
+      ) {
+        return;
+      }
+
+      const completeKey = `pc:${block.id}:${block.current_round}`;
+      if (pickCompleteRef.current === completeKey) return;
+      pickCompleteRef.current = completeKey;
 
       const nextPrompt = promptsRef.current[block.current_round + 1];
       const nextPlay =
@@ -979,7 +1018,15 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   useEffect(() => {
     setRoundTimedOut(false);
+    pendingPickCardsRef.current.clear();
   }, [currentBlock?.id, currentBlock?.current_round]);
+
+  useEffect(() => {
+    const claimed = new Set(blockTurns.map((turn) => turn.card_index));
+    for (const index of pendingPickCardsRef.current) {
+      if (claimed.has(index)) pendingPickCardsRef.current.delete(index);
+    }
+  }, [blockTurns]);
 
   useEffect(() => {
     if (!currentBlock?.started_at || currentBlock.is_complete) return;
@@ -1642,9 +1689,18 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const tapCard = async (cardIndex: number) => {
     if (!room || !myPlayerId || !currentBlock || !currentPrompt) return;
     if (playMode !== "pick_correct") return;
-    if (correctTurnsCount >= 4) return;
+    if (pickRoundComplete) return;
     if (blockTurns.some((t) => t.card_index === cardIndex)) return;
+    if (pendingPickCardsRef.current.has(cardIndex)) return;
     if (!isPickCorrectPayload(currentPrompt.payload)) return;
+    if (
+      pickCountForPlayer(blockTurns, myPlayerId) + pendingPickCardsRef.current.size >=
+      PICK_CORRECT_PICKS_PER_PLAYER
+    ) {
+      return;
+    }
+
+    pendingPickCardsRef.current.add(cardIndex);
 
     const isCorrect = currentPrompt.payload.correct_indices.includes(cardIndex);
 
@@ -1658,8 +1714,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       round_index: currentBlock.current_round,
     });
 
-    if (tapErr?.code === "23505") return;
+    if (tapErr?.code === "23505") {
+      pendingPickCardsRef.current.delete(cardIndex);
+      return;
+    }
     if (tapErr) {
+      pendingPickCardsRef.current.delete(cardIndex);
       setError(t.game.sendFailed);
     }
   };
@@ -2034,6 +2094,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     lastStateKeyRef.current = "";
     autoStartAttemptRef.current = null;
     pickCompleteRef.current = null;
+    pendingPickCardsRef.current.clear();
     hostActionLockRef.current = false;
     setHostActionLock(false);
     setRoundTimedOut(false);

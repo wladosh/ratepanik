@@ -22,6 +22,14 @@
   filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.2));
 }
 
+.headerStats {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.picksProgress,
 .foundProgress {
   display: inline-flex;
   height: 32px;
@@ -32,11 +40,25 @@
   border: var(--rp-nb-border);
   border-radius: var(--rp-nb-radius);
   color: var(--rp-nb-black);
-  background: var(--rp-nb-mint);
   box-shadow: var(--rp-nb-shadow-sm);
   font-size: 12px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
+}
+
+.picksProgress {
+  background: var(--rp-nb-peach);
+}
+
+.foundProgress {
+  background: var(--rp-nb-mint);
+}
+
+.picksLabel {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .foundCount {
@@ -130,12 +152,14 @@
 
 .turnCopy > span {
   overflow: hidden;
+  display: -webkit-box;
   margin-top: 3px;
   color: rgba(26, 26, 46, 0.6);
   font-size: 11px;
   font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .turnPulse {
@@ -291,6 +315,7 @@
 
 @media (max-width: 370px) {
   .foundDots { display: none; }
+  .picksLabel { display: none; }
   .answerCard { min-height: 74px; padding: 8px; }
 }
 

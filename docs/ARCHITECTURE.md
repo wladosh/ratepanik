@@ -98,10 +98,11 @@ Before blocks that need a theme (quiz-like modes), the game:
 ### 9.2 Passendes wählen (`pick_correct`)
 
 - Theme chosen from 2 options before this block starts
-- 8 cards shown (4 correct, 4 wrong) — stored in `prompts.payload.cards` + `correct_indices`
-- Players **take turns** tapping cards (tracked in `pick_correct_turns`)
-- Continue until all 4 correct cards found
-- Points: contribution-based (how many correct cards YOU found)
+- Always 8 cards (4 correct, 4 wrong) for 2–4 players — stored in `prompts.payload.cards` + `correct_indices`
+- Simultaneous race: anyone may tap a free card; first insert wins the card
+- Each player has **2 taps**; a miss consumes a tap (no third card)
+- Round ends when 4 correct are claimed, every seated player has used both taps, or the timer expires
+- Points: 250 per correct card you found (`(correct_found / 4) × 1000`; practical max 500)
 
 ---
 
@@ -114,7 +115,7 @@ Before blocks that need a theme (quiz-like modes), the game:
 | `rooms` | `status`, `current_block_index`, `current_question_index`, `theme_vote_active` | Match lifecycle + progression |
 | `match_blocks` | `mode`, `theme_id`, `current_round`, `is_complete` | Block state |
 | `answers` | `numeric_answer`, `distance`, `rank`, `points_awarded` | Per-player per-round |
-| `pick_correct_turns` | `card_index`, `is_correct`, `turn_order` | Turn-by-turn card taps |
+| `pick_correct_turns` | `card_index`, `is_correct`, `turn_order` | Per-card claims (race, 2 taps/player) |
 | `match_scores` | `rank`, `total_points` | Per-block summary |
 
 ### Realtime Subscriptions
@@ -142,7 +143,7 @@ channel: room-{room_id}
 | Advance to next block | Host | UPDATE rooms.current_block_index |
 | End match | Host | UPDATE rooms.status → 'finished' |
 | Submit guess (number_guess) | Each player | INSERT answers |
-| Tap card (pick_correct) | Active player | INSERT pick_correct_turns |
+| Tap card (pick_correct) | Any player with taps left | INSERT pick_correct_turns |
 
 **Host = single writer** for progression. Other clients react to Realtime pushes.
 
@@ -153,14 +154,14 @@ room.status == 'lobby'                  → LobbyScreen
 room.theme_vote_active == true          → ThemePickScreen (2 options)
 room.status == 'playing' + block state  →
   number_guess: QuestionScreen / RankRevealScreen
-  pick_correct: CardGridScreen (whose turn?)
+  pick_correct: CardGridScreen (2 taps each; race)
 room.status == 'finished'               → ResultsScreen (rank only, no Q&A)
 ```
 
 ### Conflict Resolution
 
 - Duplicate answers: UNIQUE on `(room_id, player_id, block_index, round_index)`
-- Turn enforcement (pick_correct): app logic checks `turn_order` sequence
+- Card claims (pick_correct): UNIQUE on `(room_id, block_index, round_index, card_index)`; app enforces 2 taps/player
 - Only host writes progression → non-host writes rejected
 - Reconnect: full state re-fetch from DB + session recovery
 
@@ -223,8 +224,9 @@ themes (8 seeded rows)
 - 2 rounds per block → block score = sum of both rounds
 
 ### `pick_correct`
-- Contribution-based: points ∝ how many of the 4 correct cards YOU found
+- Contribution-based: 250 points per correct card YOU found
 - Formula: `(correct_found / 4) × 1000`
+- 2-tap cap → practical max 500 (1 hit = 250, 2 hits = 500)
 
 ### Results Screen (§8)
 - Shows final ranking + per-block scores

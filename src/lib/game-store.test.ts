@@ -70,9 +70,11 @@ describe("scoreNumberGuessAnswers", () => {
 });
 
 describe("calculatePickCorrectPoints", () => {
-  it("awards 1000 for 4/4 and 500 for 2/4", () => {
-    expect(calculatePickCorrectPoints(4, 4)).toBe(1000);
+  it("awards 250 per correct card", () => {
+    expect(calculatePickCorrectPoints(0, 4)).toBe(0);
+    expect(calculatePickCorrectPoints(1, 4)).toBe(250);
     expect(calculatePickCorrectPoints(2, 4)).toBe(500);
+    expect(calculatePickCorrectPoints(4, 4)).toBe(1000);
   });
 });
 

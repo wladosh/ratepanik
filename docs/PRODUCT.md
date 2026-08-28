@@ -110,7 +110,7 @@ Ergebnis ohne volle Fragen/Antworten (Anti-Spoiler). Default Gleichstand: geteil
 Numerische Wahrheit; Abstand absolut. Nächster Tipp bekommt die volle Punktzahl (400), jeder weitere eindeutige Abstand die Hälfte davon, der letzte Platz 0. Gleicher Tipp = gleiche Punkte. 2 Runden/Block; Achievement exakter Treffer.
 
 ### 9.2 Passendes wählen (`pick_correct`)
-Thema wählen (2 Optionen); 8 Karten (4 richtig/4 falsch); abwechselnd tippen bis 4 Richtige gefunden.
+Thema wählen (2 Optionen); immer 8 Karten (4 richtig/4 falsch), unabhängig von der Lobbygröße. Alle tippen gleichzeitig. Jeder hat **2 Tipps** — falsch zählt. Runde endet, wenn 4 Richtige gefunden sind, jeder sitzende Spieler 2-mal getippt hat, oder der Timer abläuft. 250 Punkte je richtiger Karte (max. 500 bei 2 Treffern).
 
 ### 9.3 Weitere (Ideen, Spec nötig)
 Schnellste Wahrheit; Reihenfolge sortieren; Blitz-Tippen; Emoji/Bild später; Schätzen vs Durchschnitt.
