@@ -28,8 +28,8 @@ export function ChancenRow({
   return (
     <div>
       <p
-        className="mb-2 text-center text-[11px] font-bold uppercase tracking-wider"
-        style={{ color: "var(--rp-text-secondary)" }}
+        className="nb-kicker mb-2 text-center text-[11px] font-bold uppercase tracking-wider"
+        style={{ color: "var(--rp-nb-black)" }}
       >
         {t.cosmetics.chances}
       </p>
@@ -39,11 +39,13 @@ export function ChancenRow({
           return (
             <li
               key={rarity}
-              className="inline-flex items-center justify-center rounded-full text-[10px] font-bold"
+              className="inline-flex items-center justify-center text-[10px] font-bold"
               style={{
                 background: tone.fill,
                 color: tone.text,
                 padding: "4px 10px",
+                borderRadius: "var(--rp-nb-radius-sm)",
+                border: "2px solid var(--rp-nb-black)",
               }}
             >
               {values[rarity]}% {rarityName(rarity)}

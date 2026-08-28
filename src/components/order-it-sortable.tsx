@@ -43,8 +43,12 @@ function unlockOverflowAncestors(nodes: HTMLElement[]) {
 function DragHandle() {
   return (
     <span
-      className="flex h-9 w-8 shrink-0 flex-col items-center justify-center gap-[3px] rounded-xl"
-      style={{ background: "var(--rp-bg-muted)" }}
+      className="flex h-9 w-8 shrink-0 flex-col items-center justify-center gap-[3px]"
+      style={{
+        background: "var(--rp-nb-lilac)",
+        borderRadius: "var(--rp-nb-radius-sm)",
+        border: "2px solid var(--rp-nb-black)",
+      }}
       aria-hidden="true"
     >
       {[0, 1, 2].map((row) => (
@@ -52,8 +56,8 @@ function DragHandle() {
           {[0, 1].map((dot) => (
             <span
               key={dot}
-              className="h-1 w-1 rounded-full"
-              style={{ background: "var(--rp-text-secondary)", opacity: 0.5 }}
+              className="h-1 w-1"
+              style={{ background: "var(--rp-nb-black)", borderRadius: "var(--rp-nb-radius-sm)" }}
             />
           ))}
         </span>
@@ -283,8 +287,11 @@ export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
       className={`relative space-y-2 ${styles.list}`}
     >
       <span
-        className="pointer-events-none absolute bottom-7 left-[29px] top-7 w-0.5 rounded-full"
-        style={{ background: "linear-gradient(var(--rp-peach-soft), var(--rp-purple-soft))" }}
+        className="pointer-events-none absolute bottom-7 left-[29px] top-7 w-0.5"
+        style={{
+          background: "var(--rp-nb-black)",
+          borderRadius: "var(--rp-nb-radius-sm)",
+        }}
         aria-hidden="true"
       />
       {items.map((entry, i) => {
@@ -319,37 +326,38 @@ export function OrderItSortable({ items, onChange }: OrderItSortableProps) {
               }
             }}
             onContextMenu={(event) => event.preventDefault()}
-            className={`relative z-10 flex min-h-[58px] w-full items-center gap-2.5 px-3 py-2 text-left ${styles.row}`}
+            className={`nb-card relative z-10 flex min-h-[58px] w-full items-center gap-2.5 px-3 py-2 text-left ${styles.row}`}
             style={{
               background: isDragging
-                ? "linear-gradient(135deg, #FFFFFF 0%, #F4F0FF 100%)"
-                : "rgba(255, 255, 255, 0.88)",
-              borderRadius: 18,
+                ? "var(--rp-nb-lilac)"
+                : "var(--rp-nb-white)",
+              borderRadius: "var(--rp-nb-radius)",
               border: isDragging
-                ? "2px solid var(--rp-purple)"
-                : "1.5px solid rgba(139, 124, 255, 0.12)",
+                ? "3px solid var(--rp-nb-purple-deep)"
+                : "var(--rp-nb-border)",
               boxShadow: isDragging
-                ? "0 16px 32px rgba(42, 42, 74, 0.18)"
-                : "0 5px 14px rgba(42, 42, 74, 0.07)",
+                ? "var(--rp-nb-shadow-lg)"
+                : "var(--rp-nb-shadow-sm)",
               cursor: isDragging ? "grabbing" : "grab",
               willChange: isDragging ? "transform" : undefined,
             }}
           >
             <span
-              className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black"
+              className="relative z-10 flex h-9 w-9 shrink-0 items-center justify-center text-sm font-black"
               style={{
                 background: isFirst
-                  ? "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)"
+                  ? "var(--rp-nb-peach)"
                   : isLast
-                    ? "var(--rp-purple)"
-                    : "var(--rp-purple-soft)",
-                color: isFirst || isLast ? "#fff" : "var(--rp-purple)",
-                boxShadow: isFirst || isLast ? "0 4px 10px rgba(98, 77, 156, 0.18)" : "none",
+                    ? "var(--rp-nb-purple-deep)"
+                    : "var(--rp-nb-lilac)",
+                color: isFirst || isLast ? "#fff" : "var(--rp-nb-black)",
+                borderRadius: "var(--rp-nb-radius-sm)",
+                border: "2px solid var(--rp-nb-black)",
               }}
             >
               {i + 1}
             </span>
-            <span className="flex-1 text-[15px] font-bold leading-snug" style={{ color: "var(--rp-text)" }}>
+            <span className="flex-1 text-[15px] font-bold leading-snug" style={{ color: "var(--rp-nb-black)" }}>
               {entry.text}
             </span>
             <DragHandle />
