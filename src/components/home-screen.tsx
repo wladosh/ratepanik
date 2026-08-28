@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { generateGuestName } from "@/lib/guest-name";
 import { xpProgressInLevel } from "@/lib/progression";
-import { HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
+import { HIRNCOIN_ICON_20 } from "@/lib/rp-assets";
 import { HomePanel, type HomePanelId } from "@/components/home-panels";
 import { SchleimiPreview } from "@/components/schleimi-preview";
 import { useCosmetics } from "@/lib/use-cosmetics";
@@ -20,7 +20,7 @@ import { createBrowserSupabase } from "@/lib/supabase/client";
 
 function GearIcon({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3" />
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
     </svg>
@@ -50,30 +50,27 @@ function StreakCard({
     <div
       className="flex items-center gap-3 p-4 mb-4"
       style={{
-        background: "var(--rp-nb-white)",
-        borderRadius: "var(--rp-nb-radius)",
-        border: "var(--rp-nb-border)",
-        boxShadow: "var(--rp-nb-shadow)",
+        background: "var(--rp-paper-cream)",
+        backgroundImage: "var(--rp-paper-grain)",
+        backgroundRepeat: "repeat",
+        backgroundSize: "200px 200px",
+        backgroundBlendMode: "overlay",
+        borderRadius: 6,
+        boxShadow: "0 4px 14px var(--rp-paper-shadow)",
       }}
     >
       <span className="text-2xl" role="img" aria-label={t.home.streakAria}>
         🔥
       </span>
       <div className="flex-1">
-        <h4 className="text-sm font-extrabold text-[var(--rp-nb-black)]">{t.home.streakTitle}</h4>
-        <p className="text-[10px] font-semibold text-[var(--rp-text-secondary)]">{copy}</p>
+        <h4 className="text-sm font-bold text-[var(--rp-text)]">{t.home.streakTitle}</h4>
+        <p className="text-[10px] text-[var(--rp-text-secondary)]">{copy}</p>
       </div>
       <span
-        className={`min-w-9 h-9 px-1.5 flex items-center justify-center font-extrabold ${
+        className={`min-w-9 h-9 px-1.5 flex items-center justify-center rounded-full font-bold ${
           loading || days === null ? "text-xs" : "text-base"
         }`}
-        style={{
-          background: "#FFE0E0",
-          color: "var(--rp-danger)",
-          border: "var(--rp-nb-border)",
-          borderRadius: "var(--rp-nb-radius-sm)",
-          boxShadow: "2px 2px 0 var(--rp-nb-black)",
-        }}
+        style={{ background: "#FFF0F0", color: "var(--rp-danger)" }}
       >
         {label}
       </span>
@@ -185,9 +182,9 @@ export function HomeScreen() {
     return (
       <div
         className="flex flex-1 items-center justify-center"
-        style={{ background: "var(--rp-nb-cream)" }}
+        style={{ background: "var(--rp-bg-hero)" }}
       >
-        <div className="text-lg text-[var(--rp-nb-black)] animate-pulse font-extrabold">
+        <div className="text-lg text-[var(--rp-text-secondary)] animate-pulse font-medium">
           {t.common.loading}
         </div>
       </div>
@@ -208,20 +205,18 @@ export function HomeScreen() {
     <div
       className="rp-home-root absolute inset-0 flex flex-col overflow-hidden"
       style={{
-        background: "var(--rp-nb-cream)",
+        background: "var(--rp-paper-bg)",
+        backgroundImage: "var(--rp-paper-grain)",
+        backgroundRepeat: "repeat",
+        backgroundSize: "200px 200px",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       {/* ── Toast overlay ──────────────────────── */}
       {toastMsg && (
         <div
-          className="rp-shell-banner px-6 py-3 text-center font-extrabold text-white animate-fade-in"
-          style={{
-            background: "var(--rp-nb-purple-deep)",
-            border: "var(--rp-nb-border)",
-            borderRadius: "var(--rp-nb-radius)",
-            boxShadow: "var(--rp-nb-shadow)",
-          }}
+          className="rp-shell-banner rounded-lg px-6 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          style={{ background: "var(--rp-purple)" }}
         >
           {toastMsg}
         </div>
@@ -242,15 +237,14 @@ export function HomeScreen() {
               <span
                 className="block overflow-hidden"
                 style={{
-                  width: 52,
-                  height: 52,
-                  background: "var(--rp-nb-white)",
-                  border: "var(--rp-nb-border)",
-                  borderRadius: "var(--rp-nb-radius-sm)",
-                  boxShadow: "3px 3px 0 var(--rp-nb-black)",
+                  width: 48,
+                  height: 48,
+                  borderRadius: 14,
+                  background: "var(--rp-paper-cream)",
+                  boxShadow: "0 3px 10px var(--rp-paper-shadow-light)",
                 }}
               >
-                <SchleimiPreview layers={headerLayers} size={52} label={displayName} />
+                <SchleimiPreview layers={headerLayers} size={48} label={displayName} />
               </span>
               {!isGuest && xpProgress && (
                 <span
@@ -258,16 +252,16 @@ export function HomeScreen() {
                   style={{
                     width: 24,
                     height: 24,
-                    borderRadius: "var(--rp-nb-radius-sm)",
-                    background: "var(--rp-nb-purple-deep)",
+                    borderRadius: 6,
+                    background: "var(--rp-level)",
                     color: "#fff",
-                    fontSize: 11,
-                    fontWeight: 900,
+                    fontSize: 12,
+                    fontWeight: 800,
                     lineHeight: 1,
                     bottom: -6,
                     left: -6,
-                    border: "2px solid var(--rp-nb-black)",
-                    boxShadow: "1px 1px 0 var(--rp-nb-black)",
+                    border: "2px solid var(--rp-paper-bg)",
+                    boxShadow: "0 2px 6px rgba(139,124,255,0.25)",
                   }}
                   aria-label={`Level ${xpProgress.level}`}
                 >
@@ -276,36 +270,44 @@ export function HomeScreen() {
               )}
             </button>
 
-            {/* Name + Title + XP */}
+            {/* Name + XP under name */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <div className="flex-1 min-w-0">
                   <h2
-                    className="truncate text-[var(--rp-nb-black)]"
-                    style={{ fontSize: 16, fontWeight: 900, lineHeight: 1.25 }}
+                    className="truncate"
+                    style={{ fontSize: 17, fontWeight: 800, lineHeight: 1.25, color: "#2a2a3a" }}
                   >
                     {displayName}
                   </h2>
-                  <p
-                    className="text-[var(--rp-text-secondary)] truncate"
-                    style={{ fontSize: 12, fontWeight: 700, lineHeight: 1.3 }}
-                  >
-                    {isGuest ? t.common.guest : t.home.partyPlayer}
-                  </p>
+                  {!isGuest && xpProgress ? (
+                    <p
+                      className="truncate"
+                      style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.3, color: "#8b7caa" }}
+                    >
+                      XP {xpProgress.current} / {xpProgress.needed}
+                    </p>
+                  ) : (
+                    <p
+                      className="truncate"
+                      style={{ fontSize: 12, fontWeight: 500, lineHeight: 1.3, color: "#8b8ba0" }}
+                    >
+                      {isGuest ? t.common.guest : t.home.partyPlayer}
+                    </p>
+                  )}
                 </div>
 
-                {/* Hirncoin chip */}
+                {/* Hirncoin pill — paper chip style */}
                 {!isGuest && profile && (
                   <button
                     onClick={() => setPanel("shop")}
                     className="flex items-center gap-1.5 shrink-0"
                     style={{
-                      height: 34,
+                      height: 32,
                       padding: "6px 12px",
-                      background: "var(--rp-nb-yellow)",
-                      border: "var(--rp-nb-border)",
-                      borderRadius: "var(--rp-nb-radius-sm)",
-                      boxShadow: "2px 2px 0 var(--rp-nb-black)",
+                      background: "var(--rp-hirncoin-soft)",
+                      borderRadius: 8,
+                      boxShadow: "0 2px 6px var(--rp-paper-shadow-light)",
                     }}
                     aria-label={`Hirncoins: ${profile.hirncoins}`}
                   >
@@ -318,65 +320,47 @@ export function HomeScreen() {
                       className="w-5 h-5"
                     />
                     <span
-                      className="text-[var(--rp-nb-black)]"
-                      style={{ fontSize: 14, fontWeight: 800 }}
+                      style={{ fontSize: 14, fontWeight: 700, color: "#5a4a20" }}
                     >
                       {profile.hirncoins}
                     </span>
                   </button>
                 )}
 
-                {/* Settings gear */}
+                {/* Settings gear — paper chip */}
                 <button
                   onClick={() => setPanel("settings")}
-                  className="flex items-center justify-center shrink-0 transition-colors hover:bg-black/5"
-                  style={{
-                    width: 38,
-                    height: 38,
-                    border: "var(--rp-nb-border)",
-                    borderRadius: "var(--rp-nb-radius-sm)",
-                    boxShadow: "2px 2px 0 var(--rp-nb-black)",
-                    background: "var(--rp-nb-white)",
-                  }}
+                  className="flex items-center justify-center transition-colors hover:bg-black/5 shrink-0"
+                  style={{ width: 36, height: 36, borderRadius: 8, background: "rgba(255,255,255,0.5)", boxShadow: "0 2px 6px var(--rp-paper-shadow-light)" }}
                   aria-label={t.home.settingsAria}
                   title={t.home.settingsAria}
                 >
-                  <GearIcon className="w-5 h-5 text-[var(--rp-nb-black)]" />
+                  <GearIcon className="w-5 h-5 text-[#8b8ba0]" />
                 </button>
               </div>
 
               {/* XP bar (logged-in only) */}
               {!isGuest && xpProgress && (
-                <div style={{ marginTop: 10 }}>
+                <div style={{ marginTop: 8 }}>
                   <div
                     style={{
-                      height: 14,
-                      borderRadius: "var(--rp-nb-radius-sm)",
-                      background: "var(--rp-nb-white)",
+                      height: 7,
+                      borderRadius: 4,
+                      background: "rgba(139,124,255,0.14)",
                       overflow: "hidden",
-                      border: "var(--rp-nb-border)",
-                      boxShadow: "2px 2px 0 var(--rp-nb-black)",
                     }}
                   >
                     <div
                       style={{
                         height: "100%",
-                        borderRadius: 0,
-                        background: "var(--rp-nb-blue)",
+                        borderRadius: 4,
+                        background: "linear-gradient(90deg, #c9b8ff, #8b7cff)",
                         width: `${Math.min(xpProgress.ratio * 100, 100)}%`,
                         transition: "width 500ms ease-out",
                         animation: "xp-fill 500ms ease-out",
                       }}
                     />
                   </div>
-                  <p
-                    className="flex items-center gap-1 text-[var(--rp-nb-black)]"
-                    style={{ fontSize: 11, fontWeight: 700, marginTop: 3 }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={XP_BADGE_16} alt="" width={14} height={14} className="w-3.5 h-3.5" />
-                    XP {xpProgress.current} / {xpProgress.needed}
-                  </p>
                 </div>
               )}
             </div>
@@ -416,47 +400,52 @@ export function HomeScreen() {
       <nav
         className="shrink-0 flex items-center justify-around px-2 py-2"
         style={{
-          background: "var(--rp-nb-white)",
-          borderTop: "var(--rp-nb-border)",
+          background: "var(--rp-paper-cream)",
+          borderTop: "1px solid rgba(180,160,140,0.15)",
+          boxShadow: "0 -2px 10px rgba(120,100,80,0.06)",
           paddingBottom: "max(env(safe-area-inset-bottom, 0px), 8px)",
         }}
       >
         <button className="flex flex-col items-center gap-0.5 py-1 px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_home_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
-          <span className="text-[10px] font-extrabold" style={{ color: "var(--rp-nb-black)" }}>{t.home.navStart}</span>
+          <span className="text-[10px] font-bold" style={{ color: "var(--rp-peach)" }}>{t.home.navStart}</span>
         </button>
         <button
           onClick={() => setPanel("shop")}
-          className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]"
+          className="flex flex-col items-center gap-0.5 py-1 px-2"
+          style={{ color: "#9a9aaa" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_quiz_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
-          <span className="text-[10px] font-bold">{t.home.navQuiz}</span>
+          <span className="text-[10px] font-medium">{t.home.navQuiz}</span>
         </button>
         <button
           onClick={() => document.getElementById("join-title")?.scrollIntoView({ behavior: "smooth" })}
-          className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]"
+          className="flex flex-col items-center gap-0.5 py-1 px-2"
+          style={{ color: "#9a9aaa" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_play_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
-          <span className="text-[10px] font-bold">{t.home.navPlay}</span>
+          <span className="text-[10px] font-medium">{t.home.navPlay}</span>
         </button>
         <button
           onClick={() => setPanel("achievements")}
-          className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]"
+          className="flex flex-col items-center gap-0.5 py-1 px-2"
+          style={{ color: "#9a9aaa" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_rank_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
-          <span className="text-[10px] font-bold">{t.home.navRank}</span>
+          <span className="text-[10px] font-medium">{t.home.navRank}</span>
         </button>
         <button
           onClick={() => setPanel("settings")}
-          className="flex flex-col items-center gap-0.5 py-1 px-2 text-[var(--rp-text-secondary)]"
+          className="flex flex-col items-center gap-0.5 py-1 px-2"
+          style={{ color: "#9a9aaa" }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/rp/rp_nav_profile_24.svg" alt="" width={24} height={24} className="w-6 h-6" />
-          <span className="text-[10px] font-bold">{t.home.navProfile}</span>
+          <span className="text-[10px] font-medium">{t.home.navProfile}</span>
         </button>
       </nav>
     </div>
