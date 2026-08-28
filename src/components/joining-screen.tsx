@@ -6,6 +6,7 @@ import { createBrowserSupabase } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n, LoadingPulse } from "@/lib/i18n-context";
 import { clearMatchSession, readMatchSession } from "@/lib/guest-flow";
+import { isLiveJoinViewport, waitForStableForeground } from "@/lib/join-guard";
 import { DecorSchleimi } from "@/components/player-schleimi";
 import styles from "./joining-screen.module.css";
 
@@ -71,15 +72,25 @@ export function JoinSessionGate({
 
   useEffect(() => {
     if (loading || isAuthenticated || startedRef.current) return;
-    startedRef.current = true;
-    void createBrowserSupabase()
-      .auth.signInAnonymously()
-      .then(({ error }) => {
-        if (error) {
-          startedRef.current = false;
-          setAuthError(t.landing.connectionError);
-        }
-      });
+    const controller = new AbortController();
+
+    void waitForStableForeground(undefined, document, controller.signal).then((stable) => {
+      if (controller.signal.aborted || startedRef.current || isAuthenticated) return;
+      if (!stable || !isLiveJoinViewport(document)) return;
+      startedRef.current = true;
+      void createBrowserSupabase()
+        .auth.signInAnonymously()
+        .then(({ error }) => {
+          if (error) {
+            startedRef.current = false;
+            setAuthError(t.landing.connectionError);
+          }
+        });
+    });
+
+    return () => {
+      controller.abort();
+    };
   }, [loading, isAuthenticated, t.landing.connectionError]);
 
   if (!isAuthenticated) {
