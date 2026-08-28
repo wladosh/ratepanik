@@ -8,17 +8,11 @@
   overflow: hidden;
   padding: 24px 20px;
   text-align: center;
-  background: var(--rp-bg-hero);
+  background: var(--rp-nb-cream);
 }
 
 .glow {
-  position: absolute;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 138, 113, 0.35), transparent 68%);
-  filter: blur(8px);
-  pointer-events: none;
+  display: none;
 }
 
 .mascot {
@@ -33,20 +27,22 @@
   z-index: 1;
   margin: 8px 0 4px;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--rp-peach-deep);
+  color: var(--rp-nb-peach-deep);
 }
 
 .title {
   position: relative;
   z-index: 1;
   margin: 0;
+  font-family: var(--font-display, var(--font-sans));
   font-size: 1.7rem;
   font-weight: 900;
   letter-spacing: -0.03em;
-  color: var(--rp-text);
+  text-transform: uppercase;
+  color: var(--rp-nb-text);
 }
 
 .body {
@@ -55,9 +51,9 @@
   max-width: 16rem;
   margin: 8px 0 0;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.4;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
 }
 
 .pulse {
@@ -65,8 +61,8 @@
   z-index: 1;
   margin-top: 18px;
   font-size: 13px;
-  font-weight: 700;
-  color: var(--rp-purple);
+  font-weight: 800;
+  color: var(--rp-nb-purple-deep);
   animation: join-pulse 1.2s ease-in-out infinite;
 }
 
@@ -83,21 +79,30 @@
 .primary,
 .secondary {
   min-height: 48px;
-  border: 0;
-  border-radius: 999px;
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 900;
+  text-transform: uppercase;
   cursor: pointer;
+  box-shadow: var(--rp-nb-shadow);
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+.primary:active,
+.secondary:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--rp-nb-shadow-pressed);
 }
 
 .primary {
-  color: #fff;
-  background: linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%);
+  color: var(--rp-nb-white);
+  background: var(--rp-nb-peach);
 }
 
 .secondary {
-  color: var(--rp-purple);
-  background: rgba(139, 124, 255, 0.12);
+  color: var(--rp-nb-purple-deep);
+  background: var(--rp-nb-lilac);
 }
 
 @media (prefers-reduced-motion: reduce) {

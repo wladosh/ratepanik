@@ -8,7 +8,7 @@
   width: 118px;
   height: 118px;
   object-fit: contain;
-  filter: drop-shadow(0 10px 14px rgba(46, 93, 138, 0.18));
+  filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.2));
 }
 
 .promptHint {
@@ -17,22 +17,22 @@
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  border-radius: 12px;
-  color: var(--rp-text-secondary);
-  background: rgba(126, 182, 255, 0.12);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-text);
+  background: var(--rp-nb-blue);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.35;
 }
 
 .console {
   margin-bottom: 16px;
   padding: 18px;
-  border: 1px solid rgba(126, 182, 255, 0.2);
-  border-radius: var(--rp-radius-lg);
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 16px 36px rgba(46, 93, 138, 0.1);
-  backdrop-filter: blur(12px);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow-lg);
 }
 
 .consoleHeader {
@@ -44,20 +44,23 @@
 }
 
 .label {
-  color: var(--rp-text);
+  color: var(--rp-nb-text);
   font-size: 14px;
-  font-weight: 850;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .formatChip {
   flex: none;
   padding: 5px 9px;
-  border-radius: var(--rp-radius-pill);
-  color: #3973aa;
-  background: rgba(126, 182, 255, 0.16);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-blue);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.035em;
+  text-transform: uppercase;
 }
 
 .field {
@@ -66,29 +69,22 @@
   min-height: 72px;
   align-items: center;
   overflow: hidden;
-  border: 2px solid rgba(126, 182, 255, 0.28);
-  border-radius: 22px;
-  background: rgba(247, 251, 255, 0.98);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background-color 180ms ease;
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-cream);
+  transition: box-shadow 180ms ease;
 }
 
 .field:focus-within {
-  border-color: var(--rp-focus-ring);
-  background: #fff;
-  box-shadow: 0 0 0 4px rgba(139, 124, 255, 0.14);
+  box-shadow: 0 0 0 3px var(--rp-nb-purple-deep);
 }
 
 .fieldInvalid {
-  border-color: var(--rp-danger);
+  border-color: var(--rp-nb-red);
 }
 
 .fieldInvalid:focus-within {
-  border-color: var(--rp-danger);
-  box-shadow: 0 0 0 4px rgba(255, 92, 122, 0.13);
+  box-shadow: 0 0 0 3px var(--rp-nb-red);
 }
 
 .input {
@@ -98,7 +94,7 @@
   padding: 0 18px;
   border: 0;
   outline: 0;
-  color: var(--rp-text);
+  color: var(--rp-nb-text);
   background: transparent;
   font: inherit;
   font-size: clamp(28px, 9vw, 38px);
@@ -115,9 +111,9 @@
 }
 
 .input::placeholder {
-  color: rgba(107, 107, 138, 0.42);
+  color: rgba(26, 26, 46, 0.3);
   font-size: 22px;
-  font-weight: 750;
+  font-weight: 800;
   letter-spacing: -0.02em;
 }
 
@@ -131,27 +127,28 @@
   justify-content: center;
   overflow: hidden;
   padding: 0 12px;
-  border: 1px solid rgba(126, 182, 255, 0.2);
-  border-radius: 15px;
-  color: #3973aa;
-  background: rgba(126, 182, 255, 0.14);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-blue);
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-transform: uppercase;
 }
 
 .message {
   min-height: 32px;
   padding: 7px 3px 0;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
   font-size: 12px;
-  font-weight: 650;
+  font-weight: 700;
   line-height: 1.35;
 }
 
 .error {
-  color: #d63459;
+  color: var(--rp-nb-red);
 }
 
 .submit {
@@ -162,42 +159,32 @@
   justify-content: center;
   gap: 8px;
   margin-top: 6px;
-  border: 0;
-  border-radius: var(--rp-radius-pill);
-  color: #fff;
-  background: linear-gradient(135deg, #6aa9ed 0%, #527ee9 100%);
-  box-shadow: 0 10px 24px rgba(82, 126, 233, 0.3);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-white);
+  background: var(--rp-nb-blue);
+  box-shadow: var(--rp-nb-shadow-lg);
   cursor: pointer;
   font: inherit;
   font-size: 16px;
-  font-weight: 850;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    opacity 160ms ease;
-}
-
-.submit:hover:not(:disabled) {
-  box-shadow: 0 12px 28px rgba(82, 126, 233, 0.38);
-  transform: translateY(-1px);
+  font-weight: 900;
+  text-transform: uppercase;
+  transition: transform 100ms ease, box-shadow 100ms ease;
 }
 
 .submit:active:not(:disabled) {
-  box-shadow: 0 6px 16px rgba(82, 126, 233, 0.28);
-  transform: scale(0.98);
+  transform: translate(3px, 3px);
+  box-shadow: var(--rp-nb-shadow-pressed);
 }
 
 .submit:focus-visible {
-  outline: 3px solid var(--rp-focus-ring);
-  outline-offset: 3px;
+  outline: 3px solid var(--rp-nb-black);
+  outline-offset: 2px;
 }
 
 .submit:disabled {
-  box-shadow: none;
   cursor: not-allowed;
-  opacity: 0.78;
-  color: #fff;
-  background: linear-gradient(135deg, #5b90d4 0%, #3f66c4 100%);
+  opacity: 0.55;
 }
 
 .submittedGuess {
@@ -205,7 +192,7 @@
   align-items: baseline;
   gap: 6px;
   margin-top: 4px;
-  color: #3973aa;
+  color: var(--rp-nb-black);
   font-size: 28px;
   font-weight: 900;
   letter-spacing: -0.03em;
@@ -214,8 +201,9 @@
 
 .submittedUnit {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0;
+  text-transform: uppercase;
 }
 
 .waitingArtwork {
@@ -225,23 +213,11 @@
 }
 
 @media (max-width: 360px) {
-  .console {
-    padding: 15px;
-  }
-
-  .formatChip {
-    font-size: 9px;
-  }
+  .console { padding: 15px; }
+  .formatChip { font-size: 9px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .field,
-  .submit {
-    transition: none;
-  }
-
-  .submit:hover:not(:disabled),
-  .submit:active:not(:disabled) {
-    transform: none;
-  }
+  .field, .submit { transition: none; }
+  .submit:active:not(:disabled) { transform: none; }
 }

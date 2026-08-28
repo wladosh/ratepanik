@@ -9,9 +9,9 @@
   flex: 1;
   align-items: center;
   justify-content: center;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
   font-size: 18px;
-  font-weight: 650;
+  font-weight: 800;
   animation: loadingPulse 1.4s ease-in-out infinite;
 }
 
@@ -19,7 +19,7 @@
   width: 118px;
   height: 118px;
   object-fit: contain;
-  filter: drop-shadow(0 10px 14px rgba(91, 56, 99, 0.16));
+  filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.2));
 }
 
 .foundProgress {
@@ -29,15 +29,14 @@
   align-items: center;
   gap: 7px;
   padding: 0 10px;
-  border: 1px solid rgba(61, 204, 138, 0.18);
-  border-radius: var(--rp-radius-pill);
-  color: #167a55;
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 2px 8px rgba(42, 42, 74, 0.06);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-mint);
+  box-shadow: var(--rp-nb-shadow-sm);
   font-size: 12px;
-  font-weight: 850;
+  font-weight: 900;
   font-variant-numeric: tabular-nums;
-  backdrop-filter: blur(10px);
 }
 
 .foundCount {
@@ -52,18 +51,18 @@
 
 .foundDot,
 .foundDotComplete {
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--rp-nb-black);
+  border-radius: 0;
 }
 
 .foundDot {
-  background: rgba(42, 42, 74, 0.16);
+  background: rgba(26, 26, 46, 0.12);
 }
 
 .foundDotComplete {
-  background: var(--rp-success);
-  box-shadow: 0 0 0 2px rgba(61, 204, 138, 0.13);
+  background: var(--rp-nb-green);
 }
 
 .turnStatus {
@@ -74,21 +73,17 @@
   min-height: 54px;
   margin: 0 2px 10px;
   padding: 8px 12px;
-  border: 1px solid transparent;
-  border-radius: 18px;
-  box-shadow: 0 6px 18px rgba(42, 42, 74, 0.07);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  box-shadow: var(--rp-nb-shadow);
 }
 
 .turnStatusActive {
-  border-color: rgba(255, 138, 113, 0.28);
-  background:
-    linear-gradient(105deg, rgba(255, 255, 255, 0.96), rgba(255, 238, 226, 0.92));
+  background: var(--rp-nb-peach);
 }
 
 .turnStatusWaiting {
-  border-color: rgba(139, 124, 255, 0.14);
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(10px);
+  background: var(--rp-nb-white);
 }
 
 .turnIcon {
@@ -97,14 +92,14 @@
   height: 36px;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  color: var(--rp-peach-deep);
-  background: rgba(255, 138, 113, 0.13);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-white);
 }
 
 .turnStatusWaiting .turnIcon {
-  color: var(--rp-purple);
-  background: rgba(139, 124, 255, 0.1);
+  background: var(--rp-nb-lilac);
 }
 
 .turnIcon svg {
@@ -126,9 +121,9 @@
 
 .turnCopy strong {
   overflow: hidden;
-  color: var(--rp-text);
+  color: var(--rp-nb-black);
   font-size: 13px;
-  font-weight: 850;
+  font-weight: 900;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -136,9 +131,9 @@
 .turnCopy > span {
   overflow: hidden;
   margin-top: 3px;
-  color: var(--rp-text-secondary);
+  color: rgba(26, 26, 46, 0.6);
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -146,15 +141,14 @@
 .turnPulse {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
-  background: var(--rp-peach);
-  box-shadow: 0 0 0 4px rgba(255, 138, 113, 0.15);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: 0;
+  background: var(--rp-nb-peach);
   animation: turnPulse 1.5s ease-in-out infinite;
 }
 
 .turnStatusWaiting .turnPulse {
-  background: var(--rp-purple);
-  box-shadow: 0 0 0 4px rgba(139, 124, 255, 0.12);
+  background: var(--rp-nb-purple-deep);
 }
 
 .cardGrid {
@@ -175,17 +169,13 @@
   gap: 2px 8px;
   overflow: hidden;
   padding: 10px;
-  border: 1.5px solid rgba(42, 42, 74, 0.1);
-  border-radius: 18px;
-  color: var(--rp-text);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 7px 18px rgba(42, 42, 74, 0.07);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-text);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow);
   text-align: left;
-  transition:
-    transform 160ms ease-out,
-    border-color 160ms ease-out,
-    box-shadow 160ms ease-out,
-    background-color 160ms ease-out;
+  transition: transform 100ms ease, box-shadow 100ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -193,19 +183,14 @@
   cursor: pointer;
 }
 
-.answerCard:not(:disabled):hover {
-  border-color: rgba(255, 138, 113, 0.5);
-  box-shadow: 0 9px 22px rgba(104, 67, 73, 0.13);
-  transform: translateY(-1px);
-}
-
 .answerCard:not(:disabled):active {
-  transform: scale(0.975);
+  transform: translate(2px, 2px);
+  box-shadow: var(--rp-nb-shadow-pressed);
 }
 
 .answerCard:focus-visible {
-  outline: 3px solid var(--rp-focus-ring);
-  outline-offset: 3px;
+  outline: 3px solid var(--rp-nb-black);
+  outline-offset: 2px;
 }
 
 .answerCard:disabled {
@@ -213,35 +198,21 @@
 }
 
 .answerCard[data-state="available"]:disabled {
-  color: rgba(42, 42, 74, 0.72);
-  background: rgba(255, 255, 255, 0.64);
-  box-shadow: 0 4px 12px rgba(42, 42, 74, 0.045);
+  opacity: 0.6;
 }
 
 .answerCard[data-state="correct"] {
-  border-color: rgba(37, 159, 109, 0.78);
-  color: #145f45;
-  background:
-    linear-gradient(145deg, rgba(240, 255, 248, 0.98), rgba(203, 247, 226, 0.95));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.62),
-    0 8px 20px rgba(37, 159, 109, 0.14);
+  border-color: var(--rp-nb-black);
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-mint);
+  box-shadow: var(--rp-nb-shadow);
 }
 
 .answerCard[data-state="wrong"] {
-  border-color: rgba(221, 59, 91, 0.62);
-  color: #84263a;
-  background:
-    repeating-linear-gradient(
-      -45deg,
-      rgba(255, 241, 244, 0.97),
-      rgba(255, 241, 244, 0.97) 8px,
-      rgba(255, 229, 235, 0.97) 8px,
-      rgba(255, 229, 235, 0.97) 16px
-    );
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.58),
-    0 7px 18px rgba(193, 52, 80, 0.11);
+  border-color: var(--rp-nb-black);
+  color: var(--rp-nb-black);
+  background: #FFB3C0;
+  box-shadow: var(--rp-nb-shadow);
 }
 
 .answerBadge {
@@ -251,24 +222,22 @@
   grid-row: 1 / span 2;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-  color: var(--rp-text-secondary);
-  background: rgba(243, 238, 248, 0.9);
-  box-shadow: inset 0 0 0 1px rgba(42, 42, 74, 0.05);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-text-secondary);
+  background: var(--rp-nb-cream);
   font-size: 12px;
   font-weight: 900;
 }
 
 .answerCard[data-state="correct"] .answerBadge {
-  color: #fff;
-  background: #259f6d;
-  box-shadow: 0 4px 10px rgba(37, 159, 109, 0.24);
+  color: var(--rp-nb-white);
+  background: var(--rp-nb-green);
 }
 
 .answerCard[data-state="wrong"] .answerBadge {
-  color: #fff;
-  background: #dd3b5b;
-  box-shadow: 0 4px 10px rgba(193, 52, 80, 0.2);
+  color: var(--rp-nb-white);
+  background: var(--rp-nb-red);
 }
 
 .answerText {
@@ -287,12 +256,10 @@
   justify-content: space-between;
   gap: 4px;
   align-self: start;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
   font-size: 12px;
   font-weight: 800;
   line-height: 1.2;
-  letter-spacing: 0.02em;
-  text-transform: none;
 }
 
 .answerState small {
@@ -305,58 +272,30 @@
 }
 
 .answerCard[data-state="correct"] .answerState {
-  color: #167a55;
+  color: var(--rp-nb-black);
 }
 
 .answerCard[data-state="wrong"] .answerState {
-  color: #a52d48;
+  color: var(--rp-nb-black);
 }
 
 @keyframes turnPulse {
-  0%,
-  100% {
-    transform: scale(0.9);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scale(1.08);
-    opacity: 1;
-  }
+  0%, 100% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.08); opacity: 1; }
 }
 
 @keyframes loadingPulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
 }
 
 @media (max-width: 370px) {
-  .foundDots {
-    display: none;
-  }
-
-  .answerCard {
-    min-height: 74px;
-    padding: 8px;
-  }
+  .foundDots { display: none; }
+  .answerCard { min-height: 74px; padding: 8px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loading,
-  .turnPulse {
-    animation: none;
-  }
-
-  .answerCard {
-    transition: none;
-  }
-
-  .answerCard:not(:disabled):hover,
-  .answerCard:not(:disabled):active {
-    transform: none;
-  }
+  .loading, .turnPulse { animation: none; }
+  .answerCard { transition: none; }
+  .answerCard:not(:disabled):active { transform: none; }
 }

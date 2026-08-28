@@ -13,38 +13,34 @@
   justify-content: space-between;
   gap: 8px;
   padding: 12px 10px 10px;
-  border: 1.5px solid transparent;
-  border-radius: 18px;
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
   text-align: left;
   cursor: pointer;
   touch-action: manipulation;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    background 160ms ease,
-    border-color 160ms ease;
+  transition: transform 100ms ease, box-shadow 100ms ease;
 }
 
 .card:focus-visible {
-  outline: 3px solid var(--rp-focus-ring);
-  outline-offset: 3px;
+  outline: 3px solid var(--rp-nb-black);
+  outline-offset: 2px;
 }
 
 .card:active {
-  transform: scale(0.97);
+  transform: translate(2px, 2px);
+  box-shadow: var(--rp-nb-shadow-pressed) !important;
 }
 
 .idle {
-  color: var(--rp-text);
-  background: var(--rp-bg-muted);
-  box-shadow: inset 0 0 0 1px rgba(42, 42, 74, 0.04);
+  color: var(--rp-nb-text);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow);
 }
 
 .selected {
-  color: #fff;
-  background: linear-gradient(160deg, #9b8cff 0%, var(--rp-purple) 62%, #6f5fe0 100%);
-  border-color: rgba(255, 255, 255, 0.18);
-  box-shadow: 0 12px 24px rgba(139, 124, 255, 0.32);
+  color: var(--rp-nb-white);
+  background: var(--rp-nb-purple-deep);
+  box-shadow: var(--rp-nb-shadow-lg);
 }
 
 .timeRow {
@@ -62,7 +58,7 @@
 
 .unit {
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   opacity: 0.78;
@@ -70,8 +66,9 @@
 
 .label {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .meter {
@@ -81,9 +78,10 @@
 }
 
 .bar {
-  height: 4px;
+  height: 5px;
   flex: 1;
-  border-radius: 999px;
+  border-radius: 0;
+  border: 1px solid var(--rp-nb-black);
 }
 
 .barOn,
@@ -92,15 +90,15 @@
 }
 
 .idle .barOn {
-  background: var(--rp-purple);
+  background: var(--rp-nb-purple-deep);
 }
 
 .idle .barOff {
-  background: rgba(42, 42, 74, 0.12);
+  background: rgba(26, 26, 46, 0.12);
 }
 
 .selected .barOn {
-  background: #fff;
+  background: var(--rp-nb-white);
 }
 
 .selected .barOff {

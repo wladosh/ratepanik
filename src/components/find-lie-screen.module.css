@@ -9,9 +9,9 @@
   flex: 1;
   align-items: center;
   justify-content: center;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
   font-size: 18px;
-  font-weight: 650;
+  font-weight: 800;
   animation: loadingPulse 1.4s ease-in-out infinite;
 }
 
@@ -21,12 +21,11 @@
   height: 92px;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(255, 255, 255, 0.76);
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.52);
-  box-shadow: 0 12px 22px rgba(132, 47, 91, 0.13);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-pink);
+  box-shadow: var(--rp-nb-shadow);
   font-size: 54px;
-  transform: rotate(3deg);
 }
 
 .statementList {
@@ -37,10 +36,11 @@
 
 .instruction {
   margin: 0 4px 1px;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
   font-size: 12px;
-  font-weight: 750;
+  font-weight: 800;
   letter-spacing: 0.01em;
+  text-transform: uppercase;
 }
 
 .statementCard {
@@ -50,44 +50,31 @@
   align-items: center;
   gap: 12px;
   padding: 11px 13px;
-  border: 1.5px solid rgba(255, 122, 182, 0.17);
-  border-radius: 19px;
-  color: var(--rp-text);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 6px 16px rgba(84, 53, 76, 0.08);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-text);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow);
   cursor: pointer;
   font: inherit;
   text-align: left;
   touch-action: manipulation;
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease,
-    background-color 160ms ease;
-}
-
-.statementCard:hover {
-  border-color: rgba(255, 122, 182, 0.42);
-  background: rgba(255, 249, 252, 0.98);
-  box-shadow: 0 9px 21px rgba(118, 47, 82, 0.12);
-  transform: translateY(-1px);
+  transition: transform 100ms ease, box-shadow 100ms ease;
 }
 
 .statementCard:active {
-  transform: scale(0.985);
+  transform: translate(2px, 2px);
+  box-shadow: var(--rp-nb-shadow-pressed);
 }
 
 .statementCard:focus-visible {
-  outline: 3px solid var(--rp-focus-ring);
-  outline-offset: 3px;
+  outline: 3px solid var(--rp-nb-black);
+  outline-offset: 2px;
 }
 
 .statementCard[aria-pressed="true"] {
-  border-color: var(--rp-pink);
-  background: rgba(255, 235, 245, 0.98);
-  box-shadow:
-    0 0 0 3px rgba(255, 122, 182, 0.14),
-    0 10px 23px rgba(118, 47, 82, 0.13);
+  background: var(--rp-nb-pink);
+  box-shadow: var(--rp-nb-shadow-lg);
 }
 
 .statementBadge {
@@ -97,10 +84,10 @@
   flex: none;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 122, 182, 0.16);
-  border-radius: 14px;
-  color: #a63b70;
-  background: rgba(255, 122, 182, 0.13);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-cream);
   font-size: 14px;
   font-weight: 900;
 }
@@ -109,27 +96,27 @@
   min-width: 0;
   flex: 1;
   font-size: 15px;
-  font-weight: 750;
+  font-weight: 800;
   line-height: 1.35;
 }
 
 .pickCue {
   flex: none;
   padding: 5px 8px;
-  border-radius: var(--rp-radius-pill);
-  color: #9a3f6c;
-  background: rgba(255, 122, 182, 0.09);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-pink);
   font-size: 9px;
-  font-weight: 850;
+  font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 .waitingPanel {
-  border-color: rgba(255, 122, 182, 0.17);
-  background:
-    radial-gradient(circle at 50% 2%, rgba(255, 255, 255, 0.9), transparent 31%),
-    linear-gradient(145deg, rgba(255, 247, 251, 0.94), rgba(244, 237, 255, 0.91));
+  border: var(--rp-nb-border);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow);
 }
 
 .waitingEmoji {
@@ -138,10 +125,10 @@
   height: 74px;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(255, 255, 255, 0.88);
-  border-radius: 26px;
-  background: rgba(255, 226, 239, 0.72);
-  box-shadow: 0 10px 20px rgba(112, 55, 87, 0.11);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-pink);
+  box-shadow: var(--rp-nb-shadow-sm);
   font-size: 38px;
 }
 
@@ -151,60 +138,35 @@
   min-height: 26px;
   align-items: center;
   justify-content: center;
-  border-radius: 9px;
-  color: #fff;
-  background: #b83f79;
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-white);
+  background: var(--rp-nb-pink);
   font-size: 12px;
+  font-weight: 900;
 }
 
 .selectedStatement {
   display: block;
   max-width: 320px;
   margin: 8px auto 0;
-  color: var(--rp-text);
-  font-weight: 750;
+  color: var(--rp-nb-text);
+  font-weight: 800;
 }
 
 @keyframes loadingPulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
 }
 
 @media (max-width: 390px) {
-  .statementCard {
-    min-height: 58px;
-    gap: 10px;
-    padding: 9px 11px;
-  }
-
-  .statementBadge {
-    width: 36px;
-    height: 36px;
-  }
-
-  .pickCue {
-    display: none;
-  }
+  .statementCard { min-height: 58px; gap: 10px; padding: 9px 11px; }
+  .statementBadge { width: 36px; height: 36px; }
+  .pickCue { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loading {
-    animation: none;
-  }
-
-  .stageEmoji,
-  .statementCard {
-    transition: none;
-    transform: none;
-  }
-
-  .statementCard:hover,
-  .statementCard:active {
-    transform: none;
-  }
+  .loading { animation: none; }
+  .statementCard { transition: none; }
+  .statementCard:active { transform: none; }
 }
