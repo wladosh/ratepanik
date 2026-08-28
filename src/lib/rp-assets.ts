@@ -38,6 +38,7 @@ export const ICON_STATS_CLIPBOARD_128 = "/rp/rp_icon_stats_clipboard_128@2x.png"
 export const MODE_ORDER_IT_256 = "/rp/rp_mode_order_it_256.png";
 export const MODE_NUMBER_GUESS_256 = "/rp/rp_mode_number_guess_256.png";
 export const MODE_PICK_CORRECT_256 = "/rp/rp_mode_pick_correct_256.png";
+export const MODE_FIND_LIE_256 = "/rp/rp_mode_find_lie_256.png";
 
 // ── Theme category art ──────────────────────────────────────────────
 export const THEME_SLUGS = [

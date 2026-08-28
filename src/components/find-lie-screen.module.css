@@ -170,3 +170,15 @@
   .statementCard { transition: none; }
   .statementCard:active { transform: none; }
 }
+
+.stageArtwork {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.waitingArtwork {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}

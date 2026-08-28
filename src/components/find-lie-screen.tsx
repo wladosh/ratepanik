@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { FindLiePayload } from "@/lib/content";
 import { PlayerSchleimi } from "@/components/player-schleimi";
+import { MODE_FIND_LIE_256 } from "@/lib/rp-assets";
 import { useGame } from "@/lib/game-context";
 import { AnswerWaitingPanel } from "./answer-waiting-panel";
 import { MatchPlayShell } from "./match-play-shell";
@@ -115,7 +117,16 @@ export function FindLieScreen() {
         stageTint="rgba(255, 235, 245, 0.96)"
         stageBorder="rgba(255, 122, 182, 0.2)"
         artworkBackground="rgba(255, 218, 235, 0.72)"
-        artwork={<span className={styles.stageEmoji}>🤥</span>}
+        artwork={
+          <Image
+            src={MODE_FIND_LIE_256}
+            alt=""
+            width={128}
+            height={128}
+            className={styles.stageArtwork}
+            unoptimized
+          />
+        }
         timer={
           showQuestionTimer ? (
             <QuestionTimerBar
@@ -165,7 +176,16 @@ export function FindLieScreen() {
               "Deine Antwort ist sicher gespeichert. Kein Zurück."
             )
           }
-          artwork={<span className={styles.waitingEmoji}>🔒</span>}
+          artwork={
+            <Image
+              src={MODE_FIND_LIE_256}
+              alt=""
+              width={96}
+              height={96}
+              className={styles.waitingArtwork}
+              unoptimized
+            />
+          }
           artworkLabel="Antwort sicher gespeichert"
           participants={participants}
         />
