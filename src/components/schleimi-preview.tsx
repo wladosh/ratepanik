@@ -67,12 +67,10 @@ function LayerImage({
   src,
   size,
   fallback,
-  blend,
 }: {
   src: string;
   size: number;
   fallback: ReactNode;
-  blend?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
   if (failed) return <>{fallback}</>;
@@ -84,7 +82,7 @@ function LayerImage({
       width={size}
       height={size}
       draggable={false}
-      className={`absolute inset-0 h-full w-full object-contain ${blend ? "mix-blend-multiply" : ""}`}
+      className="absolute inset-0 h-full w-full object-contain"
       onError={() => setFailed(true)}
     />
   );
@@ -136,7 +134,6 @@ export function SchleimiPreview({
           <LayerImage
             src={extra.asset_path}
             size={size}
-            blend
             fallback={
               <ExtraPlaceholder color={RARITY_COLOR[extra.rarity]} size={size} />
             }
@@ -148,7 +145,6 @@ export function SchleimiPreview({
           <LayerImage
             src={hat.asset_path}
             size={size}
-            blend
             fallback={<HatPlaceholder color={RARITY_COLOR[hat.rarity]} size={size} />}
           />
         </div>
@@ -186,7 +182,7 @@ export function CosmeticTileArt({
         background: RARITY_SOFT[item.rarity],
       }}
     >
-      <LayerImage src={item.asset_path} size={size} fallback={fallback} blend={item.slot === "hat" || item.slot === "extra"} />
+      <LayerImage src={item.asset_path} size={size} fallback={fallback} />
     </div>
   );
 }
