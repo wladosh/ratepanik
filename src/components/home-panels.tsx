@@ -29,7 +29,7 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
   if (!isGuest && profileLoading) {
     return (
       <PanelShell title={t.home.stats} onBack={onBack}>
-        <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+        <p className="text-sm font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
           {t.common.loading}
         </p>
       </PanelShell>
@@ -45,9 +45,9 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
         />
         <Link
           href="/auth/login"
-          className="mt-4 flex h-11 items-center justify-center rounded-[var(--rp-radius-pill)] text-sm font-bold text-white"
+          className="nb-btn mt-4 flex h-11 items-center justify-center text-sm text-white"
           style={{
-            background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+            background: "var(--rp-nb-peach)",
           }}
         >
           {t.landing.login}
@@ -83,22 +83,17 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
         {rows.map((row) => (
           <li
             key={row.label}
-            className="flex items-center justify-between px-4 py-3"
-            style={{
-              background: "var(--rp-bg-elevated)",
-              borderRadius: "var(--rp-radius-md)",
-              boxShadow: "var(--rp-shadow-card)",
-            }}
+            className="nb-card flex items-center justify-between px-4 py-3"
           >
             <span
-              className="text-sm font-semibold"
-              style={{ color: "var(--rp-text-secondary)" }}
+              className="text-sm font-bold"
+              style={{ color: "var(--rp-nb-text-secondary)" }}
             >
               {row.label}
             </span>
             <span
-              className="text-sm font-extrabold"
-              style={{ color: "var(--rp-text)" }}
+              className="text-sm font-black"
+              style={{ color: "var(--rp-nb-text)" }}
             >
               {row.value}
             </span>
@@ -106,8 +101,8 @@ function StatsPanel({ onBack }: { onBack: () => void }) {
         ))}
       </ul>
       <p
-        className="mt-4 text-xs leading-relaxed px-1"
-        style={{ color: "var(--rp-text-secondary)" }}
+        className="mt-4 text-xs leading-relaxed px-1 font-semibold"
+        style={{ color: "var(--rp-nb-text-secondary)" }}
       >
         {t.home.statsDisclaimer}
       </p>

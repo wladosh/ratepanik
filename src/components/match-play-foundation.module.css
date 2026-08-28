@@ -1,3 +1,7 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Neo-Brutalism – Match Play Foundation
+   ═══════════════════════════════════════════════════════════════════ */
+
 .shell {
   position: relative;
   display: flex;
@@ -6,8 +10,8 @@
   flex-direction: column;
   overflow: hidden;
   padding-top: max(env(safe-area-inset-top, 0px), var(--ps-notch-inset));
-  color: var(--rp-text);
-  background: var(--rp-bg-hero);
+  color: var(--rp-nb-text);
+  background: var(--rp-nb-cream);
 }
 
 .scrollRegion {
@@ -24,28 +28,7 @@
 
 .ambientPurple,
 .ambientPeach {
-  position: absolute;
-  border-radius: 999px;
-  pointer-events: none;
-  filter: blur(48px);
-}
-
-.ambientPurple {
-  top: 9rem;
-  right: -5rem;
-  width: 12rem;
-  height: 12rem;
-  opacity: 0.35;
-  background: var(--rp-purple-soft);
-}
-
-.ambientPeach {
-  bottom: 4rem;
-  left: -5rem;
-  width: 11rem;
-  height: 11rem;
-  opacity: 0.3;
-  background: rgba(255, 138, 113, 0.42);
+  display: none;
 }
 
 .footerSlot {
@@ -82,32 +65,33 @@
   min-width: 0;
   align-items: center;
   gap: 6px;
-  border-radius: var(--rp-radius-pill);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
   white-space: nowrap;
-  box-shadow: 0 2px 8px rgba(42, 42, 74, 0.06);
+  box-shadow: var(--rp-nb-shadow-sm);
 }
 
 .statusPill {
   padding: 0 16px;
-  color: var(--rp-text-secondary);
-  background: rgba(255, 255, 255, 0.78);
+  color: var(--rp-nb-text-secondary);
+  background: var(--rp-nb-white);
   font-size: 14px;
-  font-weight: 650;
-  backdrop-filter: blur(10px);
+  font-weight: 800;
 }
 
 .statusCurrent {
-  color: var(--rp-peach);
+  color: var(--rp-nb-peach);
   font-variant-numeric: tabular-nums;
 }
 
 .modePill {
   max-width: 12.5rem;
   padding: 0 12px;
-  color: var(--mode-color, var(--rp-purple));
-  background: var(--mode-background, rgba(139, 124, 255, 0.1));
+  color: var(--mode-color, var(--rp-nb-purple-deep));
+  background: var(--mode-background, var(--rp-nb-lilac));
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .modeLabel {
@@ -121,14 +105,10 @@
   min-height: 142px;
   overflow: hidden;
   padding: 20px;
-  border: 1px solid var(--stage-border, rgba(139, 124, 255, 0.12));
-  border-radius: var(--rp-radius-lg);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.96) 0%,
-    var(--stage-tint, rgba(247, 240, 255, 0.94)) 100%
-  );
-  box-shadow: 0 14px 34px rgba(66, 52, 110, 0.11);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--stage-tint, var(--rp-nb-white));
+  box-shadow: var(--rp-nb-shadow-lg);
 }
 
 .questionStageWithArtwork {
@@ -149,17 +129,19 @@
   gap: 6px;
   margin-bottom: 8px;
   padding: 4px 10px;
-  border-radius: var(--rp-radius-pill);
-  color: var(--mode-color, var(--rp-purple));
-  background: var(--mode-background, var(--rp-purple-soft));
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--mode-color, var(--rp-nb-purple-deep));
+  background: var(--mode-background, var(--rp-nb-lilac));
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .questionTitle {
-  color: var(--rp-text);
+  color: var(--rp-nb-text);
+  font-family: var(--font-display, var(--font-sans));
   font-size: 19px;
   font-weight: 900;
   line-height: 1.38;
@@ -180,8 +162,9 @@
   height: 126px;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  background: var(--artwork-background, rgba(237, 230, 255, 0.7));
+  border-radius: 0;
+  background: var(--artwork-background, var(--rp-nb-lilac));
+  border: 2px solid var(--rp-nb-black);
   pointer-events: none;
 }
 
@@ -195,10 +178,10 @@
   overflow: hidden;
   margin-bottom: 20px;
   padding: 20px;
-  border: 1px solid rgba(139, 124, 255, 0.14);
-  border-radius: var(--rp-radius-lg);
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 14px 30px rgba(66, 52, 110, 0.09);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow);
   text-align: center;
   animation: panelEnter 320ms ease-out both;
 }
@@ -212,19 +195,20 @@
 }
 
 .waitingTitle {
-  color: var(--rp-text);
+  color: var(--rp-nb-text);
+  font-family: var(--font-display, var(--font-sans));
   font-size: 20px;
   font-weight: 900;
   line-height: 1.3;
+  text-transform: uppercase;
 }
 
 .waitingDescription {
   margin-top: 8px;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.45;
-  letter-spacing: 0.01em;
 }
 
 .participantList {
@@ -243,41 +227,36 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 2px solid transparent;
-  border-radius: 10px;
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
   opacity: 0.32;
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease,
-    border-color 180ms ease;
+  transition: opacity 180ms ease;
 }
 
 .participantAnswered {
-  border-color: rgba(61, 204, 138, 0.34);
   opacity: 1;
-  transform: translateY(-1px);
+  box-shadow: var(--rp-nb-shadow-sm);
 }
 
 .timerTrack {
   position: relative;
   z-index: 2;
   width: calc(100% - 24px);
-  height: 14px;
-  margin: -7px auto 14px;
+  height: 16px;
+  margin: -8px auto 14px;
   overflow: hidden;
   padding: 3px;
-  border: 1px solid rgba(255, 138, 113, 0.16);
-  border-radius: var(--rp-radius-pill);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 5px 14px rgba(92, 70, 67, 0.12);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow-sm);
 }
 
 .timerFill {
   width: 100%;
   height: 100%;
-  border-radius: var(--rp-radius-pill);
-  background: var(--rp-peach);
-  box-shadow: 0 0 8px rgba(255, 138, 113, 0.35);
+  border-radius: 0;
+  background: var(--rp-nb-peach);
   transform: scaleX(var(--timer-progress, 1));
   transform-origin: left center;
   transition:
@@ -287,7 +266,7 @@
 }
 
 .timerFillUrgent {
-  background: var(--rp-peach-deep);
+  background: var(--rp-nb-red);
 }
 
 .timerPill {
@@ -296,23 +275,20 @@
   align-items: center;
   gap: 4px;
   padding: 0 12px;
-  border-radius: var(--rp-radius-pill);
-  color: var(--rp-peach-deep);
-  background: rgba(245, 107, 82, 0.1);
-  box-shadow: 0 2px 8px rgba(42, 42, 74, 0.06);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-peach-deep);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow-sm);
   font-size: 13px;
-  font-weight: 750;
+  font-weight: 900;
   font-variant-numeric: tabular-nums;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
+  transition: background-color 180ms ease, color 180ms ease;
 }
 
 .timerPillUrgent {
-  color: #fff;
-  background: var(--rp-danger);
-  box-shadow: 0 0 0 3px rgba(255, 92, 122, 0.25);
+  color: var(--rp-nb-white);
+  background: var(--rp-nb-red);
   animation: timerPulse 1s ease-in-out infinite;
 }
 
@@ -322,17 +298,16 @@
   justify-content: center;
   gap: 8px;
   padding: 12px 16px max(12px, env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid var(--rp-border);
-  color: var(--rp-text-secondary);
-  background: rgba(255, 255, 255, 0.72);
+  border-top: var(--rp-nb-border);
+  color: var(--rp-nb-text-secondary);
+  background: var(--rp-nb-white);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 800;
   text-align: center;
-  backdrop-filter: blur(10px);
 }
 
 .waitingCount {
-  color: var(--rp-peach-deep);
+  color: var(--rp-nb-peach-deep);
   font-variant-numeric: tabular-nums;
 }
 
@@ -379,9 +354,5 @@
   .timerFill,
   .timerPill {
     transition: none;
-  }
-
-  .participantAnswered {
-    transform: none;
   }
 }

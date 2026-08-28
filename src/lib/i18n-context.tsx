@@ -59,9 +59,9 @@ export function LoadingPulse({ minFullScreen = false }: { minFullScreen?: boolea
   return (
     <div
       className={`flex items-center justify-center ${minFullScreen ? "min-h-dvh" : "flex-1"}`}
-      style={{ background: "var(--rp-bg-hero)" }}
+      style={{ background: "var(--rp-nb-cream)" }}
     >
-      <div className="text-lg font-medium animate-pulse" style={{ color: "var(--rp-text-secondary)" }}>
+      <div className="nb-heading text-lg" style={{ color: "var(--rp-nb-black)" }}>
         {t.common.loading}
       </div>
     </div>

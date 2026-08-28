@@ -125,7 +125,6 @@ type FinalMood = {
   title: string;
   message: string;
   accent: string;
-  glow: string;
 };
 
 function getFinalMood(rank: number, playerCount: number, tied: boolean): FinalMood {
@@ -134,8 +133,7 @@ function getFinalMood(rank: number, playerCount: number, tied: boolean): FinalMo
       eyebrow: "Gleichstand",
       title: "Unentschieden",
       message: "Ihr liegt gleichauf. Nächste Runde entscheidet.",
-      accent: "var(--rp-purple)",
-      glow: "rgba(139, 124, 255, 0.28)",
+      accent: "var(--rp-nb-purple-deep)",
     };
   }
   if (rank === 1) {
@@ -147,8 +145,7 @@ function getFinalMood(rank: number, playerCount: number, tied: boolean): FinalMo
         : `Du hast dich gegen ${playerCount - 1} ${
             playerCount - 1 === 1 ? "Mitspieler" : "Mitspieler"
           } durchgesetzt.`,
-      accent: "#C98A16",
-      glow: "rgba(255, 214, 107, 0.42)",
+      accent: "var(--rp-nb-yellow)",
     };
   }
 
@@ -157,8 +154,7 @@ function getFinalMood(rank: number, playerCount: number, tied: boolean): FinalMo
       eyebrow: "Platz 2",
       title: "So knapp!",
       message: "Der Pokal war zum Greifen nah. Nächste Runde gehört dir.",
-      accent: "var(--rp-purple)",
-      glow: "rgba(139, 124, 255, 0.28)",
+      accent: "var(--rp-nb-purple-deep)",
     };
   }
 
@@ -166,8 +162,7 @@ function getFinalMood(rank: number, playerCount: number, tied: boolean): FinalMo
     eyebrow: `Platz ${rank}`,
     title: "Stark gekämpft!",
     message: "Heute nicht ganz vorn – aber die Revanche wartet schon.",
-    accent: "var(--rp-peach-deep)",
-    glow: "rgba(255, 138, 113, 0.25)",
+    accent: "var(--rp-nb-peach)",
   };
 }
 
@@ -216,22 +211,14 @@ function FinalHero({
   return (
     <section ref={heroRef} className="relative mb-5 text-center" aria-label={`${mood.eyebrow}: ${mood.title}`}>
       <div className="relative mx-auto mb-3 h-[132px] w-[132px]">
-        <span
-          className="absolute inset-2 rounded-full blur-2xl"
-          style={{ background: mood.glow }}
-          aria-hidden="true"
-        />
         <div
           data-final-orb
-          className="relative flex h-full w-full items-center justify-center rounded-[42px]"
+          className="nb-card relative flex h-full w-full items-center justify-center"
           style={{
-            background: winner
-              ? "linear-gradient(145deg, #FFF9D7 0%, #FFE2A4 100%)"
-              : "linear-gradient(145deg, rgba(255,255,255,0.96) 0%, rgba(237,230,255,0.94) 100%)",
-            border: winner ? "1px solid rgba(201, 138, 22, 0.2)" : "1px solid rgba(139, 124, 255, 0.16)",
-            boxShadow: winner
-              ? "0 18px 42px rgba(166, 112, 26, 0.2)"
-              : "0 18px 42px rgba(76, 60, 130, 0.15)",
+            background: winner ? "var(--rp-nb-yellow)" : "var(--rp-nb-lilac)",
+            borderRadius: "var(--rp-nb-radius)",
+            border: "var(--rp-nb-border)",
+            boxShadow: "var(--rp-nb-shadow-lg)",
           }}
         >
           {winner ? (
@@ -249,12 +236,12 @@ function FinalHero({
             </span>
           )}
           <span
-            className="absolute -bottom-2 -right-2 flex min-h-11 min-w-11 items-center justify-center rounded-2xl px-2 text-base font-black text-white"
+            className="absolute -bottom-2 -right-2 flex min-h-11 min-w-11 items-center justify-center px-2 text-base font-black text-white"
             style={{
-              background: winner
-                ? "linear-gradient(135deg, #F3B928 0%, #D58A12 100%)"
-                : "linear-gradient(135deg, var(--rp-purple) 0%, #6B5CE7 100%)",
-              boxShadow: "0 7px 16px rgba(72, 54, 118, 0.22)",
+              background: winner ? "var(--rp-nb-yellow)" : "var(--rp-nb-purple-deep)",
+              borderRadius: "var(--rp-nb-radius)",
+              border: "var(--rp-nb-border)",
+              boxShadow: "var(--rp-nb-shadow-sm)",
             }}
           >
             #{rank}
@@ -264,38 +251,39 @@ function FinalHero({
 
       <p
         data-final-copy
-        className="mb-1 text-[11px] font-black uppercase tracking-[0.18em]"
+        className="nb-kicker mb-1 text-[11px] font-black uppercase tracking-[0.18em]"
         style={{ color: mood.accent }}
       >
         {mood.eyebrow}
       </p>
       <h1
         data-final-copy
-        className="text-[30px] font-black leading-tight tracking-[-0.04em]"
-        style={{ color: "var(--rp-text)" }}
+        className="nb-heading text-[30px] font-black uppercase leading-tight tracking-[-0.04em]"
+        style={{ color: "var(--rp-nb-black)" }}
       >
         {mood.title}
       </h1>
       <p
         data-final-copy
         className="mx-auto mt-2 max-w-[300px] text-sm font-semibold leading-relaxed"
-        style={{ color: "var(--rp-text-secondary)" }}
+        style={{ color: "var(--rp-nb-black)" }}
       >
         {mood.message}
       </p>
       <div
         data-final-score
-        className="mt-3 inline-flex items-baseline gap-1.5 rounded-full px-4 py-2"
+        className="mt-3 inline-flex items-baseline gap-1.5 px-4 py-2"
         style={{
-          background: "rgba(255, 255, 255, 0.82)",
-          border: "1px solid rgba(255, 255, 255, 0.9)",
-          boxShadow: "0 7px 20px rgba(42, 42, 74, 0.07)",
+          background: "var(--rp-nb-white)",
+          border: "var(--rp-nb-border)",
+          borderRadius: "var(--rp-nb-radius)",
+          boxShadow: "var(--rp-nb-shadow-sm)",
         }}
       >
         <span className="text-xl font-black tabular-nums" style={{ color: mood.accent }}>
           {score.toLocaleString("de-DE")}
         </span>
-        <span className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: "var(--rp-text-secondary)" }}>
+        <span className="text-[10px] font-extrabold uppercase tracking-wider" style={{ color: "var(--rp-nb-black)" }}>
           Punkte
         </span>
       </div>
@@ -319,21 +307,11 @@ function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
     <div
       className="relative flex flex-1 flex-col items-center overflow-y-auto px-4 pb-6"
       style={{
-        background: "var(--rp-bg-hero)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       <ConfettiOverlay show={myRank === 1 && !tied} />
-      <span
-        className="pointer-events-none absolute -left-20 top-40 h-52 w-52 rounded-full opacity-35 blur-3xl"
-        style={{ background: myRank === 1 && !tied ? "#FFE9A8" : "var(--rp-purple-soft)" }}
-        aria-hidden="true"
-      />
-      <span
-        className="pointer-events-none absolute -right-20 bottom-20 h-48 w-48 rounded-full opacity-30 blur-3xl"
-        style={{ background: "var(--rp-peach-soft)" }}
-        aria-hidden="true"
-      />
 
       <div className="relative z-10 mt-8 w-full max-w-sm">
         <FinalHero
@@ -345,10 +323,10 @@ function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
         />
 
         <div className="mb-2 flex items-center justify-between px-1">
-          <h2 className="text-sm font-extrabold" style={{ color: "var(--rp-text)" }}>
+          <h2 className="nb-heading text-sm font-extrabold uppercase" style={{ color: "var(--rp-nb-black)" }}>
             Endstand
           </h2>
-          <span className="text-xs font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+          <span className="text-xs font-semibold" style={{ color: "var(--rp-nb-black)" }}>
             {sortedPlayers.length} Spieler
           </span>
         </div>
@@ -357,29 +335,28 @@ function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
           {sortedPlayers.map((player, i) => (
             <div
               key={player.id}
-              className="animate-fade-in flex items-center gap-3 px-3.5 py-3"
+              className="nb-card animate-fade-in flex items-center gap-3 px-3.5 py-3"
               style={{
                 animationDelay: `${500 + i * 100}ms`,
                 background:
                   player.id === game.myPlayerId
-                    ? "rgba(255, 255, 255, 0.94)"
-                    : "rgba(255, 255, 255, 0.7)",
-                borderRadius: 20,
-                border:
-                  player.id === game.myPlayerId
-                    ? "1.5px solid rgba(139, 124, 255, 0.3)"
-                    : "1px solid rgba(255, 255, 255, 0.78)",
+                    ? "var(--rp-nb-white)"
+                    : "var(--rp-nb-white)",
+                borderRadius: "var(--rp-nb-radius)",
+                border: "var(--rp-nb-border)",
                 boxShadow:
                   player.id === game.myPlayerId
-                    ? "0 8px 22px rgba(92, 77, 175, 0.11)"
-                    : "0 5px 16px rgba(42, 42, 74, 0.05)",
+                    ? "var(--rp-nb-shadow)"
+                    : "var(--rp-nb-shadow-sm)",
               }}
             >
               <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black"
+                className="flex h-9 w-9 shrink-0 items-center justify-center text-sm font-black"
                 style={{
-                  background: (ranks[i] ?? i + 1) === 1 ? "#FFF2B8" : "var(--rp-bg-muted)",
-                  color: (ranks[i] ?? i + 1) === 1 ? "#A87513" : "var(--rp-text-secondary)",
+                  background: (ranks[i] ?? i + 1) === 1 ? "var(--rp-nb-yellow)" : "var(--rp-nb-lilac)",
+                  color: "var(--rp-nb-black)",
+                  borderRadius: "var(--rp-nb-radius)",
+                  border: "var(--rp-nb-border)",
                 }}
               >
                 {placeGlyph(ranks[i] ?? i + 1)}
@@ -391,10 +368,10 @@ function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
                 isMe={player.id === game.myPlayerId}
               />
               <div className="text-right">
-                <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
+                <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-nb-purple-deep)" }}>
                   {player.score.toLocaleString("de-DE")}
                 </span>
-                <span className="block text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--rp-text-secondary)" }}>
+                <span className="block text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--rp-nb-black)" }}>
                   Punkte
                 </span>
               </div>
@@ -404,10 +381,12 @@ function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
 
         <button
           onClick={onContinue}
-          className="animate-fade-in h-[56px] w-full rounded-[var(--rp-radius-pill)] text-base font-extrabold text-white transition-all active:scale-[0.97]"
+          className="nb-btn animate-fade-in h-[56px] w-full text-base font-extrabold text-white uppercase transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[var(--rp-nb-shadow-pressed)]"
           style={{
-            background: "linear-gradient(135deg, var(--rp-purple) 0%, #6B5CE7 100%)",
-            boxShadow: "0 10px 26px rgba(107, 92, 231, 0.3)",
+            background: "var(--rp-nb-purple-deep)",
+            border: "var(--rp-nb-border)",
+            borderRadius: "var(--rp-nb-radius)",
+            boxShadow: "var(--rp-nb-shadow)",
             animationDelay: "0.9s",
           }}
         >
@@ -432,11 +411,12 @@ function XpRow({
 
   return (
     <div
-      className="flex items-center gap-3 p-4 animate-fade-in"
+      className="nb-card flex items-center gap-3 p-4 animate-fade-in"
       style={{
-        background: "var(--rp-bg-elevated)",
-        borderRadius: "var(--rp-radius-md)",
-        border: "1px solid var(--rp-border)",
+        background: "var(--rp-nb-white)",
+        borderRadius: "var(--rp-nb-radius)",
+        border: "var(--rp-nb-border)",
+        boxShadow: "var(--rp-nb-shadow-sm)",
         animationDelay: "0.3s",
       }}
     >
@@ -446,22 +426,30 @@ function XpRow({
         <div className="flex items-baseline gap-2 mb-1.5">
           <span
             className="text-xl font-extrabold tabular-nums"
-            style={{ color: "var(--rp-xp)" }}
+            style={{ color: "var(--rp-nb-green)" }}
           >
             +{xpAwarded} XP
           </span>
         </div>
-        <div className="relative h-2.5 rounded-full overflow-hidden" style={{ background: "var(--rp-xp-track)" }}>
+        <div
+          className="relative h-2.5 overflow-hidden"
+          style={{
+            background: "var(--rp-nb-lilac)",
+            borderRadius: "var(--rp-nb-radius-sm)",
+            border: "2px solid var(--rp-nb-black)",
+          }}
+        >
           <div
-            className="absolute inset-y-0 left-0 rounded-full"
+            className="absolute inset-y-0 left-0"
             style={{
-              background: "var(--rp-xp)",
+              background: "var(--rp-nb-green)",
+              borderRadius: "var(--rp-nb-radius-sm)",
               width: `${Math.min(progress.ratio * 100, 100)}%`,
               animation: "xp-fill 1.2s 0.5s cubic-bezier(0.4, 0, 0.2, 1) both",
             }}
           />
         </div>
-        <p className="text-[11px] mt-1 text-right tabular-nums" style={{ color: "var(--rp-text-secondary)" }}>
+        <p className="text-[11px] mt-1 text-right tabular-nums" style={{ color: "var(--rp-nb-black)" }}>
           {progress.current === 0 && xpAwarded > 0
             ? `Level ${progress.level}! Nächste Stufe: 0 / ${progress.needed}`
             : `${progress.current} / ${progress.needed}`}
@@ -478,11 +466,12 @@ function HirncoinRow({ hirncoinsAwarded }: { hirncoinsAwarded: number }) {
 
   return (
     <div
-      className="flex items-center gap-3 p-4 animate-fade-in"
+      className="nb-card flex items-center gap-3 p-4 animate-fade-in"
       style={{
-        background: "var(--rp-bg-elevated)",
-        borderRadius: "var(--rp-radius-md)",
-        border: "1px solid var(--rp-border)",
+        background: "var(--rp-nb-white)",
+        borderRadius: "var(--rp-nb-radius)",
+        border: "var(--rp-nb-border)",
+        boxShadow: "var(--rp-nb-shadow-sm)",
         animationDelay: "0.5s",
       }}
     >
@@ -498,11 +487,11 @@ function HirncoinRow({ hirncoinsAwarded }: { hirncoinsAwarded: number }) {
       <div className="flex-1">
         <span
           className="text-xl font-extrabold tabular-nums"
-          style={{ color: "var(--rp-hirncoin)" }}
+          style={{ color: "var(--rp-nb-yellow)" }}
         >
           +{displayCoins}
         </span>
-        <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+        <p className="text-sm font-bold" style={{ color: "var(--rp-nb-black)" }}>
           Hirncoins
         </p>
       </div>
@@ -515,11 +504,13 @@ function HirncoinRow({ hirncoinsAwarded }: { hirncoinsAwarded: number }) {
 function LevelUpBanner({ newLevel }: { newLevel: number }) {
   return (
     <div
-      className="flex items-center gap-3 p-4"
+      className="nb-card flex items-center gap-3 p-4"
       style={{
-        background: "var(--rp-level-up-bg)",
-        borderRadius: "var(--rp-radius-md)",
-        animation: "level-up-glow 2s ease-in-out 1.2s, fade-in 0.4s 0.9s ease-out both",
+        background: "var(--rp-nb-mint)",
+        borderRadius: "var(--rp-nb-radius)",
+        border: "var(--rp-nb-border)",
+        boxShadow: "var(--rp-nb-shadow)",
+        animation: "fade-in 0.4s 0.9s ease-out both",
       }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -531,10 +522,10 @@ function LevelUpBanner({ newLevel }: { newLevel: number }) {
         className="w-12 h-12"
       />
       <div>
-        <h3 className="text-lg font-extrabold" style={{ color: "var(--rp-level)" }}>
+        <h3 className="nb-heading text-lg font-extrabold uppercase" style={{ color: "var(--rp-nb-black)" }}>
           Level {newLevel}!
         </h3>
-        <p className="text-xs" style={{ color: "var(--rp-text-secondary)" }}>
+        <p className="text-xs font-bold" style={{ color: "var(--rp-nb-black)" }}>
           Weiter so, du wirst immer besser!
         </p>
       </div>
@@ -544,12 +535,8 @@ function LevelUpBanner({ newLevel }: { newLevel: number }) {
 
 /* ── Top 3 leaderboard ──────────────────────────────────────────── */
 
-const PLACE_COLORS = ["var(--rp-peach)", "var(--rp-text-secondary)", "var(--rp-hirncoin)"];
-const PLACE_BGS = [
-  "rgba(255, 138, 113, 0.12)",
-  "rgba(107, 107, 138, 0.08)",
-  "rgba(245, 166, 35, 0.10)",
-];
+const PLACE_COLORS = ["var(--rp-nb-peach)", "var(--rp-nb-blue)", "var(--rp-nb-yellow)"];
+const PLACE_BGS = ["var(--rp-nb-peach)", "var(--rp-nb-blue)", "var(--rp-nb-yellow)"];
 
 function Top3Section() {
   const game = useGame();
@@ -563,15 +550,16 @@ function Top3Section() {
 
   return (
     <div
-      className="mt-4 p-4 animate-fade-in"
+      className="nb-card mt-4 p-4 animate-fade-in"
       style={{
-        background: "var(--rp-bg-elevated)",
-        borderRadius: "var(--rp-radius-md)",
-        border: "1px solid var(--rp-border)",
+        background: "var(--rp-nb-white)",
+        borderRadius: "var(--rp-nb-radius)",
+        border: "var(--rp-nb-border)",
+        boxShadow: "var(--rp-nb-shadow-sm)",
         animationDelay: "1.1s",
       }}
     >
-      <h4 className="text-sm font-bold mb-3" style={{ color: "var(--rp-text)" }}>
+      <h4 className="nb-heading text-sm font-bold uppercase mb-3" style={{ color: "var(--rp-nb-black)" }}>
         Top 3 dieser Runde
       </h4>
       <div className="space-y-2">
@@ -580,8 +568,12 @@ function Top3Section() {
           return (
           <div key={player.id} className="flex items-center gap-3">
             <span
-              className="w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold text-white shrink-0"
-              style={{ background: PLACE_COLORS[Math.min(rank, 3) - 1] }}
+              className="w-7 h-7 flex items-center justify-center text-xs font-bold text-white shrink-0"
+              style={{
+                background: PLACE_COLORS[Math.min(rank, 3) - 1],
+                borderRadius: "var(--rp-nb-radius-sm)",
+                border: "2px solid var(--rp-nb-black)",
+              }}
             >
               {rank}
             </span>
@@ -593,8 +585,13 @@ function Top3Section() {
               youLabel="Du"
             />
             <span
-              className="text-sm font-bold tabular-nums px-2 py-0.5 rounded-lg"
-              style={{ background: PLACE_BGS[i], color: PLACE_COLORS[i] }}
+              className="text-sm font-bold tabular-nums px-2 py-0.5"
+              style={{
+                background: PLACE_BGS[i],
+                color: "var(--rp-nb-black)",
+                borderRadius: "var(--rp-nb-radius-sm)",
+                border: "2px solid var(--rp-nb-black)",
+              }}
             >
               {player.score.toLocaleString("de-DE")} Punkte
             </span>
@@ -635,21 +632,11 @@ function GuestEndScreen() {
     <div
       className="relative flex flex-1 flex-col items-center overflow-y-auto px-4 pb-6"
       style={{
-        background: "var(--rp-bg-hero)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       <ConfettiOverlay show={myRank === 1 && !tied} />
-      <span
-        className="pointer-events-none absolute -left-20 top-40 h-52 w-52 rounded-full opacity-35 blur-3xl"
-        style={{ background: myRank === 1 && !tied ? "#FFE9A8" : "var(--rp-purple-soft)" }}
-        aria-hidden="true"
-      />
-      <span
-        className="pointer-events-none absolute -right-20 bottom-24 h-48 w-48 rounded-full opacity-30 blur-3xl"
-        style={{ background: "var(--rp-peach-soft)" }}
-        aria-hidden="true"
-      />
 
       <div className="relative z-10 mt-8 w-full max-w-sm text-center">
         <FinalHero
@@ -661,10 +648,10 @@ function GuestEndScreen() {
         />
 
         <div className="mb-2 flex items-center justify-between px-1">
-          <h2 className="text-sm font-extrabold" style={{ color: "var(--rp-text)" }}>
+          <h2 className="nb-heading text-sm font-extrabold uppercase" style={{ color: "var(--rp-nb-black)" }}>
             {t.guestUpsell.standings}
           </h2>
-          <span className="text-xs font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+          <span className="text-xs font-semibold" style={{ color: "var(--rp-nb-black)" }}>
             {t.guestUpsell.guestBadge}
           </span>
         </div>
@@ -674,29 +661,25 @@ function GuestEndScreen() {
           {sortedPlayers.map((player, i) => (
             <div
               key={player.id}
-              className="animate-fade-in flex items-center gap-3 px-3.5 py-3"
+              className="nb-card animate-fade-in flex items-center gap-3 px-3.5 py-3"
               style={{
                 animationDelay: `${500 + i * 100}ms`,
-                background:
-                  player.id === game.myPlayerId
-                    ? "rgba(255, 255, 255, 0.94)"
-                    : "rgba(255, 255, 255, 0.7)",
-                borderRadius: 20,
-                border:
-                  player.id === game.myPlayerId
-                    ? "1.5px solid rgba(139, 124, 255, 0.3)"
-                    : "1px solid rgba(255, 255, 255, 0.78)",
+                background: "var(--rp-nb-white)",
+                borderRadius: "var(--rp-nb-radius)",
+                border: "var(--rp-nb-border)",
                 boxShadow:
                   player.id === game.myPlayerId
-                    ? "0 8px 22px rgba(92, 77, 175, 0.11)"
-                    : "0 5px 16px rgba(42, 42, 74, 0.05)",
+                    ? "var(--rp-nb-shadow)"
+                    : "var(--rp-nb-shadow-sm)",
               }}
             >
               <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black"
+                className="flex h-9 w-9 shrink-0 items-center justify-center text-sm font-black"
                 style={{
-                  background: (ranks[i] ?? i + 1) === 1 ? "#FFF2B8" : "var(--rp-bg-muted)",
-                  color: (ranks[i] ?? i + 1) === 1 ? "#A87513" : "var(--rp-text-secondary)",
+                  background: (ranks[i] ?? i + 1) === 1 ? "var(--rp-nb-yellow)" : "var(--rp-nb-lilac)",
+                  color: "var(--rp-nb-black)",
+                  borderRadius: "var(--rp-nb-radius)",
+                  border: "var(--rp-nb-border)",
                 }}
               >
                 {placeGlyph(ranks[i] ?? i + 1)}
@@ -708,10 +691,10 @@ function GuestEndScreen() {
                 isMe={player.id === game.myPlayerId}
               />
               <div className="text-right">
-                <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
+                <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-nb-purple-deep)" }}>
                   {player.score.toLocaleString("de-DE")}
                 </span>
-                <span className="block text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--rp-text-secondary)" }}>
+                <span className="block text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--rp-nb-black)" }}>
                   {t.guestUpsell.points}
                 </span>
               </div>
@@ -722,10 +705,12 @@ function GuestEndScreen() {
         <button
           type="button"
           onClick={() => setStep("advantages")}
-          className="mt-1 w-full h-[54px] rounded-[var(--rp-radius-pill)] text-base font-bold text-white transition-all active:scale-[0.97]"
+          className="nb-btn mt-1 w-full h-[54px] text-base font-bold text-white uppercase transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[var(--rp-nb-shadow-pressed)]"
           style={{
-            background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-            boxShadow: "0 6px 20px rgba(255, 138, 113, 0.35)",
+            background: "var(--rp-nb-peach)",
+            border: "var(--rp-nb-border)",
+            borderRadius: "var(--rp-nb-radius)",
+            boxShadow: "var(--rp-nb-shadow)",
           }}
         >
           {t.guestUpsell.next}
@@ -756,7 +741,7 @@ function RewardsCard({ rewards, previousXp, previousLevel }: MatchEndRewardsProp
     <div
       className="flex flex-1 flex-col items-center px-4 py-6 relative overflow-hidden"
       style={{
-        background: "var(--rp-bg-hero)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
@@ -773,10 +758,10 @@ function RewardsCard({ rewards, previousXp, previousLevel }: MatchEndRewardsProp
             height={80}
             className="w-20 h-20 mx-auto mb-2 animate-bounce-slow"
           />
-          <h1 className="text-2xl font-extrabold" style={{ color: "var(--rp-text)" }}>
+          <h1 className="nb-heading text-2xl font-extrabold uppercase" style={{ color: "var(--rp-nb-black)" }}>
             Runde vorbei!
           </h1>
-          <p className="text-sm mt-1" style={{ color: "var(--rp-text-secondary)" }}>
+          <p className="text-sm mt-1 font-bold" style={{ color: "var(--rp-nb-black)" }}>
             Gut gespielt! Hier sind deine Belohnungen.
           </p>
         </div>
@@ -795,11 +780,13 @@ function RewardsCard({ rewards, previousXp, previousLevel }: MatchEndRewardsProp
           {game.isHost ? (
             <button
               onClick={() => void game.resetGame()}
-              className="flex-1 h-[52px] rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97] flex items-center justify-center gap-2"
+              className="nb-btn flex-1 h-[52px] text-base font-bold uppercase transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[var(--rp-nb-shadow-pressed)] flex items-center justify-center gap-2"
               style={{
-                background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+                background: "var(--rp-nb-peach)",
                 color: "white",
-                boxShadow: "0 6px 20px rgba(255, 138, 113, 0.35)",
+                border: "var(--rp-nb-border)",
+                borderRadius: "var(--rp-nb-radius)",
+                boxShadow: "var(--rp-nb-shadow)",
               }}
             >
               <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
@@ -809,24 +796,27 @@ function RewardsCard({ rewards, previousXp, previousLevel }: MatchEndRewardsProp
             </button>
           ) : (
             <div
-              className="flex-1 py-3 text-center rounded-[var(--rp-radius-pill)]"
+              className="nb-card flex-1 py-3 text-center"
               style={{
-                background: "rgba(139, 124, 255, 0.08)",
-                border: "2px dashed var(--rp-purple-soft)",
+                background: "var(--rp-nb-lilac)",
+                border: "var(--rp-nb-border)",
+                borderRadius: "var(--rp-nb-radius)",
               }}
             >
-              <p className="text-xs font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+              <p className="text-xs font-semibold" style={{ color: "var(--rp-nb-black)" }}>
                 Host kann neue Runde starten
               </p>
             </div>
           )}
           <button
             onClick={() => void game.leaveRoom()}
-            className="flex-1 h-[52px] rounded-[var(--rp-radius-pill)] text-base font-bold transition-all active:scale-[0.97] flex items-center justify-center gap-2"
+            className="nb-btn flex-1 h-[52px] text-base font-bold uppercase transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[var(--rp-nb-shadow-pressed)] flex items-center justify-center gap-2"
             style={{
-              border: "2px solid var(--rp-border)",
-              color: "var(--rp-text)",
-              background: "var(--rp-bg-elevated)",
+              border: "var(--rp-nb-border)",
+              color: "var(--rp-nb-black)",
+              background: "var(--rp-nb-white)",
+              borderRadius: "var(--rp-nb-radius)",
+              boxShadow: "var(--rp-nb-shadow)",
             }}
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">

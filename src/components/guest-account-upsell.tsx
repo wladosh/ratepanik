@@ -67,7 +67,7 @@ export function GuestAccountUpsell({
       body: t.guestUpsell.perkLevelBody,
       art: LEVELUP_FX_128,
       badge: XP_BADGE_48,
-      wash: "linear-gradient(160deg, #EDE6FF 0%, #FFF8F5 70%)",
+      wash: "var(--rp-nb-lilac)",
     },
     {
       key: "looks",
@@ -75,7 +75,7 @@ export function GuestAccountUpsell({
       body: t.guestUpsell.perkLooksBody,
       art: avatarSrc("default_03", 128),
       badge: null,
-      wash: "linear-gradient(160deg, #FFF0E8 0%, #FFF8F5 72%)",
+      wash: "var(--rp-nb-peach)",
     },
     {
       key: "loot",
@@ -83,7 +83,7 @@ export function GuestAccountUpsell({
       body: t.guestUpsell.perkLootBody,
       art: LOOT_BOX_LEGENDARY_256,
       badge: HIRNCOIN_ICON_48,
-      wash: "linear-gradient(160deg, #FFF6D6 0%, #FFF8F5 70%)",
+      wash: "var(--rp-nb-yellow)",
     },
   ] as const;
 

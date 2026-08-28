@@ -28,31 +28,17 @@ export function BlockScoreboardScreen() {
     <div
       className="relative flex flex-1 flex-col items-center overflow-y-auto px-4 pb-6"
       style={{
-        background: "var(--rp-bg-hero)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
-      <div
-        className="pointer-events-none absolute -left-16 top-40 h-44 w-44 rounded-full opacity-40 blur-3xl"
-        style={{ background: "var(--rp-purple-soft)" }}
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute -right-16 bottom-24 h-48 w-48 rounded-full opacity-40 blur-3xl"
-        style={{ background: "var(--rp-peach-soft)" }}
-        aria-hidden="true"
-      />
-
       <div className="relative z-10 mt-14 w-full max-w-sm">
         <div className="mb-3 flex justify-center">
           <span
-            className="inline-flex items-center gap-2 rounded-full px-3.5 py-2 text-[11px] font-extrabold uppercase tracking-[0.13em]"
+            className="nb-card inline-flex items-center gap-2 px-3.5 py-2 text-[11px] font-black uppercase tracking-[0.13em]"
             style={{
-              background: "rgba(255, 255, 255, 0.72)",
-              color: "var(--rp-purple)",
-              border: "1px solid rgba(139, 124, 255, 0.14)",
-              boxShadow: "0 8px 24px rgba(42, 42, 74, 0.06)",
-              backdropFilter: "blur(12px)",
+              background: "var(--rp-nb-white)",
+              color: "var(--rp-nb-purple-deep)",
             }}
           >
             <span aria-hidden="true">✓</span>
@@ -60,17 +46,14 @@ export function BlockScoreboardScreen() {
           </span>
         </div>
 
-        <h2
-          className="text-center text-[28px] font-black tracking-[-0.03em]"
-          style={{ color: "var(--rp-text)" }}
-        >
+        <h2 className="nb-heading text-center text-[28px]">
           Zwischenstand
         </h2>
 
         <div className="mb-5 mt-3 flex items-center justify-center gap-3">
           <span
-            className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold"
-            style={{ background: "rgba(255, 255, 255, 0.64)", color: "var(--rp-text-secondary)" }}
+            className="nb-card inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
+            style={{ background: "var(--rp-nb-white)", color: "var(--rp-nb-text-secondary)" }}
           >
             {modeEmoji(game.currentBlock?.mode)} {modeLabel}
           </span>
@@ -85,13 +68,15 @@ export function BlockScoreboardScreen() {
             {Array.from({ length: totalBlocks }, (_, index) => (
               <span
                 key={index}
-                className="h-1.5 rounded-full transition-all"
+                className="h-2 transition-all"
                 style={{
                   width: index + 1 === blockNum ? 22 : 8,
+                  borderRadius: "var(--rp-nb-radius-sm)",
                   background:
                     index < blockNum
-                      ? "var(--rp-peach)"
-                      : "rgba(42, 42, 74, 0.12)",
+                      ? "var(--rp-nb-peach)"
+                      : "var(--rp-nb-border-color)",
+                  opacity: index < blockNum ? 1 : 0.2,
                 }}
               />
             ))}
@@ -100,12 +85,9 @@ export function BlockScoreboardScreen() {
 
         {leader && (
           <section
-            className="animate-fade-in relative mb-4 overflow-hidden rounded-[28px] p-5"
+            className="nb-card-lg animate-fade-in relative mb-4 overflow-hidden p-5"
             style={{
-              background:
-                "linear-gradient(135deg, rgba(255, 255, 255, 0.94) 0%, rgba(255, 236, 214, 0.92) 100%)",
-              border: "1px solid rgba(255, 176, 112, 0.28)",
-              boxShadow: "0 18px 40px rgba(112, 76, 61, 0.13)",
+              background: "var(--rp-nb-yellow)",
             }}
             aria-label={
               leadKind === "open" || leadKind === "tie"
@@ -113,28 +95,24 @@ export function BlockScoreboardScreen() {
                 : `${leader.display_name} führt mit ${leader.score} Punkten`
             }
           >
-            <div
-              className="pointer-events-none absolute -right-7 -top-10 h-28 w-28 rounded-full"
-              style={{ background: "rgba(255, 214, 107, 0.28)" }}
-              aria-hidden="true"
-            />
             <div className="relative flex items-center gap-4">
               <div className="relative shrink-0">
                 <span
-                  className="flex h-[74px] w-[74px] items-center justify-center rounded-[24px]"
+                  className="nb-card flex h-[74px] w-[74px] items-center justify-center"
                   style={{
-                    background: "rgba(255, 255, 255, 0.82)",
-                    boxShadow: "0 10px 24px rgba(112, 76, 61, 0.12)",
+                    background: "var(--rp-nb-white)",
                   }}
                 >
                   <PlayerSchleimi playerId={leader.id} size={64} />
                 </span>
                 {leadKind === "you" || leadKind === "them" ? (
                   <span
-                    className="absolute -right-2 -top-3 flex h-8 w-8 rotate-6 items-center justify-center rounded-xl text-lg"
+                    className="absolute -right-2 -top-3 flex h-8 w-8 rotate-6 items-center justify-center text-lg"
                     style={{
-                      background: "#FFF4BD",
-                      boxShadow: "0 5px 12px rgba(187, 137, 35, 0.18)",
+                      background: "var(--rp-nb-yellow)",
+                      border: "var(--rp-nb-border)",
+                      borderRadius: "var(--rp-nb-radius)",
+                      boxShadow: "var(--rp-nb-shadow-sm)",
                     }}
                     aria-hidden="true"
                   >
@@ -143,16 +121,13 @@ export function BlockScoreboardScreen() {
                 ) : null}
               </div>
               <div className="min-w-0 flex-1">
-                <p
-                  className="mb-1 text-[11px] font-extrabold uppercase tracking-[0.13em]"
-                  style={{ color: "var(--rp-peach-deep)" }}
-                >
+                <p className="nb-kicker mb-1">
                   {SCOREBOARD_LEAD_COPY[locale][leadKind]}
                 </p>
-                <p className="truncate text-xl font-black" style={{ color: "var(--rp-text)" }}>
+                <p className="truncate text-xl font-black uppercase" style={{ color: "var(--rp-nb-text)" }}>
                   {leader.display_name}
                 </p>
-                <p className="mt-1 text-sm font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+                <p className="mt-1 text-sm font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
                   {isLastBlock
                     ? "Das Endergebnis wartet"
                     : `Weiter so – noch ${totalBlocks - blockNum} ${
@@ -161,10 +136,10 @@ export function BlockScoreboardScreen() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-3xl font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
+                <p className="text-3xl font-black tabular-nums" style={{ color: "var(--rp-nb-purple-deep)" }}>
                   {leader.score}
                 </p>
-                <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--rp-text-secondary)" }}>
+                <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: "var(--rp-nb-text-secondary)" }}>
                   Punkte
                 </p>
               </div>
@@ -173,10 +148,10 @@ export function BlockScoreboardScreen() {
         )}
 
         <div className="mb-3 flex items-center justify-between px-1">
-          <h3 className="text-sm font-extrabold" style={{ color: "var(--rp-text)" }}>
+          <h3 className="nb-heading text-sm">
             Rangliste
           </h3>
-          <span className="text-xs font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+          <span className="text-xs font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
             {sortedPlayers.length} {sortedPlayers.length === 1 ? "Spieler" : "Spieler"}
           </span>
         </div>
@@ -187,35 +162,32 @@ export function BlockScoreboardScreen() {
             return (
             <div
               key={player.id}
-              className="animate-fade-in flex items-center gap-3 px-3.5 py-3"
+              className="nb-card animate-fade-in flex items-center gap-3 px-3.5 py-3"
               style={{
                 animationDelay: `${120 + i * 80}ms`,
                 background:
                   player.id === game.myPlayerId
-                    ? "rgba(255, 255, 255, 0.92)"
-                    : "rgba(255, 255, 255, 0.72)",
-                borderRadius: 20,
-                border:
+                    ? "var(--rp-nb-lilac)"
+                    : "var(--rp-nb-white)",
+                borderColor:
                   player.id === game.myPlayerId
-                    ? "1.5px solid rgba(139, 124, 255, 0.3)"
-                    : "1px solid rgba(255, 255, 255, 0.72)",
-                boxShadow:
-                  player.id === game.myPlayerId
-                    ? "0 8px 22px rgba(92, 77, 175, 0.1)"
-                    : "0 5px 16px rgba(42, 42, 74, 0.05)",
+                    ? "var(--rp-nb-purple-deep)"
+                    : "var(--rp-nb-border-color)",
               }}
             >
               <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-black"
+                className="flex h-9 w-9 shrink-0 items-center justify-center text-sm font-black"
                 style={{
+                  borderRadius: "var(--rp-nb-radius-sm)",
+                  border: "2px solid var(--rp-nb-border-color)",
                   background:
                     leadKind === "open" || rank !== 1
-                      ? "var(--rp-bg-muted)"
-                      : "#FFF4BD",
+                      ? "var(--rp-nb-white)"
+                      : "var(--rp-nb-yellow)",
                   color:
                     leadKind === "open" || rank !== 1
-                      ? "var(--rp-text-secondary)"
-                      : "#A87513",
+                      ? "var(--rp-nb-text-secondary)"
+                      : "var(--rp-nb-text)",
                 }}
               >
                 {leadKind === "open" ? "=" : placeGlyph(rank, "crown")}
@@ -228,10 +200,10 @@ export function BlockScoreboardScreen() {
                 youLabel={locale === "en" ? "You" : "Du"}
               />
               <div className="text-right">
-                <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-purple)" }}>
+                <span className="block text-lg font-black tabular-nums" style={{ color: "var(--rp-nb-purple-deep)" }}>
                   {player.score}
                 </span>
-                <span className="block text-[9px] font-bold uppercase tracking-wide" style={{ color: "var(--rp-text-secondary)" }}>
+                <span className="block text-[9px] font-black uppercase tracking-wide" style={{ color: "var(--rp-nb-text-secondary)" }}>
                   Punkte
                 </span>
               </div>
@@ -243,23 +215,22 @@ export function BlockScoreboardScreen() {
         {game.isHost ? (
           <button
             onClick={() => void game.advanceFromBlockScore()}
-            className="h-[58px] w-full rounded-[var(--rp-radius-pill)] text-[17px] font-extrabold text-white transition-all active:scale-[0.97]"
+            className="nb-btn h-[58px] w-full text-[17px] text-white"
             style={{
-              background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-              boxShadow: "0 10px 26px rgba(255, 138, 113, 0.34)",
+              background: "var(--rp-nb-peach)",
             }}
           >
             {isLastBlock ? "Endergebnis anzeigen 🏆" : "Nächster Block →"}
           </button>
         ) : (
           <div
-            className="w-full rounded-[20px] px-4 py-4 text-center"
+            className="nb-card w-full px-4 py-4 text-center"
             style={{
-              background: "rgba(255, 255, 255, 0.68)",
-              border: "1.5px dashed rgba(139, 124, 255, 0.35)",
+              background: "var(--rp-nb-white)",
+              borderStyle: "dashed",
             }}
           >
-            <p className="text-base font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+            <p className="text-base font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
               {isLastBlock
                 ? "Der Host zeigt gleich das Endergebnis…"
                 : "Der Host startet den nächsten Block…"}

@@ -2,56 +2,25 @@
 
 @theme inline {
   --font-sans: var(--font-jakarta);
+  --font-display: var(--font-display-face);
 
   --animate-fade-in: fade-in 0.4s ease-out both;
   --animate-bounce-slow: bounce-slow 2s ease-in-out infinite;
   --animate-slide-up: slide-up 0.3s ease-out both;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   NEO-BRUTALISM DESIGN TOKENS  (--rp-nb-*)
+   Thick black borders · hard offset shadows · flat saturated fills
+   ═══════════════════════════════════════════════════════════════════ */
+
 :root {
-  --rp-bg: #FFF8F5;
-  --rp-bg-elevated: #FFFFFF;
-  --rp-surface: #FFFFFF;
-  --rp-bg-hero: linear-gradient(160deg, #E8F4FF 0%, #FFE8F3 45%, #FFF3D6 100%);
-  --rp-purple: #8B7CFF;
-  --rp-purple-soft: #C9C0FF;
-  --rp-peach: #FF8A71;
-  --rp-peach-deep: #F56B52;
-  --rp-pink: #FF7AB6;
-  --rp-mint: #6FCFB2;
-  --rp-sky: #7EB6FF;
-  --rp-yellow: #FFD66B;
-  --rp-text: #2A2A4A;
-  --rp-text-secondary: #6B6B8A;
-  --rp-success: #3DCC8A;
-  --rp-danger: #FF5C7A;
-  --rp-border: rgba(42, 42, 74, 0.08);
-  --rp-focus-ring: #8B7CFF;
-  --rp-radius-md: 20px;
-  --rp-radius-lg: 28px;
-  --rp-radius-pill: 999px;
-  --rp-bg-muted: #F3EEF8;
-  --rp-shadow-card: 0 10px 30px rgba(42, 42, 74, 0.08);
-
-  --rp-xp: #5B9DFF;
-  --rp-xp-track: rgba(91, 157, 255, 0.18);
-  --rp-hirncoin: #F5A623;
-  --rp-hirncoin-soft: #FFE8B8;
-  --rp-level: #8B7CFF;
-  --rp-level-up-bg: #F0ECFF;
-
-  --ps-notch-inset: 0px;
-  --ps-frame-radius: 0px;
-
-  /* Neo-Brutalism tokens – scoped to Home; not used in lobby/match */
-  --rp-nb-border: 3px solid #1a1a2e;
-  --rp-nb-border-w: 3px;
-  --rp-nb-shadow: 4px 4px 0 #1a1a2e;
-  --rp-nb-shadow-lg: 6px 6px 0 #1a1a2e;
-  --rp-nb-radius: 10px;
-  --rp-nb-radius-sm: 8px;
-  --rp-nb-bg: #FFF8F0;
+  /* ── Core palette ───────────────────────────── */
   --rp-nb-black: #1a1a2e;
+  --rp-nb-white: #FFFFFF;
+  --rp-nb-cream: #FFF8F0;
+  --rp-nb-bg: #FFF8F0;
+
   --rp-nb-purple: #B8A9FF;
   --rp-nb-purple-deep: #8B7CFF;
   --rp-nb-yellow: #FFD66B;
@@ -59,8 +28,69 @@
   --rp-nb-lilac: #D7CCFF;
   --rp-nb-mint: #7EEBC2;
   --rp-nb-peach: #FF8A71;
-  --rp-nb-cream: #FFF8F0;
-  --rp-nb-white: #FFFFFF;
+  --rp-nb-peach-deep: #F56B52;
+  --rp-nb-pink: #FF7AB6;
+  --rp-nb-sky: #7EB6FF;
+  --rp-nb-red: #FF5C7A;
+  --rp-nb-green: #3DCC8A;
+  --rp-nb-orange: #FFA94D;
+
+  /* ── Typography ─────────────────────────────── */
+  --rp-nb-text: #1a1a2e;
+  --rp-nb-text-secondary: #5a5a7a;
+  --rp-nb-text-muted: rgba(26, 26, 46, 0.5);
+
+  /* ── Borders & shadows ──────────────────────── */
+  --rp-nb-border: 3px solid #1a1a2e;
+  --rp-nb-border-w: 3px;
+  --rp-nb-border-color: #1a1a2e;
+  --rp-nb-shadow: 4px 4px 0 #1a1a2e;
+  --rp-nb-shadow-lg: 6px 6px 0 #1a1a2e;
+  --rp-nb-shadow-sm: 2px 2px 0 #1a1a2e;
+  --rp-nb-shadow-pressed: 1px 1px 0 #1a1a2e;
+
+  /* ── Radii (hard/near-sharp) ────────────────── */
+  --rp-nb-radius: 4px;
+  --rp-nb-radius-sm: 2px;
+  --rp-nb-radius-md: 4px;
+  --rp-nb-radius-lg: 4px;
+
+  /* ── Functional aliases (for backward compat) ─ */
+  --rp-bg: var(--rp-nb-cream);
+  --rp-bg-elevated: var(--rp-nb-white);
+  --rp-surface: var(--rp-nb-white);
+  --rp-text: var(--rp-nb-text);
+  --rp-text-secondary: var(--rp-nb-text-secondary);
+  --rp-success: var(--rp-nb-green);
+  --rp-danger: var(--rp-nb-red);
+  --rp-border: var(--rp-nb-border-color);
+  --rp-focus-ring: var(--rp-nb-purple-deep);
+  --rp-purple: var(--rp-nb-purple-deep);
+  --rp-purple-soft: var(--rp-nb-lilac);
+  --rp-peach: var(--rp-nb-peach);
+  --rp-peach-deep: var(--rp-nb-peach-deep);
+  --rp-pink: var(--rp-nb-pink);
+  --rp-mint: var(--rp-nb-mint);
+  --rp-sky: var(--rp-nb-sky);
+  --rp-yellow: var(--rp-nb-yellow);
+
+  --rp-xp: var(--rp-nb-blue);
+  --rp-xp-track: rgba(142, 207, 255, 0.25);
+  --rp-hirncoin: #F5A623;
+  --rp-hirncoin-soft: #FFE8B8;
+  --rp-level: var(--rp-nb-purple-deep);
+  --rp-level-up-bg: var(--rp-nb-lilac);
+
+  --ps-notch-inset: 0px;
+  --ps-frame-radius: 0px;
+
+  /* ── Legacy aliases that some code may reference ── */
+  --rp-radius-md: var(--rp-nb-radius);
+  --rp-radius-lg: var(--rp-nb-radius);
+  --rp-radius-pill: 4px;
+  --rp-bg-muted: rgba(215, 204, 255, 0.25);
+  --rp-shadow-card: var(--rp-nb-shadow);
+  --rp-bg-hero: var(--rp-nb-cream);
 }
 
 /* ── PhoneShell ───────────────────────────────────────── */
@@ -70,7 +100,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--rp-bg);
+  background: var(--rp-nb-cream);
 }
 
 .ps-frame {
@@ -85,11 +115,6 @@
   display: none;
 }
 
-/*
- * .ps-screen is intentionally transparent.
- * Background must come from the page root (child) so the gradient
- * extends fully under the notch / safe-area inset — no white strip.
- */
 .ps-screen {
   flex: 1;
   display: flex;
@@ -104,12 +129,12 @@
 @media (min-width: 768px) {
   :root {
     --ps-notch-inset: 42px;
-    --ps-frame-radius: 44px;
+    --ps-frame-radius: 6px;
   }
 
   .ps-stage {
     padding: 24px;
-    background: linear-gradient(160deg, #E0EAFF 0%, #F5E0F0 50%, #FFF0E0 100%);
+    background: var(--rp-nb-lilac);
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
@@ -120,11 +145,8 @@
     height: 844px;
     min-height: auto;
     border-radius: var(--ps-frame-radius);
-    border: 4px solid #1A1A2E;
-    box-shadow:
-      0 0 0 2px rgba(255, 255, 255, 0.15),
-      0 30px 80px rgba(26, 26, 46, 0.25),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    border: 4px solid var(--rp-nb-black);
+    box-shadow: 8px 8px 0 var(--rp-nb-black);
     overflow: hidden;
     transform-origin: center center;
     scale: min(1, (100vw - 48px) / 390px, (100vh - 48px) / 844px);
@@ -149,13 +171,13 @@
     height: 34px;
     margin-top: 10px;
     border-radius: 20px;
-    background: #1A1A2E;
+    background: var(--rp-nb-black);
   }
 
   .ps-screen {
-    border-radius: calc(var(--ps-frame-radius) - 8px);
+    border-radius: calc(var(--ps-frame-radius) - 2px);
     scrollbar-width: thin;
-    scrollbar-color: var(--rp-purple-soft) transparent;
+    scrollbar-color: var(--rp-nb-purple) transparent;
   }
   .ps-screen::-webkit-scrollbar {
     width: 5px;
@@ -164,15 +186,88 @@
     background: transparent;
   }
   .ps-screen::-webkit-scrollbar-thumb {
-    background: var(--rp-purple-soft);
-    border-radius: var(--rp-radius-pill);
+    background: var(--rp-nb-purple);
+    border-radius: var(--rp-nb-radius);
   }
 
-  /* Inside phone frame, game screens fill the frame instead of the viewport */
   .ps-screen > .min-h-dvh {
     min-height: 100% !important;
   }
 }
+
+/* ── NB Utility Classes ─────────────────────────────── */
+
+.nb-card {
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  box-shadow: var(--rp-nb-shadow);
+  background: var(--rp-nb-white);
+}
+
+.nb-card-lg {
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  box-shadow: var(--rp-nb-shadow-lg);
+  background: var(--rp-nb-white);
+}
+
+.nb-btn {
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  box-shadow: var(--rp-nb-shadow);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: transform 100ms ease, box-shadow 100ms ease;
+}
+
+.nb-btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: var(--rp-nb-shadow-pressed);
+}
+
+.nb-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.nb-btn:focus-visible {
+  outline: 3px solid var(--rp-nb-black);
+  outline-offset: 2px;
+}
+
+.nb-input {
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-white);
+  font-weight: 700;
+  color: var(--rp-nb-text);
+  transition: box-shadow 150ms ease;
+}
+
+.nb-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--rp-nb-purple-deep);
+}
+
+.nb-heading {
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  color: var(--rp-nb-black);
+}
+
+.nb-kicker {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--rp-nb-text-secondary);
+}
+
+/* ── Keyframe animations ─────────────────────────────── */
 
 @keyframes fade-in {
   from {
@@ -205,10 +300,10 @@
 }
 
 @keyframes rp-timer-shrink {
-  0%     { transform: scaleX(1);   background-color: var(--rp-peach); }
-  79.9%  { background-color: var(--rp-peach); }
-  80%    { transform: scaleX(0.2); background-color: var(--rp-peach-deep); }
-  100%   { transform: scaleX(0);   background-color: var(--rp-peach-deep); }
+  0%     { transform: scaleX(1);   background-color: var(--rp-nb-peach); }
+  79.9%  { background-color: var(--rp-nb-peach); }
+  80%    { transform: scaleX(0.2); background-color: var(--rp-nb-peach-deep); }
+  100%   { transform: scaleX(0);   background-color: var(--rp-nb-peach-deep); }
 }
 
 @keyframes slide-up {
@@ -272,7 +367,6 @@
   pointer-events: none;
 }
 
-/* ── Achievement Toast: reduced-motion → fade only ────── */
 @media (prefers-reduced-motion: reduce) {
   .achievement-toast-card {
     transition: opacity 280ms ease-out !important;

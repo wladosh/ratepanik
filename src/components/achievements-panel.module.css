@@ -4,32 +4,35 @@
   justify-content: space-between;
   margin: 0 0 18px;
   padding: 10px 14px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 8px 22px rgba(42, 42, 74, 0.06);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow);
 }
 
 .progressLabel {
   margin: 0;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.02em;
-  color: var(--rp-text);
+  text-transform: uppercase;
+  color: var(--rp-nb-text);
 }
 
 .progressMeta {
   margin: 0;
   font-size: 12px;
-  font-weight: 700;
-  color: var(--rp-text-secondary);
+  font-weight: 800;
+  color: var(--rp-nb-text-secondary);
 }
 
 .guestHint {
   margin: 0 0 16px;
   padding: 0 2px;
   font-size: 13px;
+  font-weight: 700;
   line-height: 1.45;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
 }
 
 .grid {
@@ -57,24 +60,13 @@
 }
 
 .stickerWrap[data-unlocked="true"] {
-  filter: drop-shadow(0 10px 16px rgba(42, 42, 74, 0.1));
+  filter: drop-shadow(3px 3px 0 rgba(26, 26, 46, 0.2));
 }
 
-.stickerWrap[data-tilt="0"] {
-  transform: rotate(-5deg);
-}
-
-.stickerWrap[data-tilt="1"] {
-  transform: rotate(4deg);
-}
-
-.stickerWrap[data-tilt="2"] {
-  transform: rotate(-2deg);
-}
-
-.stickerWrap[data-tilt="3"] {
-  transform: rotate(6deg);
-}
+.stickerWrap[data-tilt="0"] { transform: rotate(-5deg); }
+.stickerWrap[data-tilt="1"] { transform: rotate(4deg); }
+.stickerWrap[data-tilt="2"] { transform: rotate(-2deg); }
+.stickerWrap[data-tilt="3"] { transform: rotate(6deg); }
 
 .copy {
   margin-top: 8px;
@@ -85,17 +77,17 @@
 .name {
   margin: 0;
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1.25;
-  color: var(--rp-text);
+  color: var(--rp-nb-text);
 }
 
 .description {
   margin: 4px 0 0;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.35;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
 }
 
 .srOnly {
@@ -111,7 +103,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stickerWrap[data-tilt] {
-    transform: none;
-  }
+  .stickerWrap[data-tilt] { transform: none; }
 }

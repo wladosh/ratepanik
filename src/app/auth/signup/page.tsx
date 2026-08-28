@@ -139,44 +139,40 @@ export default function SignupPage() {
       <div
         className="flex min-h-dvh flex-col items-center justify-center px-5 py-8"
         style={{
-          background: "var(--rp-bg-hero)",
+          background: "var(--rp-nb-cream)",
           paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
         }}
       >
         <div className="w-full max-w-sm text-center space-y-5 animate-fade-in">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full"
-            style={{ background: "rgba(61, 204, 138, 0.12)" }}
+          <div
+            className="mx-auto flex h-16 w-16 items-center justify-center"
+            style={{
+              background: "var(--rp-nb-mint)",
+              border: "var(--rp-nb-border)",
+              borderRadius: "var(--rp-nb-radius)",
+              boxShadow: "var(--rp-nb-shadow)",
+            }}
           >
-            <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="var(--rp-success)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="var(--rp-nb-black)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 12a10 10 0 1 1-10-10" />
               <path d="M8 11.8 11 15l6.5-8" />
             </svg>
           </div>
-          <h2
-            className="text-2xl font-extrabold tracking-tight"
-            style={{
-              background:
-                "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-pink) 50%, var(--rp-peach) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
+          <h2 className="nb-heading text-2xl tracking-tight">
             {t.signup.confirmTitle}
           </h2>
-          <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+          <p className="text-sm font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
             {t.signup.confirmBody}
           </p>
-          <p className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+          <p className="text-sm font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
             {t.signup.confirmHint}
           </p>
           <Link
             href="/auth/login"
-            className="inline-block mt-2 h-[48px] leading-[48px] w-full rounded-[var(--rp-radius-pill)] text-sm font-bold transition-all active:scale-[0.97]"
+            className="nb-btn inline-block mt-2 h-[48px] leading-[48px] w-full text-sm"
             style={{
-              border: "2px solid var(--rp-purple-soft)",
-              color: "var(--rp-purple)",
-              background: "rgba(139, 124, 255, 0.06)",
+              background: "var(--rp-nb-lilac)",
+              color: "var(--rp-nb-purple-deep)",
             }}
           >
             {t.signup.backToLogin}
@@ -190,25 +186,19 @@ export default function SignupPage() {
     <div
       className="flex min-h-dvh flex-col items-center justify-center px-5 py-8"
       style={{
-        background: "var(--rp-bg-hero)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       <div className="w-full max-w-sm space-y-5 animate-fade-in">
         <div className="text-center">
           <h1
-            className="text-4xl font-extrabold tracking-tight"
-            style={{
-              background:
-                "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-pink) 50%, var(--rp-peach) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
+            className="nb-heading text-4xl tracking-tight"
+            style={{ color: "var(--rp-nb-purple-deep)" }}
           >
-            Ratepanik
+            RATEPANIK
           </h1>
-          <p className="mt-1" style={{ color: "var(--rp-text-secondary)" }}>
+          <p className="mt-1 font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
             {t.signup.subtitle}
           </p>
         </div>
@@ -218,11 +208,10 @@ export default function SignupPage() {
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-3 h-[52px] rounded-[var(--rp-radius-md)] text-base font-bold transition-all active:scale-[0.98] disabled:opacity-50"
+          className="nb-btn w-full flex items-center justify-center gap-3 h-[52px] text-base"
           style={{
-            background: "var(--rp-bg-elevated)",
-            color: "var(--rp-text)",
-            boxShadow: "var(--rp-shadow-card)",
+            background: "var(--rp-nb-white)",
+            color: "var(--rp-nb-text)",
           }}
         >
           <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -247,9 +236,9 @@ export default function SignupPage() {
         </button>
 
         <div className="flex items-center gap-4">
-          <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
-          <span className="text-sm" style={{ color: "var(--rp-text-secondary)" }}>{t.common.or}</span>
-          <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
+          <div className="flex-1 h-[3px]" style={{ background: "var(--rp-nb-black)" }} />
+          <span className="text-sm font-black uppercase" style={{ color: "var(--rp-nb-text-secondary)" }}>{t.common.or}</span>
+          <div className="flex-1 h-[3px]" style={{ background: "var(--rp-nb-black)" }} />
         </div>
 
         <form onSubmit={handleSignup} className="space-y-3">
@@ -262,44 +251,29 @@ export default function SignupPage() {
               required
               minLength={3}
               maxLength={20}
-              className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-5 pr-12 text-sm font-medium transition-all focus:outline-none"
+              className="nb-input w-full h-[48px] px-5 pr-12 text-sm"
               style={{
                 borderColor: nameError
-                  ? "var(--rp-danger)"
+                  ? "var(--rp-nb-red)"
                   : nameAvailable
-                    ? "var(--rp-success)"
-                    : "var(--rp-border)",
-                background: "var(--rp-bg-elevated)",
-                color: "var(--rp-text)",
-              }}
-              onFocus={(e) => {
-                if (!nameError) {
-                  e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-                  e.currentTarget.style.boxShadow =
-                    "0 0 0 3px rgba(139, 124, 255, 0.15)";
-                }
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.boxShadow = "none";
-                if (!nameError && !nameAvailable) {
-                  e.currentTarget.style.borderColor = "var(--rp-border)";
-                }
+                    ? "var(--rp-nb-green)"
+                    : "var(--rp-nb-black)",
               }}
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
               {nameChecking && (
                 <div
-                  className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
-                  style={{ borderColor: "var(--rp-purple)", borderTopColor: "transparent" }}
+                  className="w-5 h-5 border-3 border-t-transparent rounded-full animate-spin"
+                  style={{ borderColor: "var(--rp-nb-purple-deep)", borderTopColor: "transparent" }}
                 />
               )}
               {!nameChecking && nameAvailable && (
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-success)">
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-nb-green)">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                 </svg>
               )}
               {!nameChecking && nameError && trimmedName.length > 0 && (
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-danger)">
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-nb-red)">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                 </svg>
               )}
@@ -307,16 +281,16 @@ export default function SignupPage() {
           </div>
           {nameError && (
             <p
-              className="text-xs font-medium px-1"
-              style={{ color: "var(--rp-danger)" }}
+              className="text-xs font-bold px-1"
+              style={{ color: "var(--rp-nb-red)" }}
             >
               {nameError}
             </p>
           )}
           {nameAvailable && !nameError && (
             <p
-              className="text-xs font-medium px-1"
-              style={{ color: "var(--rp-success)" }}
+              className="text-xs font-bold px-1"
+              style={{ color: "var(--rp-nb-green)" }}
             >
               {t.signup.nameAvailable}
             </p>
@@ -328,20 +302,7 @@ export default function SignupPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t.signup.email}
             required
-            className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 text-sm font-medium transition-all focus:outline-none"
-            style={{
-              borderColor: "var(--rp-border)",
-              background: "var(--rp-bg-elevated)",
-              color: "var(--rp-text)",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "var(--rp-border)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
+            className="nb-input w-full h-[48px] px-4 text-sm"
           />
           <PasswordField
             value={password}
@@ -359,10 +320,9 @@ export default function SignupPage() {
               email.trim().length === 0 ||
               password.length < 6
             }
-            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40"
+            className="nb-btn w-full h-[54px] text-[17px] text-white"
             style={{
-              background:
-                "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+              background: "var(--rp-nb-peach)",
             }}
           >
             {t.signup.submit}
@@ -372,8 +332,8 @@ export default function SignupPage() {
         <div className="text-center">
           <Link
             href="/auth/login"
-            className="text-sm font-medium underline transition-colors"
-            style={{ color: "var(--rp-purple)" }}
+            className="text-sm font-bold underline"
+            style={{ color: "var(--rp-nb-purple-deep)" }}
           >
             {t.signup.hasAccount}
           </Link>

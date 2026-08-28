@@ -49,20 +49,14 @@ function LeaveMatchDialog({
   return (
     <div
       className="absolute inset-0 z-[60] flex items-center justify-center px-6"
-      style={{ background: "rgba(42, 42, 74, 0.28)", backdropFilter: "blur(2px)" }}
+      style={{ background: "rgba(26, 26, 46, 0.85)" }}
     >
       <div
-        className="w-full max-w-xs p-6 text-center animate-fade-in"
-        style={{
-          background: "var(--rp-bg-elevated)",
-          borderRadius: "var(--rp-radius-lg)",
-          boxShadow: "0 16px 48px rgba(42, 42, 74, 0.25)",
-        }}
+        className="nb-card-lg w-full max-w-xs p-6 text-center animate-fade-in"
       >
         <p className="text-3xl mb-3">&#x1F6AA;</p>
         <h3
-          className="text-lg font-bold mb-1"
-          style={{ color: "var(--rp-text)" }}
+          className="nb-heading text-lg mb-1"
         >
           {t.game.leaveTitle}
         </h3>
@@ -75,20 +69,19 @@ function LeaveMatchDialog({
         <div className="flex gap-3">
           <button
             onClick={onCancel}
-            className="flex-1 h-11 rounded-[var(--rp-radius-pill)] text-sm font-bold transition-all active:scale-[0.97]"
+            className="nb-btn flex-1 h-11 text-sm"
             style={{
-              border: "2px solid var(--rp-border)",
-              color: "var(--rp-text)",
-              background: "transparent",
+              background: "var(--rp-nb-white)",
+              color: "var(--rp-nb-black)",
             }}
           >
             {t.game.leaveCancel}
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 h-11 rounded-[var(--rp-radius-pill)] text-sm font-bold text-white transition-all active:scale-[0.97]"
+            className="nb-btn flex-1 h-11 text-sm text-white"
             style={{
-              background: "linear-gradient(135deg, var(--rp-danger) 0%, #E0445A 100%)",
+              background: "var(--rp-nb-red)",
             }}
           >
             {t.game.leaveConfirm}
@@ -144,9 +137,9 @@ export function Game() {
             return game.room || game.restoring ? (
               <div
                 className="flex flex-1 items-center justify-center"
-                style={{ background: "var(--rp-bg-hero)" }}
+                style={{ background: "var(--rp-nb-cream)" }}
               >
-                <div className="text-lg animate-pulse font-medium" style={{ color: "var(--rp-text-secondary)" }}>
+                <div className="nb-heading text-lg" style={{ color: "var(--rp-nb-black)" }}>
                   {t.game.playingLoading}
                 </div>
               </div>
@@ -192,11 +185,9 @@ export function Game() {
       {isMatchPhase && (
         <button
           onClick={() => setShowLeaveConfirm(true)}
-          className="absolute top-3 left-3 z-40 flex items-center justify-center min-w-11 min-h-11 w-11 h-11 rounded-full transition-all active:scale-90"
+          className="nb-btn absolute top-3 left-3 z-40 flex items-center justify-center min-w-11 min-h-11 w-11 h-11 transition-all"
           style={{
-            background: "rgba(255,255,255,0.75)",
-            backdropFilter: "blur(8px)",
-            boxShadow: "0 2px 8px rgba(42,42,74,0.10)",
+            background: "var(--rp-nb-white)",
             marginTop: "calc(6px + var(--ps-notch-inset, 0px))",
           }}
           aria-label={t.game.leaveAria}
@@ -218,15 +209,16 @@ export function Game() {
       )}
 
       {game.disconnected && (
-        <div className="rp-shell-banner rounded-2xl bg-amber-500 px-5 py-3 text-center shadow-xl animate-fade-in">
-          <p className="font-bold text-white text-sm">{t.game.disconnectedTitle}</p>
-          <p className="text-white/90 text-xs mt-0.5">{t.game.disconnectedBody}</p>
+        <div className="rp-shell-banner nb-card px-5 py-3 text-center animate-fade-in" style={{ background: "var(--rp-nb-yellow)" }}>
+          <p className="font-bold text-sm" style={{ color: "var(--rp-nb-black)" }}>{t.game.disconnectedTitle}</p>
+          <p className="text-xs mt-0.5" style={{ color: "var(--rp-nb-black)" }}>{t.game.disconnectedBody}</p>
         </div>
       )}
 
       {game.error && game.room && (
         <div
-          className="rp-shell-banner rounded-2xl bg-red-500 px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
+          className="rp-shell-banner nb-card px-5 py-3 text-center font-bold text-white animate-fade-in"
+          style={{ background: "var(--rp-nb-red)" }}
           role="alert"
         >
           {game.error}
@@ -235,8 +227,8 @@ export function Game() {
 
       {game.notice && (
         <div
-          className="rp-shell-banner rounded-2xl px-5 py-3 text-center font-bold text-white shadow-xl animate-fade-in"
-          style={{ background: "var(--rp-success)" }}
+          className="rp-shell-banner nb-card px-5 py-3 text-center font-bold text-white animate-fade-in"
+          style={{ background: "var(--rp-nb-green)" }}
           role="status"
         >
           {game.notice}

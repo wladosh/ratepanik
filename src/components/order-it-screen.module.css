@@ -9,9 +9,9 @@
   flex: 1;
   align-items: center;
   justify-content: center;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
   font-size: 18px;
-  font-weight: 650;
+  font-weight: 800;
   animation: loadingPulse 1.4s ease-in-out infinite;
 }
 
@@ -19,7 +19,7 @@
   width: 118px;
   height: 118px;
   object-fit: contain;
-  filter: drop-shadow(0 10px 14px rgba(71, 49, 104, 0.16));
+  filter: drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.2));
 }
 
 .orderAxis {
@@ -28,12 +28,14 @@
   align-items: center;
   gap: 6px;
   padding: 6px 10px;
-  border-radius: 12px;
-  color: var(--rp-peach-deep);
-  background: rgba(255, 138, 113, 0.1);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-peach);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1.35;
+  text-transform: uppercase;
 }
 
 .orderAxis span:last-child {
@@ -61,26 +63,28 @@
 }
 
 .sortingTitle {
-  color: var(--rp-text);
+  color: var(--rp-nb-text);
   font-size: 14px;
-  font-weight: 850;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .dragHint {
   margin-top: 2px;
-  color: var(--rp-text-secondary);
+  color: var(--rp-nb-text-secondary);
   font-size: 11px;
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .dragChip {
   flex: none;
   padding: 5px 10px;
-  border-radius: var(--rp-radius-pill);
-  color: var(--rp-text-secondary);
-  background: rgba(255, 255, 255, 0.72);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-text-secondary);
+  background: var(--rp-nb-white);
   font-size: 10px;
-  font-weight: 850;
+  font-weight: 900;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -92,45 +96,34 @@
   align-items: center;
   justify-content: center;
   margin-top: 12px;
-  border: 0;
-  border-radius: var(--rp-radius-pill);
-  color: #fff;
-  background: linear-gradient(
-    135deg,
-    var(--rp-peach) 0%,
-    var(--rp-peach-deep) 100%
-  );
-  box-shadow: 0 9px 24px rgba(255, 138, 113, 0.34);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  color: var(--rp-nb-white);
+  background: var(--rp-nb-peach);
+  box-shadow: var(--rp-nb-shadow-lg);
   cursor: pointer;
   font: inherit;
   font-size: 16px;
-  font-weight: 850;
+  font-weight: 900;
+  text-transform: uppercase;
   touch-action: manipulation;
-  transition:
-    box-shadow 160ms ease,
-    transform 160ms ease;
-}
-
-.submitButton:hover {
-  box-shadow: 0 12px 28px rgba(255, 138, 113, 0.42);
-  transform: translateY(-1px);
+  transition: transform 100ms ease, box-shadow 100ms ease;
 }
 
 .submitButton:active {
-  box-shadow: 0 6px 16px rgba(255, 138, 113, 0.3);
-  transform: scale(0.98);
+  transform: translate(3px, 3px);
+  box-shadow: var(--rp-nb-shadow-pressed);
 }
 
 .submitButton:focus-visible {
-  outline: 3px solid var(--rp-focus-ring);
-  outline-offset: 3px;
+  outline: 3px solid var(--rp-nb-black);
+  outline-offset: 2px;
 }
 
 .waitingPanel {
-  border-color: rgba(139, 124, 255, 0.16);
-  background:
-    radial-gradient(circle at 50% 4%, rgba(255, 255, 255, 0.9), transparent 31%),
-    linear-gradient(145deg, rgba(252, 250, 255, 0.95), rgba(239, 234, 255, 0.91));
+  border: var(--rp-nb-border);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow);
 }
 
 .waitingArtwork {
@@ -140,36 +133,17 @@
 }
 
 @keyframes loadingPulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
 }
 
 @media (max-width: 390px) {
-  .sortingHeader {
-    margin-bottom: 8px;
-  }
-
-  .submitButton {
-    min-height: 52px;
-  }
+  .sortingHeader { margin-bottom: 8px; }
+  .submitButton { min-height: 52px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .loading {
-    animation: none;
-  }
-
-  .submitButton {
-    transition: none;
-  }
-
-  .submitButton:hover,
-  .submitButton:active {
-    transform: none;
-  }
+  .loading { animation: none; }
+  .submitButton { transition: none; }
+  .submitButton:active { transform: none; }
 }

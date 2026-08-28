@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans, Space_Grotesk } from "next/font/google";
 import { AuthProvider } from "@/lib/auth-context";
 import { AchievementToastProvider } from "@/lib/achievement-toast-context";
 import { LocaleProvider } from "@/lib/i18n-context";
@@ -10,6 +10,12 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
+});
+
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-display-face",
+  subsets: ["latin"],
+  weight: ["700"],
 });
 
 export const metadata: Metadata = {
@@ -27,7 +33,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: "#8B7CFF",
+  themeColor: "#1a1a2e",
 };
 
 export default function RootLayout({
@@ -36,8 +42,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de" className={`${jakarta.variable} antialiased`}>
-      <body className="min-h-dvh font-sans bg-[var(--rp-bg)] text-[var(--rp-text)] overflow-x-hidden">
+    <html lang="de" className={`${jakarta.variable} ${spaceGrotesk.variable} antialiased`}>
+      <body className="min-h-dvh font-sans bg-[var(--rp-nb-cream)] text-[var(--rp-nb-text)] overflow-x-hidden">
         <LocaleProvider>
           <AuthProvider>
             <AchievementToastProvider>

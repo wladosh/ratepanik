@@ -45,15 +45,16 @@ export function LootboxReveal({
     <div
       className="absolute inset-0 z-40 flex flex-col items-center justify-center px-5"
       style={{
-        background: "rgba(42, 42, 74, 0.32)",
-        backdropFilter: "blur(2px)",
+        background: "rgba(26, 26, 46, 0.6)",
       }}
     >
       <div
-        className="w-full max-w-sm rounded-[28px] px-5 py-6 text-center animate-fade-in"
+        className="nb-card-lg w-full max-w-sm px-5 py-6 text-center animate-fade-in"
         style={{
-          background: RARITY_SOFT[result.rarity],
-          boxShadow: "var(--rp-shadow-card)",
+          background: "var(--rp-nb-white)",
+          borderRadius: "var(--rp-nb-radius)",
+          border: "var(--rp-nb-border)",
+          boxShadow: "var(--rp-nb-shadow-lg)",
         }}
       >
         {phase !== "item" ? (
@@ -73,15 +74,15 @@ export function LootboxReveal({
             <CosmeticTileArt item={item} size={112} />
             <RarityBadge rarity={result.rarity} />
             <h2
-              className="text-xl font-extrabold"
-              style={{ color: "var(--rp-text)" }}
+              className="nb-heading text-xl font-extrabold uppercase"
+              style={{ color: "var(--rp-nb-black)" }}
             >
               {result.name_de}
             </h2>
             {result.duplicate ? (
               <p
                 className="flex items-center gap-1.5 text-sm font-bold"
-                style={{ color: "var(--rp-text)" }}
+                style={{ color: "var(--rp-nb-black)" }}
               >
                 Schon da —
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -89,7 +90,7 @@ export function LootboxReveal({
                 +{result.consolation_hc}
               </p>
             ) : (
-              <p className="text-sm font-semibold" style={{ color: "var(--rp-purple)" }}>
+              <p className="text-sm font-bold" style={{ color: "var(--rp-nb-purple-deep)" }}>
                 Neu im Inventar
               </p>
             )}
@@ -101,10 +102,12 @@ export function LootboxReveal({
             <button
               type="button"
               onClick={onCustomize}
-              className="h-11 rounded-[var(--rp-radius-pill)] text-sm font-bold text-white"
+              className="nb-btn h-11 text-sm font-bold text-white uppercase transition-all active:translate-x-[1px] active:translate-y-[1px] active:shadow-[var(--rp-nb-shadow-pressed)]"
               style={{
-                background:
-                  "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+                background: "var(--rp-nb-peach)",
+                border: "var(--rp-nb-border)",
+                borderRadius: "var(--rp-nb-radius)",
+                boxShadow: "var(--rp-nb-shadow)",
               }}
             >
               {t.cosmetics.equip}
@@ -112,8 +115,8 @@ export function LootboxReveal({
             <button
               type="button"
               onClick={onDismiss}
-              className="h-11 text-sm font-semibold"
-              style={{ color: "var(--rp-text-secondary)" }}
+              className="h-11 text-sm font-bold uppercase"
+              style={{ color: "var(--rp-nb-black)" }}
             >
               {t.cosmetics.keepShopping}
             </button>

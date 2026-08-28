@@ -103,7 +103,6 @@ export function FinalScreen() {
     void grantRewards();
   }, [roomId, userId, isGuest, grantRewards]);
 
-  // Try achievement unlocks after match finishes
   useEffect(() => {
     if (achievementsCheckedRef.current || !roomId || !userId || isGuest) return;
     achievementsCheckedRef.current = true;
@@ -115,7 +114,6 @@ export function FinalScreen() {
     })();
   }, [roomId, userId, isGuest, placement, myScore, tryUnlock]);
 
-  // Auto-advance from scoreboard to rewards after a brief pause
   useEffect(() => {
     if (step !== "scoreboard" || !ready) return;
     timerRef.current = setTimeout(() => setStep("rewards"), SCOREBOARD_AUTO_MS);
@@ -127,7 +125,6 @@ export function FinalScreen() {
     setStep("rewards");
   }, []);
 
-  // Guests skip straight to GuestEndScreen (which has its own scoreboard)
   if (isGuest) {
     return (
       <MatchEndRewardsScreen
@@ -146,9 +143,12 @@ export function FinalScreen() {
     return (
       <div
         className="flex flex-1 items-center justify-center"
-        style={{ background: "var(--rp-bg-hero)" }}
+        style={{ background: "var(--rp-nb-cream)" }}
       >
-        <div className="text-lg animate-pulse font-medium" style={{ color: "var(--rp-text-secondary)" }}>
+        <div
+          className="nb-card px-6 py-4 text-lg font-black uppercase"
+          style={{ color: "var(--rp-nb-text-secondary)" }}
+        >
           Belohnungen werden berechnet…
         </div>
       </div>

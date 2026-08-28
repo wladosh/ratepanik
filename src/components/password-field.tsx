@@ -29,26 +29,13 @@ export function PasswordField({
         required
         minLength={minLength}
         autoComplete={autoComplete}
-        className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 pr-12 text-sm font-medium transition-all focus:outline-none"
-        style={{
-          borderColor: "var(--rp-border)",
-          background: "var(--rp-bg-elevated)",
-          color: "var(--rp-text)",
-        }}
-        onFocus={(event) => {
-          event.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-          event.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
-        }}
-        onBlur={(event) => {
-          event.currentTarget.style.borderColor = "var(--rp-border)";
-          event.currentTarget.style.boxShadow = "none";
-        }}
+        className="nb-input w-full h-[48px] px-4 pr-12 text-sm"
       />
       <button
         type="button"
         onClick={() => setVisible((on) => !on)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold"
-        style={{ color: "var(--rp-text-secondary)" }}
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black uppercase"
+        style={{ color: "var(--rp-nb-text-secondary)" }}
         aria-label={visible ? t.login.hidePassword : t.login.showPassword}
       >
         {visible ? t.login.hidePassword : t.login.showPassword}

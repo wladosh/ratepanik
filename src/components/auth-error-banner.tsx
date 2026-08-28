@@ -8,18 +8,17 @@ export function AuthErrorBanner({
   return (
     <div
       role="alert"
-      className="rounded-xl px-4 py-3 text-sm font-medium"
+      className="nb-card px-4 py-3 text-sm font-bold"
       style={{
-        background: "rgba(255, 92, 122, 0.1)",
-        border: "1px solid rgba(255, 92, 122, 0.2)",
-        color: "var(--rp-danger)",
+        background: "#FFB3C0",
+        color: "var(--rp-nb-black)",
       }}
     >
       <p>{message}</p>
       {hint ? (
         <p
-          className="mt-1.5 text-xs font-normal"
-          style={{ color: "var(--rp-text-secondary)" }}
+          className="mt-1.5 text-xs font-semibold"
+          style={{ color: "var(--rp-nb-text-secondary)" }}
         >
           {hint}
         </p>
