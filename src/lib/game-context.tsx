@@ -65,7 +65,7 @@ import {
   type SchleimiLayerMap,
 } from "./schleimi-layers";
 import { isLiveQuestionPhase, roundReadyToReveal, shouldStampQuestionClock } from "./question-clock";
-import { isPickCorrectPayload, shufflePickCorrectPayload } from "./shuffle";
+import { isPickCorrectPayload, subsetPickCorrectPayload, shufflePickCorrectPayload } from "./shuffle";
 
 export type GamePhase =
   | "home"
@@ -170,6 +170,7 @@ async function awardPickCorrectAndAdvance(
   block: DbMatchBlock,
   players: DbPlayer[],
   roundTurns: DbPickCorrectTurn[],
+  totalCorrect: number = 4,
 ) {
   const playerCorrects = new Map<string, number>();
   for (const turn of roundTurns) {
@@ -178,7 +179,7 @@ async function awardPickCorrectAndAdvance(
   }
 
   for (const player of players) {
-    const pts = calculatePickCorrectPoints(playerCorrects.get(player.id) ?? 0);
+    const pts = calculatePickCorrectPoints(playerCorrects.get(player.id) ?? 0, totalCorrect);
     const { data: existing } = await supabase
       .from("match_scores")
       .select("total_points")
@@ -294,16 +295,18 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     if (!raw || raw.mode !== currentBlock.mode) return null;
     if (currentBlock.mode === "pick_correct") {
       if (!isPickCorrectPayload(raw.payload)) return null;
+      const seedBase = `${currentBlock.id}:${currentBlock.current_round}:${raw.id}`;
+      const targetTotal = Math.min(players.length * 2, raw.payload.cards.length);
+      const subset = targetTotal < raw.payload.cards.length
+        ? subsetPickCorrectPayload(raw.payload, targetTotal, `subset:${seedBase}`)
+        : raw.payload;
       return {
         ...raw,
-        payload: shufflePickCorrectPayload(
-          raw.payload,
-          `${currentBlock.id}:${currentBlock.current_round}:${raw.id}`,
-        ),
+        payload: shufflePickCorrectPayload(subset, seedBase),
       };
     }
     return raw;
-  }, [currentBlock, prompts]);
+  }, [currentBlock, prompts, players.length]);
 
   const roundAnswers = useMemo(() => {
     if (!currentBlock) return [];
@@ -335,6 +338,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     () => blockTurns.filter((t) => t.is_correct).length,
     [blockTurns]
   );
+
+  const correctTarget = useMemo(() => {
+    if (!currentPrompt || currentBlock?.mode !== "pick_correct") return 4;
+    if (!isPickCorrectPayload(currentPrompt.payload)) return 4;
+    return currentPrompt.payload.correct_indices.length;
+  }, [currentPrompt, currentBlock?.mode]);
 
   const sortedPlayers = useMemo(
     () =>
@@ -724,13 +733,14 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
   }, [room?.status, room?.current_block_index]);
 
-  // Keep the 4th-correct highlight visible, then let the host complete the hunt.
+  // Keep the last-correct highlight visible, then let the host complete the hunt.
   useEffect(() => {
     const huntDone =
       !!currentBlock &&
       currentBlock.mode === "pick_correct" &&
       !currentBlock.is_complete &&
-      correctTurnsCount >= 4;
+      correctTarget > 0 &&
+      correctTurnsCount >= correctTarget;
 
     if (!huntDone) {
       setRevealHoldActive(false);
@@ -745,6 +755,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     return () => window.clearTimeout(timer);
   }, [
     correctTurnsCount,
+    correctTarget,
     currentBlock?.id,
     currentBlock?.current_round,
     currentBlock?.mode,
@@ -756,7 +767,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   useEffect(() => {
     if (!isHost || !room || !currentBlock || currentBlock.mode !== "pick_correct") return;
     if (currentBlock.is_complete) return;
-    if (correctTurnsCount < 4) return;
+    if (correctTarget <= 0 || correctTurnsCount < correctTarget) return;
     if (revealHoldActive) return;
     const completeKey = `pc:${currentBlock.id}:${currentBlock.current_round}`;
     if (pickCompleteRef.current === completeKey) return;
@@ -768,8 +779,9 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       currentBlock,
       players,
       blockTurns,
+      correctTarget,
     );
-  }, [isHost, currentBlock, correctTurnsCount, blockTurns, players, room, revealHoldActive, supabase]);
+  }, [isHost, currentBlock, correctTurnsCount, correctTarget, blockTurns, players, room, revealHoldActive, supabase]);
 
   const scoreSimultaneousQuizRound = async (
     block: DbMatchBlock,
@@ -854,7 +866,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       const thisRound = ((roundTurns ?? []) as DbPickCorrectTurn[]).filter(
         (turn) => (turn.round_index ?? 0) === block.current_round,
       );
-      if (thisRound.filter((turn) => turn.is_correct).length >= 4) return;
+      if (thisRound.filter((turn) => turn.is_correct).length >= correctTarget) return;
 
       const completeKey = `pc:${block.id}:${block.current_round}`;
       if (pickCompleteRef.current === completeKey) return;
@@ -870,6 +882,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         block,
         currentPlayers,
         thisRound,
+        correctTarget,
       );
     }
   };
@@ -1570,7 +1583,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const tapCard = async (cardIndex: number) => {
     if (!room || !myPlayerId || !currentBlock || !currentPrompt) return;
     if (currentBlock.mode !== "pick_correct") return;
-    if (correctTurnsCount >= 4) return;
+    if (correctTurnsCount >= correctTarget) return;
     if (blockTurns.some((t) => t.card_index === cardIndex)) return;
     if (!isPickCorrectPayload(currentPrompt.payload)) return;
 

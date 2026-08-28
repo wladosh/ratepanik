@@ -36,6 +36,47 @@ export function shuffleCopy<T>(items: T[], random: () => number = Math.random): 
   return shuffleInPlace([...items], random);
 }
 
+/**
+ * Subset a pick_correct payload to `targetTotal` cards (half correct, half wrong).
+ * Deterministic per seed so all clients in a room see the same dealt subset.
+ * If the prompt has fewer cards than the target, returns what exists without crashing.
+ */
+export function subsetPickCorrectPayload(
+  payload: PickCorrectPayload,
+  targetTotal: number,
+  seed: string,
+): PickCorrectPayload {
+  const correctSet = new Set(payload.correct_indices);
+  const correctCards: number[] = [];
+  const wrongCards: number[] = [];
+  for (let i = 0; i < payload.cards.length; i++) {
+    if (correctSet.has(i)) correctCards.push(i);
+    else wrongCards.push(i);
+  }
+
+  const targetCorrect = Math.floor(targetTotal / 2);
+  const targetWrong = targetTotal - targetCorrect;
+
+  const rng = mulberry32(hashSeed(seed));
+  const pickN = <T>(arr: T[], n: number): T[] => {
+    const pool = [...arr];
+    shuffleInPlace(pool, rng);
+    return pool.slice(0, n);
+  };
+
+  const chosenCorrect = pickN(correctCards, Math.min(targetCorrect, correctCards.length));
+  const chosenWrong = pickN(wrongCards, Math.min(targetWrong, wrongCards.length));
+  const chosen = [...chosenCorrect, ...chosenWrong];
+
+  const newCorrectSet = new Set(chosenCorrect);
+  return {
+    cards: chosen.map((i) => payload.cards[i]!),
+    correct_indices: chosen
+      .map((origIdx, newIdx) => (newCorrectSet.has(origIdx) ? newIdx : -1))
+      .filter((i) => i >= 0),
+  };
+}
+
 export function shufflePickCorrectPayload(
   payload: PickCorrectPayload,
   seed: string,
