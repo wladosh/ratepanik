@@ -285,21 +285,19 @@
   text-transform: uppercase;
 }
 
-.joinAvatars {
-  display: flex;
-  padding-right: 3px;
-}
-
-.joinAvatars > span {
-  display: flex;
-  width: 34px;
-  height: 34px;
-  margin-left: -9px;
-  overflow: hidden;
-  border: 2px solid var(--rp-nb-black);
+.joinCapacity {
+  display: grid;
+  place-items: center;
+  padding: 4px 12px;
+  border: var(--rp-nb-border);
   border-radius: var(--rp-nb-radius-sm);
   background: var(--rp-nb-lilac);
   box-shadow: 2px 2px 0 var(--rp-nb-black);
+  color: var(--rp-nb-black);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
 .joinDock {
