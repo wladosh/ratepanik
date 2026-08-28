@@ -17,7 +17,8 @@ Does **not** deactivate existing `number_guess` / `pick_correct` (or the 4 live 
 | musik | 4 | 4 | 4 | 3 | 1 | 8 |
 | film-serie | 4 | 4 | 4 | 3 | 1 | 8 |
 | reise-orte | 4 | 4 | 3 | 4 | 1 | 8 |
-| alltag-peinlich | 4 | 4 | 3 | 4 | 1 | 8 |
+| essen-trinken | — | — | — | — | — | — |
+| tiere | — | — | — | — | — | — |
 | **total** | **32** | **32** | **26** | **26** | **12** | **64** |
 
 Difficulty mix: **40.6% leicht / 40.6% mittel / 18.8% schwer** (target ~40 / 40 / 20).

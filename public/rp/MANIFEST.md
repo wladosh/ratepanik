@@ -144,7 +144,8 @@ to 256 CSS pixels.
 | `musik` | `rp_theme_musik_256.png` |
 | `film-serie` | `rp_theme_film_serie_256.png` |
 | `reise-orte` | `rp_theme_reise_orte_256.png` |
-| `alltag-peinlich` | `rp_theme_alltag_peinlich_256.png` |
+| `essen-trinken` | `rp_theme_essen_trinken_256.png` |
+| `tiere` | `rp_theme_tiere_256.png` |
 
 ### Game modes
 
