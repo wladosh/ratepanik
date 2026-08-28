@@ -1,6 +1,55 @@
 # Asset Manifest — public/rp/
 
-> Ratepanik shared assets — UX-approved **Peinlich-Pastell** visual style.
+> **Style: NeoBrutalism** — flat solid fills, thick black outlines, hard drop-shadows, RGBA transparent backgrounds.
+> Previous style (Peinlich-Pastell) has been replaced starting with Tranche 1 NeoBrutalism overwrite.
+
+## NeoBrutalism Tranche 1 — Overwritten Files
+
+The following files were overwritten with NeoBrutalism-style artwork:
+
+### Home / Create Room
+- `rp_home_create_room_256.png` (256×256)
+
+### Friends Icon
+- `rp_icon_friends_slimes_128.png` (128×128)
+- `rp_icon_friends_slimes_128@2x.png` (256×256)
+- `rp_icon_friends_slimes_128@3x.png` (384×384)
+
+### Stats Icon
+- `rp_icon_stats_clipboard_128.png` (128×128)
+- `rp_icon_stats_clipboard_128@2x.png` (256×256)
+- `rp_icon_stats_clipboard_128@3x.png` (384×384)
+
+### Trophy
+- `rp_trophy_gold_512.png` (512×512)
+- `rp_trophy_gold_1024.png` (1024×1024) — **new file**
+
+### Hirncoins (Currency)
+- `rp_hirncoin_24.png` (24×24)
+- `rp_hirncoin_24@2x.png` (48×48)
+- `rp_hirncoin_24@3x.png` (72×72)
+- `rp_hirncoin_48.png` (48×48)
+- `rp_hirncoin_48@2x.png` (96×96)
+- `rp_hirncoin_48@3x.png` (144×144)
+
+### XP Badge
+- `rp_badge_xp_32.png` (32×32)
+- `rp_badge_xp_32@2x.png` (64×64)
+- `rp_badge_xp_32@3x.png` (96×96)
+- `rp_badge_xp_48.png` (48×48)
+- `rp_badge_xp_48@2x.png` (96×96)
+- `rp_badge_xp_48@3x.png` (144×144)
+
+### Navigation Icons
+- `rp_nav_home_24.png` / `@2x.png` / `@3x.png`
+- `rp_nav_quiz_24.png` / `@2x.png` / `@3x.png`
+- `rp_nav_play_24.png` / `@2x.png` / `@3x.png`
+- `rp_nav_rank_24.png` / `@2x.png` / `@3x.png`
+- `rp_nav_profile_24.png` / `@2x.png` / `@3x.png`
+
+> **Not touched in this tranche:** avatars, schleimi, lootboxes, achievement badges, rank badges, theme/mode art, FX.
+
+---
 
 ## Tranche 1 — Full
 
@@ -157,7 +206,7 @@ to 256 CSS pixels.
 ## Notes
 
 - All assets are delivered by the Asset team — do NOT generate or invent replacements.
-- Style: Peinlich-Pastell — soft 3D pastels, rounded forms, dark-indigo (#3D2B6B) nav fills, warm highlights.
+- Style: **NeoBrutalism** — flat solid fills, thick black outlines, hard drop-shadows, RGBA transparent. (Previously Peinlich-Pastell.)
 - Rank badges: gold (#1), silver/white (#2), bronze/copper (#3) rounded-rect tiles.
 - Loot box rarity: common (cream), uncommon (green), rare (blue), epic (purple), legendary (gold).
 - Images served via Next.js `public/` directory at path `/rp/<filename>`.
