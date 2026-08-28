@@ -8,11 +8,9 @@ export function BackButton({ onBack }: { onBack: () => void }) {
     <button
       type="button"
       onClick={onBack}
-      className="flex items-center justify-center min-w-11 min-h-11 w-11 h-11 rounded-full transition-all active:scale-90"
+      className="nb-btn flex items-center justify-center min-w-11 min-h-11 w-11 h-11"
       style={{
-        background: "rgba(255,255,255,0.75)",
-        backdropFilter: "blur(8px)",
-        boxShadow: "0 2px 8px rgba(42,42,74,0.10)",
+        background: "var(--rp-nb-white)",
       }}
       aria-label={t.common.back}
     >
@@ -20,8 +18,8 @@ export function BackButton({ onBack }: { onBack: () => void }) {
         viewBox="0 0 24 24"
         className="w-5 h-5"
         fill="none"
-        stroke="var(--rp-text)"
-        strokeWidth="2"
+        stroke="var(--rp-nb-black)"
+        strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       >
@@ -44,15 +42,14 @@ export function PanelShell({
     <div
       className="relative flex flex-1 flex-col"
       style={{
-        background: "var(--rp-bg-hero)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       <header className="relative flex items-center px-4 py-3">
         <BackButton onBack={onBack} />
         <h1
-          className="pointer-events-none absolute left-1/2 max-w-[60%] -translate-x-1/2 truncate text-center text-lg font-extrabold"
-          style={{ color: "var(--rp-text)" }}
+          className="nb-heading pointer-events-none absolute left-1/2 max-w-[60%] -translate-x-1/2 truncate text-center text-lg"
         >
           {title}
         </h1>
@@ -73,30 +70,19 @@ export function EmptyCard({
 }) {
   return (
     <div
-      className="flex flex-col items-center text-center px-4 py-10"
-      style={{
-        background: "var(--rp-bg-elevated)",
-        borderRadius: "var(--rp-radius-lg)",
-        boxShadow: "var(--rp-shadow-card)",
-      }}
+      className="nb-card flex flex-col items-center text-center px-4 py-10"
     >
       {kicker && (
-        <p
-          className="text-xs font-bold uppercase tracking-wider mb-2"
-          style={{ color: "var(--rp-purple)" }}
-        >
+        <p className="nb-kicker mb-2">
           {kicker}
         </p>
       )}
-      <h2
-        className="text-xl font-extrabold mb-2"
-        style={{ color: "var(--rp-text)" }}
-      >
+      <h2 className="nb-heading text-xl mb-2">
         {headline}
       </h2>
       <p
-        className="text-sm leading-relaxed"
-        style={{ color: "var(--rp-text-secondary)" }}
+        className="text-sm leading-relaxed font-semibold"
+        style={{ color: "var(--rp-nb-text-secondary)" }}
       >
         {body}
       </p>

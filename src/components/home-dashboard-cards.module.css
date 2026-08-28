@@ -26,7 +26,7 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: transform 120ms ease;
+  transition: transform 100ms ease, box-shadow 100ms ease;
 }
 
 .championCard:active {
@@ -59,10 +59,12 @@
 .championTitle {
   margin: 0;
   color: var(--rp-nb-black);
+  font-family: var(--font-display, var(--font-sans));
   font-size: 22px;
   font-weight: 900;
   line-height: 1.04;
   letter-spacing: -0.03em;
+  text-transform: uppercase;
 }
 
 .championTitle span {
@@ -188,10 +190,12 @@
 
 .createCopy strong {
   color: var(--rp-nb-black);
+  font-family: var(--font-display, var(--font-sans));
   font-size: 18px;
   font-weight: 900;
   line-height: 1.12;
   letter-spacing: -0.02em;
+  text-transform: uppercase;
 }
 
 .createCopy > span:last-child {
@@ -273,10 +277,12 @@
 .joinHeading h2 {
   margin: 0;
   color: var(--rp-nb-black);
+  font-family: var(--font-display, var(--font-sans));
   font-size: 18px;
   font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.025em;
+  text-transform: uppercase;
 }
 
 .joinAvatars {
@@ -554,10 +560,12 @@
 }
 
 .shopHeroCopy strong {
+  font-family: var(--font-display, var(--font-sans));
   font-size: 20px;
   font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.025em;
+  text-transform: uppercase;
   color: var(--rp-nb-black);
 }
 

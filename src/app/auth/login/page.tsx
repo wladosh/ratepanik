@@ -84,24 +84,19 @@ function LoginContent() {
     <div
       className="flex min-h-dvh flex-col items-center justify-center px-5 py-8"
       style={{
-        background: "var(--rp-bg-hero)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       <div className="w-full max-w-sm space-y-5">
         <div className="text-center">
           <h1
-            className="text-4xl font-extrabold tracking-tight"
-            style={{
-              background: "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-pink) 50%, var(--rp-peach) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
+            className="nb-heading text-4xl tracking-tight"
+            style={{ color: "var(--rp-nb-purple-deep)" }}
           >
-            Ratepanik
+            RATEPANIK
           </h1>
-          <p className="mt-1" style={{ color: "var(--rp-text-secondary)" }}>
+          <p className="mt-1 font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
             {t.login.subtitle}
           </p>
         </div>
@@ -109,15 +104,10 @@ function LoginContent() {
         {error && <AuthErrorBanner message={error.message} hint={error.hint} />}
 
         <div
-          className="w-full p-5 space-y-3"
-          style={{
-            background: "var(--rp-bg-elevated)",
-            borderRadius: "var(--rp-radius-lg)",
-            boxShadow: "var(--rp-shadow-card)",
-          }}
+          className="nb-card-lg w-full p-5 space-y-3"
         >
           <form onSubmit={handleEmailLogin} className="space-y-3">
-            <label className="block text-sm font-bold" style={{ color: "var(--rp-text)" }}>
+            <label className="block text-sm font-black uppercase tracking-wide" style={{ color: "var(--rp-nb-text)" }}>
               {t.login.emailLabel}
             </label>
             <input
@@ -126,20 +116,7 @@ function LoginContent() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder={t.login.email}
               required
-              className="w-full h-[48px] rounded-[var(--rp-radius-md)] border-2 px-4 text-sm font-medium transition-all focus:outline-none"
-              style={{
-                borderColor: "var(--rp-border)",
-                background: "#FAFAFA",
-                color: "var(--rp-text)",
-              }}
-              onFocus={(e) => {
-                e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(139, 124, 255, 0.15)";
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.borderColor = "var(--rp-border)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
+              className="nb-input w-full h-[48px] px-4 text-sm"
             />
             <PasswordField
               value={password}
@@ -150,9 +127,9 @@ function LoginContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-[52px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-50"
+              className="nb-btn w-full h-[52px] text-[17px] text-white"
               style={{
-                background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+                background: "var(--rp-nb-peach)",
               }}
             >
               {t.login.submit}
@@ -162,8 +139,8 @@ function LoginContent() {
           <div className="text-center pt-1">
             <Link
               href="/auth/signup"
-              className="text-sm font-medium underline transition-colors"
-              style={{ color: "var(--rp-purple)" }}
+              className="text-sm font-bold underline"
+              style={{ color: "var(--rp-nb-purple-deep)" }}
             >
               {t.login.noAccount}
             </Link>
@@ -171,19 +148,18 @@ function LoginContent() {
         </div>
 
         <div className="flex items-center gap-4 pt-2">
-          <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
-          <span className="text-xs font-medium" style={{ color: "var(--rp-text-secondary)" }}>{t.login.moreOptions}</span>
-          <div className="flex-1 h-px" style={{ background: "var(--rp-border)" }} />
+          <div className="flex-1 h-[3px]" style={{ background: "var(--rp-nb-black)" }} />
+          <span className="text-xs font-black uppercase" style={{ color: "var(--rp-nb-text-secondary)" }}>{t.login.moreOptions}</span>
+          <div className="flex-1 h-[3px]" style={{ background: "var(--rp-nb-black)" }} />
         </div>
 
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
-          className="w-full flex items-center justify-center gap-3 h-[46px] rounded-[var(--rp-radius-md)] text-sm font-bold transition-all active:scale-[0.98] disabled:opacity-50"
+          className="nb-btn w-full flex items-center justify-center gap-3 h-[46px] text-sm"
           style={{
-            border: "1.5px solid var(--rp-border)",
-            background: "transparent",
-            color: "var(--rp-text)",
+            background: "var(--rp-nb-white)",
+            color: "var(--rp-nb-text)",
           }}
         >
           <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -198,11 +174,10 @@ function LoginContent() {
         <button
           onClick={handleGuestLogin}
           disabled={loading}
-          className="w-full h-[46px] rounded-[var(--rp-radius-pill)] text-sm font-bold transition-all active:scale-[0.97] disabled:opacity-50"
+          className="nb-btn w-full h-[46px] text-sm"
           style={{
-            border: "1.5px solid var(--rp-border)",
-            color: "var(--rp-text-secondary)",
-            background: "transparent",
+            background: "var(--rp-nb-lilac)",
+            color: "var(--rp-nb-black)",
           }}
         >
           {t.login.guest}
@@ -211,8 +186,8 @@ function LoginContent() {
         <div className="text-center pt-2">
           <Link
             href="/"
-            className="text-sm font-medium transition-colors"
-            style={{ color: "var(--rp-text-secondary)" }}
+            className="text-sm font-bold"
+            style={{ color: "var(--rp-nb-text-secondary)" }}
           >
             {t.login.backHome}
           </Link>
