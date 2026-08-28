@@ -145,8 +145,8 @@ function JoinRoomCard({
           <p className={styles.kicker}>{t.home.joinKicker}</p>
           <h2 id="join-title">{t.home.joinTitle}</h2>
         </div>
-        <span className={styles.joinCapacity} aria-hidden="true">
-          0 / 6
+        <span className={styles.joinCounter}>
+          {roomCode.length} / 6
         </span>
       </div>
 
@@ -183,9 +183,11 @@ function JoinRoomCard({
         </button>
       </div>
 
-      <p className={styles.joinHint} aria-live="polite">
-        {joinError ?? interpolate(t.home.joinChars, { n: roomCode.length })}
-      </p>
+      {joinError && (
+        <p className={styles.joinHint} aria-live="polite">
+          {joinError}
+        </p>
+      )}
     </section>
   );
 }

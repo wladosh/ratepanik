@@ -285,18 +285,10 @@
   text-transform: uppercase;
 }
 
-.joinCapacity {
-  display: grid;
-  place-items: center;
-  padding: 4px 12px;
-  border: var(--rp-nb-border);
-  border-radius: var(--rp-nb-radius-sm);
-  background: var(--rp-nb-lilac);
-  box-shadow: 2px 2px 0 var(--rp-nb-black);
-  color: var(--rp-nb-black);
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 0.06em;
+.joinCounter {
+  color: var(--rp-text-secondary);
+  font-size: 12px;
+  font-weight: 700;
   white-space: nowrap;
 }
 
