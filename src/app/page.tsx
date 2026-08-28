@@ -81,16 +81,16 @@ function HomeContent() {
     );
   }
 
-  if (isGuest) {
-    return <GuestExitToLogin />;
-  }
-
-  if (activeGame && shouldRestoreMatchOnBareHome(isGuest)) {
+  if (activeGame && shouldRestoreMatchOnBareHome()) {
     return (
       <GameProvider>
         <Game />
       </GameProvider>
     );
+  }
+
+  if (isGuest) {
+    return <GuestExitToLogin />;
   }
 
   if (!isAuthenticated) {
