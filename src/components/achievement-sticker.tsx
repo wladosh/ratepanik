@@ -314,9 +314,15 @@ export function AchievementSticker({
       style={{ overflow: "visible", display: "block" }}
     >
       <defs>
-        <filter id={`${uid}-shadow`} x="-30%" y="-20%" width="160%" height="170%">
-          <feDropShadow dx="0" dy="7" stdDeviation="5" floodColor="#2A2A4A" floodOpacity="0.22" />
-        </filter>
+        {unlocked ? (
+          <filter id={`${uid}-shadow`} x="-30%" y="-20%" width="160%" height="170%">
+            <feDropShadow dx="0" dy="7" stdDeviation="5" floodColor="#2A2A4A" floodOpacity="0.22" />
+          </filter>
+        ) : (
+          <filter id={`${uid}-shadow`} x="-10%" y="-10%" width="130%" height="130%">
+            <feDropShadow dx="3" dy="3" stdDeviation="0" floodColor="#1a1a2e" floodOpacity="0.18" />
+          </filter>
+        )}
         <linearGradient id={`${uid}-face`} x1="18%" y1="8%" x2="86%" y2="94%">
           <stop offset="0%" stopColor={colors.from} />
           <stop offset="100%" stopColor={colors.to} />
@@ -333,8 +339,8 @@ export function AchievementSticker({
       <path
         d={path}
         fill={`url(#${uid}-face)`}
-        stroke="#FFFFFF"
-        strokeWidth={hero ? 14 : unlocked ? 11 : 10}
+        stroke={unlocked ? "#FFFFFF" : "#1a1a2e"}
+        strokeWidth={hero ? 14 : unlocked ? 11 : 6}
         strokeLinejoin="round"
         paintOrder="stroke fill"
         filter={`url(#${uid}-shadow)`}

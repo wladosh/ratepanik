@@ -180,8 +180,10 @@ export function CosmeticTileArt({
       style={{
         width: size,
         height: size,
-        borderRadius: 16,
+        borderRadius: 4,
         background: RARITY_SOFT[item.rarity],
+        border: "2px solid var(--rp-nb-black)",
+        boxShadow: "3px 3px 0 var(--rp-nb-black)",
       }}
     >
       <LayerImage src={item.asset_path} size={size} fallback={fallback} />
