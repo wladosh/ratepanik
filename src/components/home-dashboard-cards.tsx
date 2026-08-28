@@ -7,7 +7,6 @@ import Image from "next/image";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import type { HomePanelId } from "@/components/home-panels";
-import { DecorSchleimi } from "@/components/player-schleimi";
 import {
   HOME_CREATE_ROOM_256,
   ICON_FRIENDS_SLIMES_128,
@@ -118,7 +117,6 @@ function CreateRoomCard({
           unoptimized
         />
       </span>
-      <ArrowMark />
     </button>
   );
 }
@@ -147,13 +145,9 @@ function JoinRoomCard({
           <p className={styles.kicker}>{t.home.joinKicker}</p>
           <h2 id="join-title">{t.home.joinTitle}</h2>
         </div>
-        <div className={styles.joinAvatars} aria-hidden="true">
-          {["join-a", "join-b", "join-c"].map((seed, index) => (
-            <span key={seed} style={{ zIndex: 3 - index }}>
-              <DecorSchleimi seed={seed} size={34} />
-            </span>
-          ))}
-        </div>
+        <span className={styles.joinCapacity} aria-hidden="true">
+          0 / 6
+        </span>
       </div>
 
       <div className={styles.joinDock}>
