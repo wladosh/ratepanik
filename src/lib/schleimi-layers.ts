@@ -1,7 +1,9 @@
 import {
   COSMETIC_SLOTS,
   SCHLEIMI_ITEMS,
-  STARTER_FACE_ID,
+  STARTER_EYES_ID,
+  STARTER_MOUTH_ID,
+  STARTER_SHAPE_ID,
   STARTER_TINT_ID,
   catalogById,
   cosmeticAssetPath,
@@ -19,6 +21,13 @@ export const GUEST_TINT_IDS = [
   "tint_lilac",
   "tint_mango",
   "tint_blush",
+] as const;
+
+export const GUEST_SHAPE_IDS = [
+  "shape_classic",
+  "shape_round",
+  "shape_egg",
+  "shape_squircle",
 ] as const;
 
 const CATALOG = catalogById();
@@ -52,11 +61,14 @@ function toView(entry: SchleimiCatalogItem): CosmeticItemView {
 
 export function guestLayers(seed: string): SchleimiLayerMap {
   const tintId = GUEST_TINT_IDS[hashToIndex(seed, GUEST_TINT_IDS.length)] ?? STARTER_TINT_ID;
+  const shapeId =
+    GUEST_SHAPE_IDS[hashToIndex(`${seed}#shape`, GUEST_SHAPE_IDS.length)] ?? STARTER_SHAPE_ID;
   return {
+    shape: catalogItemView(shapeId) ?? catalogItemView(STARTER_SHAPE_ID),
     body_tint: catalogItemView(tintId) ?? catalogItemView(STARTER_TINT_ID),
-    face: catalogItemView(STARTER_FACE_ID),
-    hat: null,
-    extra: null,
+    eyes: catalogItemView(STARTER_EYES_ID),
+    mouth: catalogItemView(STARTER_MOUTH_ID),
+    background: null,
   };
 }
 
@@ -68,8 +80,10 @@ export function layersFromSlotIds(
     const id = slots[slot];
     layers[slot] = id ? catalogItemView(id) : null;
   }
+  if (!layers.shape) layers.shape = catalogItemView(STARTER_SHAPE_ID);
   if (!layers.body_tint) layers.body_tint = catalogItemView(STARTER_TINT_ID);
-  if (!layers.face) layers.face = catalogItemView(STARTER_FACE_ID);
+  if (!layers.eyes) layers.eyes = catalogItemView(STARTER_EYES_ID);
+  if (!layers.mouth) layers.mouth = catalogItemView(STARTER_MOUTH_ID);
   return layers;
 }
 

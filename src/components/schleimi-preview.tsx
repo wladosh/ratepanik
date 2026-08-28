@@ -1,93 +1,67 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useId } from "react";
 import {
-  SCHLEIMI_BASE_PATH,
-  TINT_FILL,
+  RARITY_SOFT,
+  STARTER_EYES_ID,
+  STARTER_MOUTH_ID,
+  STARTER_SHAPE_ID,
+  STARTER_TINT_ID,
   type CosmeticSlot,
 } from "@/lib/schleimi-catalog";
+import {
+  BACKGROUNDS,
+  EYES,
+  MOUTHS,
+  PALETTES,
+  SHAPES,
+  type PaletteDef,
+  type ShapeDef,
+} from "@/lib/schleimi-parts";
 import type { CosmeticItemView } from "@/lib/use-cosmetics";
-import { RARITY_COLOR, RARITY_SOFT } from "@/lib/schleimi-catalog";
 
 type LayerMap = Partial<Record<CosmeticSlot, CosmeticItemView | null>>;
 
-function SlimeBlob({ color, size }: { color: string; size: number }) {
-  return (
-    <svg viewBox="0 0 128 128" width={size} height={size} aria-hidden>
-      <ellipse cx="64" cy="82" rx="50" ry="34" fill={color} opacity={0.35} />
-      <path
-        d="M24 72c4-28 24-46 40-46s36 18 40 46c2 16-8 34-40 34S22 88 24 72z"
-        fill={color}
-      />
-      <ellipse cx="48" cy="58" rx="10" ry="6" fill="#fff" opacity={0.45} />
-    </svg>
-  );
-}
+const FALLBACK_SHAPE = SHAPES[STARTER_SHAPE_ID];
+const FALLBACK_PALETTE = PALETTES[STARTER_TINT_ID];
+const FALLBACK_EYES = EYES[STARTER_EYES_ID];
+const FALLBACK_MOUTH = MOUTHS[STARTER_MOUTH_ID];
 
-function FacePlaceholder({ size }: { size: number }) {
-  return (
-    <svg viewBox="0 0 128 128" width={size} height={size} aria-hidden>
-      <circle cx="48" cy="62" r="7" fill="#2A2A4A" />
-      <circle cx="80" cy="62" r="7" fill="#2A2A4A" />
-      <circle cx="50" cy="60" r="2.2" fill="#fff" />
-      <circle cx="82" cy="60" r="2.2" fill="#fff" />
-      <path
-        d="M52 82c6 8 18 8 24 0"
-        stroke="#2A2A4A"
-        strokeWidth="4"
-        fill="none"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function HatPlaceholder({ color, size }: { color: string; size: number }) {
-  return (
-    <svg viewBox="0 0 128 128" width={size} height={size} aria-hidden>
-      <polygon points="64,8 96,44 32,44" fill={color} />
-      <rect x="28" y="42" width="72" height="10" rx="4" fill={color} />
-    </svg>
-  );
-}
-
-function ExtraPlaceholder({ color, size }: { color: string; size: number }) {
-  return (
-    <svg viewBox="0 0 128 128" width={size} height={size} aria-hidden>
-      <ellipse cx="48" cy="64" rx="16" ry="10" fill="none" stroke={color} strokeWidth="6" />
-      <ellipse cx="80" cy="64" rx="16" ry="10" fill="none" stroke={color} strokeWidth="6" />
-      <path d="M64 64h0" stroke={color} strokeWidth="6" />
-      <line x1="64" y1="64" x2="64" y2="64" />
-      <path d="M62 64h4" stroke={color} strokeWidth="6" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function LayerImage({
-  src,
-  size,
-  fallback,
+function BodyLayer({
+  shape,
+  palette,
+  uid,
 }: {
-  src: string;
-  size: number;
-  fallback: ReactNode;
+  shape: ShapeDef;
+  palette: PaletteDef;
+  uid: string;
 }) {
-  const [failed, setFailed] = useState(false);
-  if (failed) return <>{fallback}</>;
+  const gradientId = `${uid}-body`;
+  const fill = palette.gradient ? `url(#${gradientId})` : palette.base;
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt=""
-      width={size}
-      height={size}
-      draggable={false}
-      className="absolute inset-0 h-full w-full object-contain"
-      onError={() => setFailed(true)}
-    />
+    <g>
+      {palette.gradient ? (
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={palette.gradient.from} />
+            <stop offset="100%" stopColor={palette.gradient.to} />
+          </linearGradient>
+        </defs>
+      ) : null}
+      <path d={shape.path} fill={fill} />
+      {shape.shadowPath ? <path d={shape.shadowPath} fill={palette.shade} opacity={0.5} /> : null}
+      {shape.highlightPath ? (
+        <path d={shape.highlightPath} fill={palette.highlight} opacity={0.55} />
+      ) : null}
+    </g>
   );
 }
 
+/**
+ * Parametric Schleimi renderer. All parts share one 0..100 viewBox; eyes and
+ * mouth are placed at anchors defined per body shape, so every combination
+ * of shape, color, eyes, mouth, and background is guaranteed to fit.
+ */
 export function SchleimiPreview({
   layers,
   size = 160,
@@ -97,11 +71,15 @@ export function SchleimiPreview({
   size?: number;
   label?: string;
 }) {
-  const tint = layers.body_tint;
-  const fill = (tint && TINT_FILL[tint.id]) || "#FF8A71";
-  const face = layers.face;
-  const extra = layers.extra;
-  const hat = layers.hat;
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+
+  const shape = (layers.shape && SHAPES[layers.shape.id]) || FALLBACK_SHAPE;
+  const palette = (layers.body_tint && PALETTES[layers.body_tint.id]) || FALLBACK_PALETTE;
+  const eyes = (layers.eyes && EYES[layers.eyes.id]) || FALLBACK_EYES;
+  const mouth = (layers.mouth && MOUTHS[layers.mouth.id]) || FALLBACK_MOUTH;
+  const background = layers.background ? BACKGROUNDS[layers.background.id] : null;
+
+  const clipId = `${uid}-bgclip`;
 
   return (
     <div
@@ -109,55 +87,80 @@ export function SchleimiPreview({
       style={{ width: size, height: size }}
       aria-label={label ?? "Schleimi"}
     >
-      <div className="absolute inset-0 flex items-center justify-center">
-        <LayerImage
-          src={tint?.asset_path || SCHLEIMI_BASE_PATH}
-          size={size}
-          fallback={<SlimeBlob color={fill} size={size} />}
-        />
-      </div>
-      {face ? (
-        <div className="absolute inset-0">
-          <LayerImage
-            src={face.asset_path}
-            size={size}
-            fallback={<FacePlaceholder size={size} />}
-          />
-        </div>
-      ) : (
-        <div className="absolute inset-0">
-          <FacePlaceholder size={size} />
-        </div>
-      )}
-      {extra ? (
-        <div className="absolute inset-0">
-          <LayerImage
-            src={extra.asset_path}
-            size={size}
-            fallback={
-              <ExtraPlaceholder color={RARITY_COLOR[extra.rarity]} size={size} />
-            }
-          />
-        </div>
-      ) : null}
-      {hat ? (
-        <div className="absolute inset-0">
-          <LayerImage
-            src={hat.asset_path}
-            size={size}
-            fallback={<HatPlaceholder color={RARITY_COLOR[hat.rarity]} size={size} />}
-          />
-        </div>
-      ) : null}
+      <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden>
+        {background ? (
+          <>
+            <defs>
+              <clipPath id={clipId}>
+                <rect x="0" y="0" width="100" height="100" rx="18" />
+              </clipPath>
+            </defs>
+            <g clipPath={`url(#${clipId})`}>{background.render(`${uid}-bg`)}</g>
+          </>
+        ) : null}
+        <BodyLayer shape={shape} palette={palette} uid={uid} />
+        <g transform={`translate(50 ${shape.eyeY}) scale(${shape.faceScale})`}>
+          {eyes(palette.ink)}
+        </g>
+        <g transform={`translate(50 ${shape.mouthY}) scale(${shape.faceScale})`}>
+          {mouth(palette.ink)}
+        </g>
+      </svg>
     </div>
   );
 }
 
-const TILE_ZOOM: Record<Exclude<CosmeticSlot, "body_tint">, { scale: number; y: string }> = {
-  hat: { scale: 2.2, y: "30%" },
-  face: { scale: 1.6, y: "-5%" },
-  extra: { scale: 1.8, y: "0%" },
+/** Neutral body used in tiles that showcase a non-shape part. */
+const TILE_BODY: { shape: string; tint: string } = {
+  shape: STARTER_SHAPE_ID,
+  tint: STARTER_TINT_ID,
 };
+
+function TileSvg({ item, uid }: { item: CosmeticItemView; uid: string }) {
+  switch (item.slot) {
+    case "shape": {
+      const shape = SHAPES[item.id] ?? FALLBACK_SHAPE;
+      return (
+        <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden>
+          <BodyLayer shape={shape} palette={PALETTES[TILE_BODY.tint] ?? FALLBACK_PALETTE} uid={uid} />
+        </svg>
+      );
+    }
+    case "body_tint": {
+      const palette = PALETTES[item.id] ?? FALLBACK_PALETTE;
+      return (
+        <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden>
+          <BodyLayer shape={SHAPES[TILE_BODY.shape] ?? FALLBACK_SHAPE} palette={palette} uid={uid} />
+        </svg>
+      );
+    }
+    case "eyes": {
+      const eyes = EYES[item.id] ?? FALLBACK_EYES;
+      return (
+        <svg viewBox="-25 -25 50 50" width="100%" height="100%" aria-hidden>
+          {eyes("#2A2A4A")}
+        </svg>
+      );
+    }
+    case "mouth": {
+      const mouth = MOUTHS[item.id] ?? FALLBACK_MOUTH;
+      return (
+        <svg viewBox="-20 -20 40 40" width="100%" height="100%" aria-hidden>
+          {mouth("#2A2A4A")}
+        </svg>
+      );
+    }
+    case "background": {
+      const bg = BACKGROUNDS[item.id];
+      if (!bg) return null;
+      return (
+        <svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden>
+          {bg.render(uid)}
+        </svg>
+      );
+    }
+  }
+}
 
 export function CosmeticTileArt({
   item,
@@ -166,21 +169,7 @@ export function CosmeticTileArt({
   item: CosmeticItemView;
   size?: number;
 }) {
-  const fill = TINT_FILL[item.id] ?? RARITY_COLOR[item.rarity];
-  const fallback =
-    item.slot === "body_tint" ? (
-      <SlimeBlob color={fill} size={size} />
-    ) : item.slot === "face" ? (
-      <FacePlaceholder size={size} />
-    ) : item.slot === "hat" ? (
-      <HatPlaceholder color={fill} size={size} />
-    ) : (
-      <ExtraPlaceholder color={fill} size={size} />
-    );
-
-  const isOverlay = item.slot !== "body_tint";
-  const zoom = isOverlay ? TILE_ZOOM[item.slot as Exclude<CosmeticSlot, "body_tint">] : null;
-
+  const uid = useId().replace(/[^a-zA-Z0-9_-]/g, "");
   return (
     <div
       className="relative overflow-hidden flex items-center justify-center"
@@ -188,21 +177,12 @@ export function CosmeticTileArt({
         width: size,
         height: size,
         borderRadius: 4,
-        background: RARITY_SOFT[item.rarity],
+        background: item.slot === "background" ? "var(--rp-nb-white)" : RARITY_SOFT[item.rarity],
         border: "2px solid var(--rp-nb-black)",
         boxShadow: "3px 3px 0 var(--rp-nb-black)",
       }}
     >
-      {zoom ? (
-        <div
-          className="absolute inset-0"
-          style={{ transform: `scale(${zoom.scale}) translateY(${zoom.y})` }}
-        >
-          <LayerImage src={item.asset_path} size={size} fallback={fallback} />
-        </div>
-      ) : (
-        <LayerImage src={item.asset_path} size={size} fallback={fallback} />
-      )}
+      <TileSvg item={item} uid={uid} />
     </div>
   );
 }

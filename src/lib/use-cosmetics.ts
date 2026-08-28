@@ -10,13 +10,16 @@ import {
   LOOTBOX_BASIC_ID,
   LOOTBOX_BASIC_PRICE_HC,
   LOOTBOX_BASIC_WEIGHTS,
-  LOOTBOX_CLOSED_PATH,
+  LOOTBOX_DEFS,
   LOOTBOX_DUPE_HC,
-  LOOTBOX_OPEN_PATH,
   SCHLEIMI_ITEMS,
-  STARTER_FACE_ID,
+  STARTER_EYES_ID,
+  STARTER_IDS,
+  STARTER_MOUTH_ID,
+  STARTER_SHAPE_ID,
   STARTER_TINT_ID,
   cosmeticAssetPath,
+  lootboxDefById,
   type CosmeticSlot,
   type LootboxId,
 } from "@/lib/schleimi-catalog";
@@ -55,10 +58,11 @@ export interface OpenLootboxSuccess {
 }
 
 const EMPTY_LOADOUT: LoadoutMap = {
+  shape: STARTER_SHAPE_ID,
   body_tint: STARTER_TINT_ID,
-  face: STARTER_FACE_ID,
-  hat: null,
-  extra: null,
+  eyes: STARTER_EYES_ID,
+  mouth: STARTER_MOUTH_ID,
+  background: null,
 };
 
 function stubCatalog(): CosmeticItemView[] {
@@ -73,15 +77,33 @@ function stubCatalog(): CosmeticItemView[] {
 }
 
 function stubLootbox(): LootboxView {
+  const def = lootboxDefById(LOOTBOX_BASIC_ID)!;
   return {
     id: LOOTBOX_BASIC_ID,
     price_hc: LOOTBOX_BASIC_PRICE_HC,
     weight_gewoehnlich: LOOTBOX_BASIC_WEIGHTS.gewoehnlich,
     weight_selten: LOOTBOX_BASIC_WEIGHTS.selten,
     weight_legendaer: LOOTBOX_BASIC_WEIGHTS.legendaer,
-    art_closed: LOOTBOX_CLOSED_PATH,
-    art_open: LOOTBOX_OPEN_PATH,
+    art_closed: def.art_closed,
+    art_open: def.art_open,
   };
+}
+
+function stubLootboxMap(): Map<string, LootboxView> {
+  return new Map(
+    LOOTBOX_DEFS.map((def) => [
+      def.id,
+      {
+        id: def.id,
+        price_hc: def.price_hc,
+        weight_gewoehnlich: LOOTBOX_BASIC_WEIGHTS.gewoehnlich,
+        weight_selten: LOOTBOX_BASIC_WEIGHTS.selten,
+        weight_legendaer: LOOTBOX_BASIC_WEIGHTS.legendaer,
+        art_closed: def.art_closed,
+        art_open: def.art_open,
+      },
+    ]),
+  );
 }
 
 function emptyLoadoutFromRows(rows: DbUserLoadout[] | null): LoadoutMap {
@@ -99,9 +121,7 @@ export function useCosmetics(userId: string | null) {
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [loadout, setLoadout] = useState<LoadoutMap>(EMPTY_LOADOUT);
   const [lootbox, setLootbox] = useState<LootboxView>(stubLootbox);
-  const [lootboxMap, setLootboxMap] = useState<Map<string, LootboxView>>(
-    () => new Map([[LOOTBOX_BASIC_ID, stubLootbox()]]),
-  );
+  const [lootboxMap, setLootboxMap] = useState<Map<string, LootboxView>>(stubLootboxMap);
   const [loading, setLoading] = useState(true);
 
   const catalogById = useMemo(() => {
@@ -146,8 +166,7 @@ export function useCosmetics(userId: string | null) {
     }
 
     const ids = new Set((ownedRes.data ?? []).map((row: { item_id: string }) => row.item_id));
-    ids.add(STARTER_TINT_ID);
-    ids.add(STARTER_FACE_ID);
+    for (const starter of STARTER_IDS) ids.add(starter);
     setOwned(ids);
 
     setLoadout(emptyLoadoutFromRows((loadoutRes.data as DbUserLoadout[] | null) ?? null));
@@ -156,14 +175,15 @@ export function useCosmetics(userId: string | null) {
       const rows = boxRes.data as DbLootboxDef[];
       const map = new Map<string, LootboxView>();
       for (const row of rows) {
+        const catalogArt = lootboxDefById(row.id);
         map.set(row.id, {
           id: row.id,
           price_hc: row.price_hc,
           weight_gewoehnlich: row.weight_gewoehnlich,
           weight_selten: row.weight_selten,
           weight_legendaer: row.weight_legendaer,
-          art_closed: row.art_closed,
-          art_open: row.art_open,
+          art_closed: catalogArt?.art_closed ?? row.art_closed,
+          art_open: catalogArt?.art_open ?? row.art_open,
         });
       }
       setLootboxMap(map);

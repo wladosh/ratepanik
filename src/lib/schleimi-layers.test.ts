@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  GUEST_SHAPE_IDS,
   GUEST_TINT_IDS,
   guestLayers,
   hashToIndex,
@@ -11,14 +12,17 @@ import {
 } from "./schleimi-layers";
 
 describe("guestLayers", () => {
-  it("picks a stable gewöhnlich tint from the seed", () => {
+  it("picks a stable gewöhnlich tint and shape from the seed", () => {
     const a = guestLayers("player-aaa");
     const b = guestLayers("player-aaa");
     const c = guestLayers("player-bbb");
     expect(a.body_tint?.id).toBe(b.body_tint?.id);
+    expect(a.shape?.id).toBe(b.shape?.id);
     expect(GUEST_TINT_IDS).toContain(a.body_tint?.id);
-    expect(a.face?.id).toBe("face_grin");
-    expect(a.hat).toBeNull();
+    expect(GUEST_SHAPE_IDS).toContain(a.shape?.id);
+    expect(a.eyes?.id).toBe("eyes_dots");
+    expect(a.mouth?.id).toBe("mouth_grin");
+    expect(a.background).toBeNull();
     expect(c.body_tint?.id).not.toBeUndefined();
   });
 
@@ -29,13 +33,27 @@ describe("guestLayers", () => {
 });
 
 describe("layersFromLoadoutRows", () => {
-  it("fills missing tint and face with starters", () => {
+  it("fills missing required slots with starters", () => {
+    const layers = layersFromLoadoutRows([
+      { slot: "background", item_id: "bg_stars" },
+    ]);
+    expect(layers.shape?.id).toBe("shape_classic");
+    expect(layers.body_tint?.id).toBe("tint_peach");
+    expect(layers.eyes?.id).toBe("eyes_dots");
+    expect(layers.mouth?.id).toBe("mouth_grin");
+    expect(layers.background?.id).toBe("bg_stars");
+  });
+
+  it("ignores legacy slots from old loadout rows", () => {
     const layers = layersFromLoadoutRows([
       { slot: "hat", item_id: "hat_party_cone" },
+      { slot: "face", item_id: "face_grin" },
+      { slot: "body_tint", item_id: "tint_mint" },
     ]);
-    expect(layers.body_tint?.id).toBe("tint_peach");
-    expect(layers.face?.id).toBe("face_grin");
-    expect(layers.hat?.id).toBe("hat_party_cone");
+    expect(layers.body_tint?.id).toBe("tint_mint");
+    expect(layers.shape?.id).toBe("shape_classic");
+    expect(layers.eyes?.id).toBe("eyes_dots");
+    expect(layers.mouth?.id).toBe("mouth_grin");
   });
 });
 

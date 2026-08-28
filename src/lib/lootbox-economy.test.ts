@@ -3,12 +3,13 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   ALL_LOOTBOX_IDS,
+  LEGACY_FACE_MAP,
   LOOTBOX_BASIC_WEIGHTS,
   LOOTBOX_BASIC_PRICE_HC,
   LOOTBOX_SLOT_PRICE_HC,
   LOOTBOX_DEFS,
   SCHLEIMI_ITEMS,
-  STARTER_FACE_ID,
+  STARTER_IDS,
   STARTER_TINT_ID,
 } from "./schleimi-catalog";
 import {
@@ -115,32 +116,37 @@ describe("lootbox debit + grant", () => {
 });
 
 describe("schleimi catalog seed", () => {
-  it("has 42 cosmetics and starter ids", () => {
-    expect(SCHLEIMI_ITEMS).toHaveLength(42);
-    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "gewoehnlich")).toHaveLength(24);
-    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "selten")).toHaveLength(11);
-    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "legendaer")).toHaveLength(7);
+  it("has 50 cosmetics and starter ids", () => {
+    expect(SCHLEIMI_ITEMS).toHaveLength(50);
+    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "gewoehnlich")).toHaveLength(27);
+    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "selten")).toHaveLength(15);
+    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "legendaer")).toHaveLength(8);
     expect(SCHLEIMI_ITEMS.some((item) => item.id === STARTER_TINT_ID)).toBe(true);
-    expect(SCHLEIMI_ITEMS.some((item) => item.id === STARTER_FACE_ID)).toBe(true);
+    for (const starter of STARTER_IDS) {
+      expect(SCHLEIMI_ITEMS.some((item) => item.id === starter)).toBe(true);
+    }
   });
 
-  it("keeps MANIFEST.json and SQL seed in sync with stub ids", () => {
-    const manifest = JSON.parse(
-      readFileSync(resolve("public/rp/schleimi/MANIFEST.json"), "utf8"),
-    ) as { items: { id: string }[] };
+  it("keeps the SQL migration in sync with catalog ids", () => {
     const sql = readFileSync(
-      resolve("supabase/migrations/20260823_016_phase_c_lootbox.sql"),
+      resolve("supabase/migrations/20260829_021_schleimi_v2_svg.sql"),
       "utf8",
     );
-    const ids = SCHLEIMI_ITEMS.map((item) => item.id);
-    expect(manifest.items.map((item) => item.id)).toEqual(ids);
-    for (const id of ids) {
-      expect(sql).toContain(`'${id}'`);
+    for (const item of SCHLEIMI_ITEMS) {
+      expect(sql).toContain(`'${item.id}'`);
     }
-    expect(sql).toContain("open_lootbox");
     expect(sql).toContain("set_config('ratepanik.grant_economy'");
-    expect(sql).toContain("is_anonymous");
-    expect(sql).toContain("Shop umgestellt");
+  });
+
+  it("legacy face map decomposes every face into owned catalog parts", () => {
+    const ids = new Set(SCHLEIMI_ITEMS.map((item) => item.id));
+    const faces = Object.keys(LEGACY_FACE_MAP);
+    expect(faces).toHaveLength(11);
+    for (const face of faces) {
+      const pair = LEGACY_FACE_MAP[face];
+      expect(ids.has(pair.eyes)).toBe(true);
+      expect(ids.has(pair.mouth)).toBe(true);
+    }
   });
 });
 
@@ -153,16 +159,16 @@ describe("lootbox catalog defs", () => {
     expect(LOOTBOX_DEFS[0].allowed_slots).toBeNull();
   });
 
-  it("slot crates filter to single slots", () => {
-    const face = LOOTBOX_DEFS.find((d) => d.id === "lootbox_face")!;
-    expect(face.allowed_slots).toEqual(["face"]);
-    expect(face.price_hc).toBe(240);
+  it("slot crates filter to their slots", () => {
+    const form = LOOTBOX_DEFS.find((d) => d.id === "lootbox_form")!;
+    expect(form.allowed_slots).toEqual(["shape"]);
+    expect(form.price_hc).toBe(240);
 
-    const hat = LOOTBOX_DEFS.find((d) => d.id === "lootbox_hat")!;
-    expect(hat.allowed_slots).toEqual(["hat"]);
+    const gesicht = LOOTBOX_DEFS.find((d) => d.id === "lootbox_gesicht")!;
+    expect(gesicht.allowed_slots).toEqual(["eyes", "mouth"]);
 
-    const extra = LOOTBOX_DEFS.find((d) => d.id === "lootbox_extra")!;
-    expect(extra.allowed_slots).toEqual(["extra"]);
+    const deko = LOOTBOX_DEFS.find((d) => d.id === "lootbox_hintergrund")!;
+    expect(deko.allowed_slots).toEqual(["background"]);
   });
 
   it("Hirnkiste is the only crate that can drop body_tint", () => {
@@ -176,9 +182,9 @@ describe("lootbox catalog defs", () => {
     }
   });
 
-  it("new slot crate SQL migration seeds match TS defs", () => {
+  it("new crate SQL migration seeds match TS defs", () => {
     const sql = readFileSync(
-      resolve("supabase/migrations/20260828_018_slot_crates_daily_deal.sql"),
+      resolve("supabase/migrations/20260829_021_schleimi_v2_svg.sql"),
       "utf8",
     );
     for (const def of LOOTBOX_DEFS) {
@@ -188,8 +194,13 @@ describe("lootbox catalog defs", () => {
     }
     expect(sql).toContain("allowed_slots");
     expect(sql).toContain("daily_deal_box_id");
-    expect(sql).toContain("daily_deal_price");
-    expect(sql).toContain("use_deal");
+  });
+
+  it("slot crates use unique art and Hirnkiste keeps the original chest", () => {
+    const hirn = LOOTBOX_DEFS.find((d) => d.id === "lootbox_basic")!;
+    expect(hirn.art_closed).toBe("/rp/schleimi/lootbox_closed.png");
+    const closed = LOOTBOX_DEFS.map((d) => d.art_closed);
+    expect(new Set(closed).size).toBe(LOOTBOX_DEFS.length);
   });
 });
 
@@ -235,7 +246,7 @@ describe("daily deal", () => {
   });
 
   it("matches Postgres epoch-based algorithm", () => {
-    const order = ["lootbox_basic", "lootbox_face", "lootbox_hat", "lootbox_extra"];
+    const order = ["lootbox_basic", "lootbox_form", "lootbox_gesicht", "lootbox_hintergrund"];
     for (let dayOffset = 0; dayOffset < 30; dayOffset++) {
       const d = new Date(dayOffset * 86_400_000 + 43_200_000);
       const expected = order[dayOffset % 4];

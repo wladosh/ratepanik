@@ -4,7 +4,9 @@ import { useCallback, useState } from "react";
 import { createBrowserSupabase } from "@/lib/supabase/client";
 import { SchleimiPreview } from "@/components/schleimi-preview";
 import {
-  STARTER_FACE_ID,
+  STARTER_EYES_ID,
+  STARTER_MOUTH_ID,
+  STARTER_SHAPE_ID,
   STARTER_TINT_ID,
   catalogById,
   cosmeticAssetPath,
@@ -74,7 +76,7 @@ export function AvatarOnboardingScreen({
           Das ist Schleimi
         </h1>
         <p className="mt-2 text-center text-sm font-medium" style={{ color: "var(--rp-nb-text-secondary)" }}>
-          Dein Hirn-Schleim. Hüte und Gesichter kommen aus der Hirnkiste.
+          Dein Hirn-Schleim. Neue Formen, Farben und Gesichter kommen aus der Hirnkiste.
         </p>
 
         <div
@@ -83,8 +85,10 @@ export function AvatarOnboardingScreen({
         >
           <SchleimiPreview
             layers={{
+              shape: toView(STARTER_SHAPE_ID),
               body_tint: toView(STARTER_TINT_ID),
-              face: toView(STARTER_FACE_ID),
+              eyes: toView(STARTER_EYES_ID),
+              mouth: toView(STARTER_MOUTH_ID),
             }}
             size={180}
           />

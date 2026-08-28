@@ -11,6 +11,7 @@ import { LootboxReveal } from "@/components/lootbox-reveal";
 import {
   LOOTBOX_BASIC_ID,
   LOOTBOX_DEFS,
+  lootboxDefById,
   type LootboxDef,
   type LootboxId,
 } from "@/lib/schleimi-catalog";
@@ -42,13 +43,7 @@ function CrateCard({
   const effectivePrice = isDeal ? deal.dealPrice : def.price_hc;
   const canAfford = balance >= effectivePrice;
   const isHero = def.id === LOOTBOX_BASIC_ID;
-  const view = lootboxView ?? {
-    weight_gewoehnlich: 70,
-    weight_selten: 24,
-    weight_legendaer: 6,
-    art_closed: "/rp/schleimi/lootbox_closed.png",
-    art_open: "/rp/schleimi/lootbox_open.png",
-  };
+  const artClosed = def.art_closed ?? lootboxView?.art_closed ?? "/rp/schleimi/lootbox_closed.png";
 
   const name = locale === "de" ? def.name_de : def.name_en;
   const subtitle = locale === "de" ? def.subtitle_de : def.subtitle_en;
@@ -71,7 +66,7 @@ function CrateCard({
 
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={imgFailed ? LOOT_BOX_RARE_128 : view.art_closed}
+        src={imgFailed ? LOOT_BOX_RARE_128 : artClosed}
         alt=""
         width={isHero ? 128 : 96}
         height={isHero ? 128 : 96}
@@ -119,17 +114,6 @@ function CrateCard({
           </>
         )}
       </div>
-
-      <p
-        className="mt-2 text-center text-[10px] leading-snug font-semibold"
-        style={{ color: "var(--rp-nb-text-secondary)" }}
-      >
-        {view.weight_gewoehnlich}% {t.cosmetics.rarityGewoehnlich}
-        {" · "}
-        {view.weight_selten}% {t.cosmetics.raritySelten}
-        {" · "}
-        {view.weight_legendaer}% {t.cosmetics.rarityLegendaer}
-      </p>
 
       <button
         type="button"
@@ -278,18 +262,14 @@ export function ShopPanel({
             {error}
           </p>
         )}
-
-        <p className="mt-5 text-xs leading-relaxed px-1 font-semibold" style={{ color: "var(--rp-nb-text-secondary)" }}>
-          {t.cosmetics.shopFinePrint}
-        </p>
       </PanelShell>
 
       {reveal && revealItem && activeLootbox && (
         <LootboxReveal
           result={reveal}
           item={revealItem}
-          artClosed={activeLootbox.art_closed}
-          artOpen={activeLootbox.art_open}
+          artClosed={lootboxDefById(activeBoxId)?.art_closed ?? activeLootbox.art_closed}
+          artOpen={lootboxDefById(activeBoxId)?.art_open ?? activeLootbox.art_open}
           onDismiss={() => setReveal(null)}
           onCustomize={() => {
             setReveal(null);

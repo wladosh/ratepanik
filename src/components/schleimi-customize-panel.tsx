@@ -19,7 +19,7 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
   const { catalog, owned, loadout, equippedItems, loading, equipSlot } = useCosmetics(
     user && !isGuest ? user.id : null,
   );
-  const [slot, setSlot] = useState<CosmeticSlot>("body_tint");
+  const [slot, setSlot] = useState<CosmeticSlot>("shape");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +31,7 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
     [catalog, owned, slot],
   );
 
-  const canUnequip = slot === "hat" || slot === "extra";
+  const canUnequip = slot === "background";
 
   async function handleEquip(itemId: string | null) {
     if (busy) return;
@@ -81,27 +81,31 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
         <SchleimiPreview layers={equippedItems} size={168} label="Schleimi" />
       </div>
 
-      <div className="mb-4 grid grid-cols-4 gap-2">
+      <div className="mb-4 grid grid-cols-5 gap-1.5">
         {COSMETIC_SLOTS.map((id) => {
           const active = slot === id;
+          const label =
+            id === "shape"
+              ? t.cosmetics.slotShape
+              : id === "body_tint"
+                ? t.cosmetics.slotBodyTint
+                : id === "eyes"
+                  ? t.cosmetics.slotEyes
+                  : id === "mouth"
+                    ? t.cosmetics.slotMouth
+                    : t.cosmetics.slotBackground;
           return (
             <button
               key={id}
               type="button"
               onClick={() => setSlot(id)}
-              className="nb-btn h-10 text-[11px]"
+              className="nb-btn h-10 text-[10px]"
               style={{
                 background: active ? "var(--rp-nb-purple)" : "var(--rp-nb-white)",
                 color: active ? "#fff" : "var(--rp-nb-black)",
               }}
             >
-              {id === "body_tint"
-                ? t.cosmetics.slotBodyTint
-                : id === "face"
-                  ? t.cosmetics.slotFace
-                  : id === "hat"
-                    ? t.cosmetics.slotHat
-                    : t.cosmetics.slotExtra}
+              {label}
             </button>
           );
         })}

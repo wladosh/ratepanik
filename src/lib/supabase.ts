@@ -134,7 +134,7 @@ export interface DbUserCosmetic {
 
 export interface DbCosmeticItem {
   id: string;
-  slot: "body_tint" | "face" | "hat" | "extra";
+  slot: "shape" | "body_tint" | "eyes" | "mouth" | "background";
   rarity: "gewoehnlich" | "selten" | "legendaer";
   name_de: string;
   asset_path: string;
@@ -144,7 +144,7 @@ export interface DbCosmeticItem {
 
 export interface DbUserLoadout {
   user_id: string;
-  slot: "body_tint" | "face" | "hat" | "extra";
+  slot: "shape" | "body_tint" | "eyes" | "mouth" | "background";
   item_id: string | null;
   updated_at: string;
 }

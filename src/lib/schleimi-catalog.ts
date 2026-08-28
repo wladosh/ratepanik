@@ -1,19 +1,20 @@
-export const COSMETIC_SLOTS = ["body_tint", "face", "hat", "extra"] as const;
+export const COSMETIC_SLOTS = ["shape", "body_tint", "eyes", "mouth", "background"] as const;
 export type CosmeticSlot = (typeof COSMETIC_SLOTS)[number];
 
 export const COSMETIC_RARITIES = ["gewoehnlich", "selten", "legendaer"] as const;
 export type CosmeticRarity = (typeof COSMETIC_RARITIES)[number];
 
 export const LOOTBOX_BASIC_ID = "lootbox_basic";
-export const LOOTBOX_FACE_ID = "lootbox_face";
-export const LOOTBOX_HAT_ID = "lootbox_hat";
-export const LOOTBOX_EXTRA_ID = "lootbox_extra";
+export const LOOTBOX_FORM_ID = "lootbox_form";
+export const LOOTBOX_GESICHT_ID = "lootbox_gesicht";
+export const LOOTBOX_HINTERGRUND_ID = "lootbox_hintergrund";
 
+/** Order matters: daily deal rotation is index = utc_day % 4 (mirrors SQL). */
 export const ALL_LOOTBOX_IDS = [
   LOOTBOX_BASIC_ID,
-  LOOTBOX_FACE_ID,
-  LOOTBOX_HAT_ID,
-  LOOTBOX_EXTRA_ID,
+  LOOTBOX_FORM_ID,
+  LOOTBOX_GESICHT_ID,
+  LOOTBOX_HINTERGRUND_ID,
 ] as const;
 export type LootboxId = (typeof ALL_LOOTBOX_IDS)[number];
 
@@ -37,6 +38,8 @@ export interface LootboxDef {
   price_hc: number;
   allowed_slots: CosmeticSlot[] | null;
   accent: string;
+  art_closed: string;
+  art_open: string;
 }
 
 export const LOOTBOX_DEFS: readonly LootboxDef[] = [
@@ -49,36 +52,44 @@ export const LOOTBOX_DEFS: readonly LootboxDef[] = [
     price_hc: LOOTBOX_BASIC_PRICE_HC,
     allowed_slots: null,
     accent: "#FF8A71",
+    art_closed: "/rp/schleimi/lootbox_closed.png",
+    art_open: "/rp/schleimi/lootbox_open.png",
   },
   {
-    id: LOOTBOX_FACE_ID,
+    id: LOOTBOX_FORM_ID,
+    name_de: "Formen-Kiste",
+    name_en: "Shape Crate",
+    subtitle_de: "Nur Formen",
+    subtitle_en: "Shapes only",
+    price_hc: LOOTBOX_SLOT_PRICE_HC,
+    allowed_slots: ["shape"],
+    accent: "#7EB6FF",
+    art_closed: "/rp/schleimi/lootbox_form_closed.png",
+    art_open: "/rp/schleimi/lootbox_form_open.png",
+  },
+  {
+    id: LOOTBOX_GESICHT_ID,
     name_de: "Mimik-Kiste",
     name_en: "Face Crate",
-    subtitle_de: "Nur Gesichter",
-    subtitle_en: "Faces only",
+    subtitle_de: "Augen & Münder",
+    subtitle_en: "Eyes & mouths",
     price_hc: LOOTBOX_SLOT_PRICE_HC,
-    allowed_slots: ["face"],
+    allowed_slots: ["eyes", "mouth"],
     accent: "#C989FF",
+    art_closed: "/rp/schleimi/lootbox_face_closed.png",
+    art_open: "/rp/schleimi/lootbox_face_open.png",
   },
   {
-    id: LOOTBOX_HAT_ID,
-    name_de: "Hut-Kiste",
-    name_en: "Hat Crate",
-    subtitle_de: "Nur Hüte",
-    subtitle_en: "Hats only",
+    id: LOOTBOX_HINTERGRUND_ID,
+    name_de: "Deko-Kiste",
+    name_en: "Decor Crate",
+    subtitle_de: "Nur Hintergründe",
+    subtitle_en: "Backgrounds only",
     price_hc: LOOTBOX_SLOT_PRICE_HC,
-    allowed_slots: ["hat"],
-    accent: "#7EB6FF",
-  },
-  {
-    id: LOOTBOX_EXTRA_ID,
-    name_de: "Extra-Kiste",
-    name_en: "Extra Crate",
-    subtitle_de: "Nur Extras",
-    subtitle_en: "Extras only",
-    price_hc: LOOTBOX_SLOT_PRICE_HC,
-    allowed_slots: ["extra"],
+    allowed_slots: ["background"],
     accent: "#6FCF97",
+    art_closed: "/rp/schleimi/lootbox_deko_closed.png",
+    art_open: "/rp/schleimi/lootbox_deko_open.png",
   },
 ] as const;
 
@@ -92,10 +103,20 @@ export const LOOTBOX_DUPE_HC: Record<CosmeticRarity, number> = {
   legendaer: 60,
 };
 
+export const STARTER_SHAPE_ID = "shape_classic";
 export const STARTER_TINT_ID = "tint_peach";
-export const STARTER_FACE_ID = "face_grin";
+export const STARTER_EYES_ID = "eyes_dots";
+export const STARTER_MOUTH_ID = "mouth_grin";
 
-export const REQUIRED_SLOTS: readonly CosmeticSlot[] = ["body_tint", "face"];
+export const STARTER_IDS = [
+  STARTER_SHAPE_ID,
+  STARTER_TINT_ID,
+  STARTER_EYES_ID,
+  STARTER_MOUTH_ID,
+] as const;
+
+/** Slots that always have an item equipped (only background can be empty). */
+export const REQUIRED_SLOTS: readonly CosmeticSlot[] = ["shape", "body_tint", "eyes", "mouth"];
 
 export const RARITY_LABEL_DE: Record<CosmeticRarity, string> = {
   gewoehnlich: "Gewöhnlich",
@@ -117,13 +138,13 @@ export const RARITY_SOFT: Record<CosmeticRarity, string> = {
 };
 
 export const SLOT_LABEL_DE: Record<CosmeticSlot, string> = {
+  shape: "Form",
   body_tint: "Farbe",
-  face: "Gesicht",
-  hat: "Hut",
-  extra: "Extra",
+  eyes: "Augen",
+  mouth: "Mund",
+  background: "Hintergrund",
 };
 
-export const SCHLEIMI_BASE_PATH = "/rp/schleimi/schleimi_base.png";
 export const LOOTBOX_CLOSED_PATH = "/rp/schleimi/lootbox_closed.png";
 export const LOOTBOX_OPEN_PATH = "/rp/schleimi/lootbox_open.png";
 
@@ -136,6 +157,14 @@ export interface SchleimiCatalogItem {
   sort_order: number;
 }
 
+const SLOT_ID_PREFIX: Record<CosmeticSlot, string> = {
+  shape: "shape",
+  body_tint: "tint",
+  eyes: "eyes",
+  mouth: "mouth",
+  background: "bg",
+};
+
 function item(
   slot: CosmeticSlot,
   rarity: CosmeticRarity,
@@ -143,10 +172,8 @@ function item(
   name_de: string,
   sort_order: number,
 ): SchleimiCatalogItem {
-  const prefix =
-    slot === "body_tint" ? "tint" : slot === "face" ? "face" : slot === "hat" ? "hat" : "extra";
   return {
-    id: `${prefix}_${slug}`,
+    id: `${SLOT_ID_PREFIX[slot]}_${slug}`,
     slot,
     rarity,
     name_de,
@@ -155,71 +182,88 @@ function item(
   };
 }
 
-export function cosmeticAssetPath(entry: Pick<SchleimiCatalogItem, "slot" | "rarity" | "slug">): string {
-  return `/rp/schleimi/slot_${entry.slot}__${entry.rarity}__${entry.slug}.png`;
+/**
+ * Parts are rendered as inline SVG from schleimi-parts.tsx — there are no
+ * raster assets. The DB `asset_path` column stores a logical `svg:<id>` key.
+ */
+export function cosmeticAssetPath(entry: Pick<SchleimiCatalogItem, "id">): string {
+  return `svg:${entry.id}`;
 }
 
-/** Stub catalog (also seeded in SQL). Art files may be missing — UI uses rarity tiles. */
+/** Canonical catalog (also seeded in SQL — keep in sync with the migration). */
 export const SCHLEIMI_ITEMS: readonly SchleimiCatalogItem[] = [
-  item("body_tint", "gewoehnlich", "peach", "Pfirsich", 10),
-  item("body_tint", "gewoehnlich", "mint", "Minzschleim", 20),
-  item("body_tint", "gewoehnlich", "sky", "Himmelblau", 30),
-  item("body_tint", "gewoehnlich", "lilac", "Flieder", 40),
-  item("body_tint", "gewoehnlich", "mango", "Mango", 50),
-  item("body_tint", "gewoehnlich", "blush", "Errötend", 60),
-  item("body_tint", "selten", "grape_jelly", "Traubenglibber", 70),
-  item("body_tint", "selten", "matcha_swirl", "Matcha-Wirbel", 80),
-  item("body_tint", "selten", "midnight", "Nachtgelee", 90),
-  item("body_tint", "legendaer", "gold", "Goldschleim", 100),
-  item("body_tint", "legendaer", "holo", "Holo-Schleim", 110),
+  item("shape", "gewoehnlich", "classic", "Klecks", 10),
+  item("shape", "gewoehnlich", "round", "Kugelschleim", 20),
+  item("shape", "gewoehnlich", "egg", "Glibber-Ei", 30),
+  item("shape", "gewoehnlich", "squircle", "Würfelschleim", 40),
+  item("shape", "selten", "ghost", "Geisterschleim", 50),
+  item("shape", "selten", "tall", "Turmschleim", 60),
+  item("shape", "selten", "wobble", "Wackelpudding", 70),
+  item("shape", "legendaer", "star", "Sternschleim", 80),
 
-  item("face", "gewoehnlich", "grin", "Grinser", 210),
-  item("face", "gewoehnlich", "wink", "Zwinker", 220),
-  item("face", "gewoehnlich", "oops", "Oops-Mund", 230),
-  item("face", "gewoehnlich", "shy", "Schüchtern", 240),
-  item("face", "gewoehnlich", "sleepy", "Müde", 250),
-  item("face", "gewoehnlich", "panic", "Panik-Augen", 260),
-  item("face", "selten", "sparkle", "Glitzerblick", 270),
-  item("face", "selten", "hearts", "Herzchenblick", 280),
-  item("face", "selten", "cool", "Cooler Smirk", 290),
-  item("face", "legendaer", "rainbow", "Regenbogen-Grinser", 300),
-  item("face", "legendaer", "glitch", "Glitch-Mimik", 310),
+  item("body_tint", "gewoehnlich", "peach", "Pfirsich", 110),
+  item("body_tint", "gewoehnlich", "mint", "Minzschleim", 120),
+  item("body_tint", "gewoehnlich", "sky", "Himmelblau", 130),
+  item("body_tint", "gewoehnlich", "lilac", "Flieder", 140),
+  item("body_tint", "gewoehnlich", "mango", "Mango", 150),
+  item("body_tint", "gewoehnlich", "blush", "Errötend", 160),
+  item("body_tint", "selten", "grape_jelly", "Traubenglibber", 170),
+  item("body_tint", "selten", "matcha_swirl", "Matcha-Wirbel", 180),
+  item("body_tint", "selten", "midnight", "Nachtgelee", 190),
+  item("body_tint", "legendaer", "gold", "Goldschleim", 200),
+  item("body_tint", "legendaer", "holo", "Holo-Schleim", 210),
 
-  item("hat", "gewoehnlich", "party_cone", "Partyhütchen", 410),
-  item("hat", "gewoehnlich", "paper_boat", "Papierboot", 420),
-  item("hat", "gewoehnlich", "shower_cap", "Duschhaube", 430),
-  item("hat", "gewoehnlich", "beanie", "Beanie", 440),
-  item("hat", "gewoehnlich", "bow", "Haarschleife", 450),
-  item("hat", "gewoehnlich", "propeller", "Propeller-Mütze", 460),
-  item("hat", "selten", "disco", "Discokugel", 470),
-  item("hat", "selten", "pretzel", "Brezel-Hut", 480),
-  item("hat", "selten", "cat_ears", "Katzenohren", 490),
-  item("hat", "legendaer", "gold_crown", "Goldkrone", 500),
-  item("hat", "legendaer", "neon_halo", "Neon-Heiligenschein", 510),
+  item("eyes", "gewoehnlich", "dots", "Knopfaugen", 310),
+  item("eyes", "gewoehnlich", "happy", "Lachaugen", 320),
+  item("eyes", "gewoehnlich", "wink", "Zwinker", 330),
+  item("eyes", "gewoehnlich", "wide", "Staunaugen", 340),
+  item("eyes", "gewoehnlich", "shy", "Schüchtern", 350),
+  item("eyes", "gewoehnlich", "sleepy", "Müde", 360),
+  item("eyes", "gewoehnlich", "panic", "Panik-Augen", 370),
+  item("eyes", "selten", "sparkle", "Glitzerblick", 380),
+  item("eyes", "selten", "hearts", "Herzchenblick", 390),
+  item("eyes", "selten", "cool", "Sonnenbrille", 400),
+  item("eyes", "legendaer", "glitch", "Glitch-Augen", 410),
 
-  item("extra", "gewoehnlich", "round_glasses", "Runde Brille", 610),
-  item("extra", "gewoehnlich", "sweat_drop", "Schweißtropfen", 620),
-  item("extra", "gewoehnlich", "party_horn", "Luftrüssel", 630),
-  item("extra", "gewoehnlich", "blush", "Schamröte", 640),
-  item("extra", "gewoehnlich", "plaster", "Pflaster", 650),
-  item("extra", "gewoehnlich", "bowtie", "Fliege", 660),
-  item("extra", "selten", "star_shades", "Sternenbrille", 670),
-  item("extra", "selten", "mustache", "Schnauzer", 690),
-  item("extra", "legendaer", "gold_shades", "Goldbrille", 700),
+  item("mouth", "gewoehnlich", "grin", "Grinser", 510),
+  item("mouth", "gewoehnlich", "smile", "Lächeln", 520),
+  item("mouth", "gewoehnlich", "oops", "Oops-Mund", 530),
+  item("mouth", "gewoehnlich", "shy", "Piepsmund", 540),
+  item("mouth", "gewoehnlich", "wavy", "Wellenmund", 550),
+  item("mouth", "gewoehnlich", "panic", "Schreckmund", 560),
+  item("mouth", "selten", "smirk", "Cooler Smirk", 570),
+  item("mouth", "selten", "kiss", "Kussmund", 580),
+  item("mouth", "selten", "tongue", "Frechzunge", 590),
+  item("mouth", "legendaer", "rainbow", "Regenbogen-Grinser", 600),
+  item("mouth", "legendaer", "glitch", "Glitch-Mund", 610),
+
+  item("background", "gewoehnlich", "cream", "Cremewölkchen", 710),
+  item("background", "gewoehnlich", "mint", "Mintwiese", 720),
+  item("background", "gewoehnlich", "sky", "Himmelchen", 730),
+  item("background", "gewoehnlich", "lilac", "Lavendel", 740),
+  item("background", "selten", "sunset", "Sonnenuntergang", 750),
+  item("background", "selten", "bubbles", "Blasenbad", 760),
+  item("background", "selten", "stars", "Sternenhimmel", 770),
+  item("background", "legendaer", "gold", "Goldrausch", 780),
+  item("background", "legendaer", "holo", "Holo-Traum", 790),
 ];
 
-export const TINT_FILL: Record<string, string> = {
-  tint_peach: "#FF8A71",
-  tint_mint: "#6FCFB2",
-  tint_sky: "#7EB6FF",
-  tint_lilac: "#C9C0FF",
-  tint_mango: "#FFB86B",
-  tint_blush: "#FF7AB6",
-  tint_grape_jelly: "#7A6AE8",
-  tint_matcha_swirl: "#6FCF97",
-  tint_midnight: "#4A3A6A",
-  tint_gold: "#F5A623",
-  tint_holo: "#E0B0FF",
+/**
+ * Mapping used by the DB migration: legacy `face_*` items decompose into an
+ * eyes + mouth pair. Owners of a face receive both parts.
+ */
+export const LEGACY_FACE_MAP: Record<string, { eyes: string; mouth: string }> = {
+  face_grin: { eyes: "eyes_dots", mouth: "mouth_grin" },
+  face_wink: { eyes: "eyes_wink", mouth: "mouth_smile" },
+  face_oops: { eyes: "eyes_wide", mouth: "mouth_oops" },
+  face_shy: { eyes: "eyes_shy", mouth: "mouth_shy" },
+  face_sleepy: { eyes: "eyes_sleepy", mouth: "mouth_wavy" },
+  face_panic: { eyes: "eyes_panic", mouth: "mouth_panic" },
+  face_sparkle: { eyes: "eyes_sparkle", mouth: "mouth_smile" },
+  face_hearts: { eyes: "eyes_hearts", mouth: "mouth_kiss" },
+  face_cool: { eyes: "eyes_cool", mouth: "mouth_smirk" },
+  face_rainbow: { eyes: "eyes_happy", mouth: "mouth_rainbow" },
+  face_glitch: { eyes: "eyes_glitch", mouth: "mouth_glitch" },
 };
 
 export function isCosmeticSlot(value: string): value is CosmeticSlot {
