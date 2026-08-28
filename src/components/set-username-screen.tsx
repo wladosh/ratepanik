@@ -104,25 +104,16 @@ export function SetUsernameScreen({
     <div
       className="flex flex-1 flex-col items-center justify-center px-5"
       style={{
-        background: "var(--rp-bg-hero)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       <div className="w-full max-w-sm space-y-5 animate-fade-in">
         <div className="text-center">
-          <h1
-            className="text-3xl font-extrabold tracking-tight"
-            style={{
-              background:
-                "linear-gradient(135deg, var(--rp-purple) 0%, var(--rp-pink) 50%, var(--rp-peach) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
+          <h1 className="nb-heading text-3xl">
             Wähle deinen Namen
           </h1>
-          <p className="mt-2 text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+          <p className="mt-2 text-sm font-medium" style={{ color: "var(--rp-nb-text-secondary)" }}>
             Dieser Name wird anderen Spielern angezeigt.
           </p>
         </div>
@@ -137,45 +128,35 @@ export function SetUsernameScreen({
               maxLength={20}
               minLength={3}
               autoFocus
-              className="w-full h-[52px] rounded-2xl border-2 px-5 pr-12 text-lg font-bold transition-all focus:outline-none"
+              className="nb-input w-full h-[52px] px-5 pr-12 text-lg"
               style={{
                 borderColor: error
-                  ? "var(--rp-danger)"
+                  ? "var(--rp-nb-red)"
                   : available
-                    ? "var(--rp-success)"
-                    : "var(--rp-border)",
-                background: "var(--rp-bg-elevated)",
-                color: "var(--rp-text)",
-              }}
-              onFocus={(e) => {
-                if (!error) {
-                  e.currentTarget.style.borderColor = "var(--rp-focus-ring)";
-                  e.currentTarget.style.boxShadow =
-                    "0 0 0 3px rgba(139, 124, 255, 0.15)";
-                }
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.boxShadow = "none";
-                if (!error && !available) {
-                  e.currentTarget.style.borderColor = "var(--rp-border)";
-                }
+                    ? "var(--rp-nb-green)"
+                    : "var(--rp-nb-border-color)",
+                background: "var(--rp-nb-white)",
+                color: "var(--rp-nb-text)",
               }}
             />
-            {/* Status indicator */}
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
               {checking && (
                 <div
-                  className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
-                  style={{ borderColor: "var(--rp-purple)", borderTopColor: "transparent" }}
+                  className="w-5 h-5 border-3 border-t-transparent animate-spin"
+                  style={{
+                    borderColor: "var(--rp-nb-purple-deep)",
+                    borderTopColor: "transparent",
+                    borderRadius: "var(--rp-nb-radius)",
+                  }}
                 />
               )}
               {!checking && available && (
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-success)">
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-nb-green)">
                   <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                 </svg>
               )}
               {!checking && error && trimmed.length > 0 && (
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-danger)">
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="var(--rp-nb-red)">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                 </svg>
               )}
@@ -184,8 +165,8 @@ export function SetUsernameScreen({
 
           {error && (
             <p
-              className="text-xs font-medium px-1"
-              style={{ color: "var(--rp-danger)" }}
+              className="text-xs font-bold px-1"
+              style={{ color: "var(--rp-nb-red)" }}
             >
               {error}
             </p>
@@ -193,8 +174,8 @@ export function SetUsernameScreen({
 
           {available && !error && (
             <p
-              className="text-xs font-medium px-1"
-              style={{ color: "var(--rp-success)" }}
+              className="text-xs font-bold px-1"
+              style={{ color: "var(--rp-nb-green)" }}
             >
               Name verfügbar!
             </p>
@@ -203,17 +184,16 @@ export function SetUsernameScreen({
           <button
             type="submit"
             disabled={submitting || !available || !!error || trimmed.length < 3}
-            className="w-full h-[54px] rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97] disabled:opacity-40"
+            className="nb-btn w-full h-[54px] text-[17px] text-white"
             style={{
-              background:
-                "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
+              background: "var(--rp-nb-peach)",
             }}
           >
             {submitting ? "Wird gespeichert..." : "Name bestätigen"}
           </button>
         </form>
 
-        <p className="text-center text-xs" style={{ color: "var(--rp-text-secondary)" }}>
+        <p className="text-center text-xs font-medium" style={{ color: "var(--rp-nb-text-secondary)" }}>
           Du kannst deinen Namen später in den Einstellungen ändern.
         </p>
       </div>

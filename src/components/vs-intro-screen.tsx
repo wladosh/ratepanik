@@ -85,9 +85,9 @@ export function VsIntroScreen() {
     return (
       <div
         className="flex flex-1 items-center justify-center"
-        style={{ background: "var(--rp-bg-hero)" }}
+        style={{ background: "var(--rp-nb-cream)" }}
       >
-        <p className="animate-pulse font-medium" style={{ color: "var(--rp-text-secondary)" }}>
+        <p className="animate-pulse font-bold uppercase" style={{ color: "var(--rp-nb-text-secondary)" }}>
           {t.match.vsTitle}
         </p>
       </div>
@@ -99,20 +99,14 @@ export function VsIntroScreen() {
       ref={rootRef}
       className="flex flex-1 flex-col items-center justify-center px-4 text-center"
       style={{
-        background: "var(--rp-bg-hero)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
-      <p
-        className="mb-1 text-[11px] font-black uppercase tracking-[0.22em]"
-        style={{ color: "var(--rp-peach-deep)" }}
-      >
+      <p className="nb-kicker mb-1">
         {t.match.vsKicker}
       </p>
-      <h1
-        className="mb-8 text-2xl font-black tracking-[-0.04em]"
-        style={{ color: "var(--rp-text)" }}
-      >
+      <h1 className="nb-heading mb-8 text-2xl">
         {t.match.vsTitle}
       </h1>
 
@@ -126,26 +120,27 @@ export function VsIntroScreen() {
           return (
             <div key={player.id} className="flex flex-col items-center" data-vs-player>
               <div
-                className="flex items-center justify-center rounded-[28px]"
+                className="nb-card flex items-center justify-center"
                 style={{
                   width: size + 16,
                   height: size + 16,
-                  background: "rgba(255, 255, 255, 0.38)",
+                  borderRadius: "var(--rp-nb-radius)",
+                  background: "var(--rp-nb-white)",
                 }}
               >
                 <PlayerSchleimi playerId={player.id} size={size} label={player.display_name} />
               </div>
               <p
                 data-vs-name
-                className="mt-2 max-w-[110px] truncate text-sm font-bold leading-tight"
-                style={{ color: "var(--rp-text)" }}
+                className="mt-2 max-w-[110px] truncate text-sm font-black leading-tight uppercase"
+                style={{ color: "var(--rp-nb-text)" }}
               >
                 {player.display_name}
               </p>
               <span
                 data-vs-name
-                className="mt-0.5 text-[11px] font-semibold"
-                style={{ color: "var(--rp-text-secondary)" }}
+                className="mt-0.5 text-[11px] font-bold"
+                style={{ color: "var(--rp-nb-text-secondary)" }}
               >
                 {isYou ? t.match.vsYou : player.is_host ? t.match.vsHost : t.common.player}
               </span>

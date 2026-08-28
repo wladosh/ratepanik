@@ -23,7 +23,7 @@ export function AvatarTile({
   onClick,
 }: AvatarTileProps) {
   const ring =
-    state === "equipped" || state === "selected" ? "var(--rp-purple)" : "transparent";
+    state === "equipped" || state === "selected" ? "var(--rp-nb-purple-deep)" : "transparent";
   const { t } = useI18n();
 
   return (
@@ -40,11 +40,17 @@ export function AvatarTile({
         style={{
           width: 88,
           height: 88,
-          borderRadius: "50%",
+          borderRadius: "var(--rp-nb-radius)",
           padding: 3,
+          border: state === "equipped" || state === "selected"
+            ? "3px solid var(--rp-nb-purple-deep)"
+            : "3px solid var(--rp-nb-border-color)",
+          boxShadow: state === "equipped" || state === "selected"
+            ? "var(--rp-nb-shadow)"
+            : "var(--rp-nb-shadow-sm)",
           background: ring,
           opacity: state === "locked" ? 0.72 : 1,
-          transition: "background 200ms ease, transform 150ms ease",
+          transition: "transform 100ms ease, box-shadow 100ms ease",
           transform: state === "equipped" || state === "selected" ? "scale(1.05)" : "scale(1)",
         }}
       >
@@ -52,10 +58,10 @@ export function AvatarTile({
           style={{
             width: "100%",
             height: "100%",
-            borderRadius: "50%",
+            borderRadius: "var(--rp-nb-radius-sm)",
             overflow: "hidden",
             background: AVATAR_BG[id],
-            border: state === "equipped" || state === "selected" ? "2px solid #fff" : "2px solid transparent",
+            border: "2px solid var(--rp-nb-border-color)",
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -70,8 +76,11 @@ export function AvatarTile({
         </span>
         {state === "locked" && (
           <span
-            className="absolute inset-0 flex items-center justify-center rounded-full"
-            style={{ background: "rgba(42,42,74,0.28)" }}
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              background: "rgba(26, 26, 46, 0.4)",
+              borderRadius: "var(--rp-nb-radius)",
+            }}
             aria-hidden
           >
             <svg viewBox="0 0 24 24" width={20} height={20} fill="#fff">
@@ -85,9 +94,9 @@ export function AvatarTile({
             style={{
               width: 22,
               height: 22,
-              borderRadius: "50%",
-              background: "var(--rp-purple)",
-              border: "2px solid #fff",
+              borderRadius: "var(--rp-nb-radius-sm)",
+              background: "var(--rp-nb-purple-deep)",
+              border: "2px solid var(--rp-nb-border-color)",
               bottom: 2,
               right: 2,
             }}
@@ -110,27 +119,27 @@ export function AvatarTile({
       </span>
       {name && (
         <span
-          className="text-[10px] font-bold leading-tight"
-          style={{ color: "var(--rp-text)" }}
+          className="text-[10px] font-black leading-tight uppercase"
+          style={{ color: "var(--rp-nb-text)" }}
         >
           {name}
         </span>
       )}
       {state === "locked" && price != null && price > 0 && (
         <span
-          className="text-[10px] font-semibold"
-          style={{ color: "var(--rp-text-secondary)" }}
+          className="text-[10px] font-bold"
+          style={{ color: "var(--rp-nb-text-secondary)" }}
         >
           Kaufen · {price} HC
         </span>
       )}
       {state === "equipped" && (
-        <span className="text-[10px] font-semibold" style={{ color: "var(--rp-purple)" }}>
+        <span className="text-[10px] font-bold uppercase" style={{ color: "var(--rp-nb-purple-deep)" }}>
           Angezogen
         </span>
       )}
       {state === "owned" && (
-        <span className="text-[10px] font-semibold" style={{ color: "var(--rp-text-secondary)" }}>
+        <span className="text-[10px] font-bold" style={{ color: "var(--rp-nb-text-secondary)" }}>
           {t.cosmetics.equip}
         </span>
       )}

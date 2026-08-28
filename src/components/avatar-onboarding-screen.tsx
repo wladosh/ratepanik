@@ -65,22 +65,22 @@ export function AvatarOnboardingScreen({
     <div
       className="flex flex-1 flex-col items-center justify-center px-5"
       style={{
-        background: "var(--rp-bg)",
+        background: "var(--rp-nb-cream)",
         paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))",
       }}
     >
       <div className="flex w-full max-w-sm animate-fade-in flex-col items-center">
-        <h1
-          className="text-center font-extrabold tracking-tight"
-          style={{ fontSize: 28, lineHeight: 1.15, color: "var(--rp-text)" }}
-        >
+        <h1 className="nb-heading text-center text-[28px]">
           Das ist Schleimi
         </h1>
-        <p className="mt-2 text-center text-sm" style={{ color: "var(--rp-text-secondary)" }}>
+        <p className="mt-2 text-center text-sm font-medium" style={{ color: "var(--rp-nb-text-secondary)" }}>
           Dein Hirn-Schleim. Hüte und Gesichter kommen aus der Hirnkiste.
         </p>
 
-        <div className="mt-8">
+        <div
+          className="nb-card mt-8 flex items-center justify-center p-4"
+          style={{ background: "var(--rp-nb-lilac)" }}
+        >
           <SchleimiPreview
             layers={{
               body_tint: toView(STARTER_TINT_ID),
@@ -91,7 +91,7 @@ export function AvatarOnboardingScreen({
         </div>
 
         {saveState === "error" && (
-          <p className="mt-4 text-center text-sm font-medium" style={{ color: "var(--rp-danger)" }}>
+          <p className="mt-4 text-center text-sm font-bold" style={{ color: "var(--rp-nb-red)" }}>
             Konnte nicht speichern. Nochmal?
           </p>
         )}
@@ -100,11 +100,11 @@ export function AvatarOnboardingScreen({
           type="button"
           onClick={() => void persistStarter()}
           disabled={saving}
-          className="mt-8 h-[54px] w-full rounded-[var(--rp-radius-pill)] text-[17px] font-bold text-white transition-all active:scale-[0.97]"
+          className="nb-btn mt-8 h-[54px] w-full text-[17px] text-white"
           style={{
             maxWidth: 300,
-            background: "linear-gradient(135deg, var(--rp-peach) 0%, var(--rp-peach-deep) 100%)",
-            opacity: saving ? 0.5 : 1,
+            background: "var(--rp-nb-peach)",
+            opacity: saving ? 0.55 : 1,
           }}
         >
           {saving ? "Speichern…" : "Weiter"}
@@ -114,8 +114,11 @@ export function AvatarOnboardingScreen({
           type="button"
           onClick={handleSpaeter}
           disabled={saving}
-          className="mt-3 mb-6 text-sm font-medium"
-          style={{ color: "var(--rp-text-secondary)", opacity: saving ? 0.4 : 1 }}
+          className="mt-3 mb-6 text-sm font-bold uppercase"
+          style={{
+            color: "var(--rp-nb-text-secondary)",
+            opacity: saving ? 0.4 : 1,
+          }}
         >
           Später
         </button>
