@@ -37,21 +37,41 @@ function BodyLayer({
   uid: string;
 }) {
   const gradientId = `${uid}-body`;
+  const clipId = `${uid}-bodyclip`;
   const fill = palette.gradient ? `url(#${gradientId})` : palette.base;
   return (
     <g>
-      {palette.gradient ? (
+      {palette.gradient || palette.overlay ? (
         <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={palette.gradient.from} />
-            <stop offset="100%" stopColor={palette.gradient.to} />
-          </linearGradient>
+          {palette.gradient ? (
+            <linearGradient
+              id={gradientId}
+              x1="0"
+              y1="0"
+              x2={palette.gradient.diagonal ? "1" : "0"}
+              y2="1"
+            >
+              <stop offset="0%" stopColor={palette.gradient.from} />
+              {palette.gradient.mid ? (
+                <stop offset="50%" stopColor={palette.gradient.mid} />
+              ) : null}
+              <stop offset="100%" stopColor={palette.gradient.to} />
+            </linearGradient>
+          ) : null}
+          {palette.overlay ? (
+            <clipPath id={clipId}>
+              <path d={shape.path} />
+            </clipPath>
+          ) : null}
         </defs>
       ) : null}
       <path d={shape.path} fill={fill} />
       {shape.shadowPath ? <path d={shape.shadowPath} fill={palette.shade} opacity={0.5} /> : null}
       {shape.highlightPath ? (
         <path d={shape.highlightPath} fill={palette.highlight} opacity={0.55} />
+      ) : null}
+      {palette.overlay ? (
+        <g clipPath={`url(#${clipId})`}>{palette.overlay(`${uid}-ov`)}</g>
       ) : null}
     </g>
   );

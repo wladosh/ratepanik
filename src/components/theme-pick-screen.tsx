@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import { DecorSchleimi, PlayerSchleimi } from "@/components/player-schleimi";
 import { useGame } from "@/lib/game-context";
-import { themeArtSrc, themeEmoji } from "@/lib/rp-assets";
+import { themeArtSrc } from "@/lib/rp-assets";
 import { AnswerWaitingPanel } from "./answer-waiting-panel";
 import { MatchPlayShell } from "./match-play-shell";
 import { MatchStatusHeader } from "./match-status-header";
@@ -133,11 +133,7 @@ export function ThemePickScreen() {
                         className={styles.themeImage}
                         priority
                       />
-                    ) : (
-                      <span className={styles.fallbackEmoji}>
-                        {themeEmoji(theme.slug)}
-                      </span>
-                    )}
+                    ) : null}
                   </span>
                   <span className={styles.cardCopy}>
                     <span className={styles.cardKicker}>

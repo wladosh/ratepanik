@@ -13,7 +13,6 @@ import { shuffleOrderItItems } from "@/lib/shuffle";
 import { OrderItSortable, type OrderItItem } from "./order-it-sortable";
 import { QuestionStage } from "./question-stage";
 import { QuestionTimerBar } from "./question-timer-bar";
-import { TimerPill } from "./timer-pill";
 import { useAutoSubmitOnExpiry } from "./use-auto-submit-on-expiry";
 import styles from "./order-it-screen.module.css";
 
@@ -98,15 +97,6 @@ export function OrderItScreen() {
         modeLabel={
           roundsTotal > 1 ? `Reihenfolge ${roundNum}/${roundsTotal}` : undefined
         }
-        timer={
-          showQuestionTimer ? (
-            <TimerPill
-              timerSeconds={game.questionTimerMs! / 1000}
-              deadlineMs={game.questionDeadlineMs}
-              hideWhenExpired
-            />
-          ) : undefined
-        }
       />
 
       <QuestionStage
@@ -114,7 +104,7 @@ export function OrderItScreen() {
         headingId="order-it-question"
         ariaLabel="Sortieraufgabe"
         eyebrow="Sortier-Challenge"
-        eyebrowIcon="↕"
+        eyebrowIcon={null}
         accentColor="var(--rp-purple)"
         accentBackground="rgba(139, 124, 255, 0.12)"
         stageTint="rgba(247, 240, 255, 0.94)"

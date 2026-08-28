@@ -21,6 +21,8 @@ export const GUEST_TINT_IDS = [
   "tint_lilac",
   "tint_mango",
   "tint_blush",
+  "tint_lemon",
+  "tint_cocoa",
 ] as const;
 
 export const GUEST_SHAPE_IDS = [
@@ -28,6 +30,8 @@ export const GUEST_SHAPE_IDS = [
   "shape_round",
   "shape_egg",
   "shape_squircle",
+  "shape_bean",
+  "shape_puddle",
 ] as const;
 
 const CATALOG = catalogById();
@@ -104,11 +108,12 @@ export const VS_MS_PER_PLAYER = 1800;
 
 /**
  * Total VS-intro duration in ms for a given player count.
- * Formula: 1400 + 220 * (n - 1), clamped to [1400, 2500].
+ * Long enough for the fight-night slam + a hold to read cosmetics.
+ * Formula: 4200 + 550 * (n - 1), clamped to [4200, 6400].
  */
 export function vsIntroDurationMs(playerCount: number): number {
   const n = Math.max(1, playerCount);
-  return Math.min(2500, 1400 + 220 * (n - 1));
+  return Math.min(6400, 4200 + 550 * (n - 1));
 }
 
 export function stampVsIntroUntil(

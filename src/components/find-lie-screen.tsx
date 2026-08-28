@@ -11,7 +11,6 @@ import { MatchPlayShell } from "./match-play-shell";
 import { MatchStatusHeader } from "./match-status-header";
 import { QuestionStage } from "./question-stage";
 import { QuestionTimerBar } from "./question-timer-bar";
-import { TimerPill } from "./timer-pill";
 import styles from "./find-lie-screen.module.css";
 
 const LABELS = ["A", "B", "C", "D", "E", "F", "G", "H"];
@@ -95,15 +94,6 @@ export function FindLieScreen() {
         modeLabel={
           roundsTotal > 1 ? `Lüge ${roundNum}/${roundsTotal}` : undefined
         }
-        timer={
-          showQuestionTimer ? (
-            <TimerPill
-              timerSeconds={game.questionTimerMs! / 1000}
-              deadlineMs={game.questionDeadlineMs}
-              hideWhenExpired
-            />
-          ) : undefined
-        }
       />
 
       <QuestionStage
@@ -111,7 +101,7 @@ export function FindLieScreen() {
         headingId="find-lie-question"
         ariaLabel="Aufgabe: Finde die Lüge"
         eyebrow="Welche Aussage ist falsch?"
-        eyebrowIcon="🕵️"
+        eyebrowIcon={null}
         accentColor="#b83f79"
         accentBackground="rgba(255, 122, 182, 0.15)"
         stageTint="rgba(255, 235, 245, 0.96)"

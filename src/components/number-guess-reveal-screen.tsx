@@ -2,11 +2,10 @@
 
 import { useMemo } from "react";
 import { PlayerSchleimi } from "@/components/player-schleimi";
+import { ModeArt, PlaceBadge } from "@/components/rp-art";
 import { useGame } from "@/lib/game-context";
 import type { NumberGuessPayload } from "@/lib/content";
 import { numberGuessCorrectFromPayload, scoreNumberGuessAnswers } from "@/lib/game-store";
-
-const RANK_MEDALS = ["\u{1F947}", "\u{1F948}", "\u{1F949}", "4."];
 
 export function NumberGuessRevealScreen() {
   const game = useGame();
@@ -54,11 +53,8 @@ export function NumberGuessRevealScreen() {
       }}
     >
       <div className="w-full max-w-sm">
-        {/* Result emoji */}
-        <div className="mb-3 text-center">
-          <span className="text-5xl animate-bounce-slow">
-            {myRanked?.rank === 1 ? "\u{1F3AF}" : myRanked?.rank === 2 ? "\u{1F44F}" : "\u{1F62C}"}
-          </span>
+        <div className="mb-3 flex justify-center">
+          <ModeArt mode="number_guess" size={96} priority />
         </div>
 
         {/* Correct answer card */}
@@ -109,8 +105,8 @@ export function NumberGuessRevealScreen() {
                   boxShadow: isMe ? "var(--rp-nb-shadow)" : "var(--rp-nb-shadow-sm)",
                 }}
               >
-                <span className="w-8 text-center text-lg">
-                  {RANK_MEDALS[entry.rank - 1] ?? `${entry.rank}.`}
+                <span className="flex w-8 shrink-0 items-center justify-center">
+                  <PlaceBadge rank={entry.rank} size={28} />
                 </span>
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center">
                   {entry.player ? <PlayerSchleimi playerId={entry.player.id} size={36} /> : null}

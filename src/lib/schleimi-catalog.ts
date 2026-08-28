@@ -25,7 +25,7 @@ export const LOOTBOX_BASIC_WEIGHTS = {
 } as const;
 
 export const LOOTBOX_BASIC_PRICE_HC = 100;
-export const LOOTBOX_SLOT_PRICE_HC = 240;
+export const LOOTBOX_SLOT_PRICE_HC = 150;
 
 export const DAILY_DEAL_DISCOUNT = 0.3;
 
@@ -196,10 +196,16 @@ export const SCHLEIMI_ITEMS: readonly SchleimiCatalogItem[] = [
   item("shape", "gewoehnlich", "round", "Kugelschleim", 20),
   item("shape", "gewoehnlich", "egg", "Glibber-Ei", 30),
   item("shape", "gewoehnlich", "squircle", "Würfelschleim", 40),
+  item("shape", "gewoehnlich", "bean", "Bohnenschleim", 42),
+  item("shape", "gewoehnlich", "puddle", "Pfützenschleim", 44),
   item("shape", "selten", "ghost", "Geisterschleim", 50),
   item("shape", "selten", "tall", "Turmschleim", 60),
   item("shape", "selten", "wobble", "Wackelpudding", 70),
+  item("shape", "selten", "heart", "Herzschleim", 72),
+  item("shape", "selten", "cat", "Katzenschleim", 74),
   item("shape", "legendaer", "star", "Sternschleim", 80),
+  item("shape", "legendaer", "crown", "Kronenschleim", 82),
+  item("shape", "legendaer", "ufo", "UFO-Schleim", 84),
 
   item("body_tint", "gewoehnlich", "peach", "Pfirsich", 110),
   item("body_tint", "gewoehnlich", "mint", "Minzschleim", 120),
@@ -207,11 +213,18 @@ export const SCHLEIMI_ITEMS: readonly SchleimiCatalogItem[] = [
   item("body_tint", "gewoehnlich", "lilac", "Flieder", 140),
   item("body_tint", "gewoehnlich", "mango", "Mango", 150),
   item("body_tint", "gewoehnlich", "blush", "Errötend", 160),
+  item("body_tint", "gewoehnlich", "lemon", "Zitrone", 162),
+  item("body_tint", "gewoehnlich", "cocoa", "Kakao", 164),
   item("body_tint", "selten", "grape_jelly", "Traubenglibber", 170),
   item("body_tint", "selten", "matcha_swirl", "Matcha-Wirbel", 180),
   item("body_tint", "selten", "midnight", "Nachtgelee", 190),
+  item("body_tint", "selten", "lava", "Lava-Glibber", 192),
+  item("body_tint", "selten", "ocean", "Ozeanschleim", 194),
+  item("body_tint", "selten", "candy", "Zuckerwatte", 196),
   item("body_tint", "legendaer", "gold", "Goldschleim", 200),
   item("body_tint", "legendaer", "holo", "Holo-Schleim", 210),
+  item("body_tint", "legendaer", "galaxy", "Galaxie-Schleim", 220),
+  item("body_tint", "legendaer", "aurora", "Aurora-Schleim", 230),
 
   item("eyes", "gewoehnlich", "dots", "Knopfaugen", 310),
   item("eyes", "gewoehnlich", "happy", "Lachaugen", 320),
@@ -220,10 +233,18 @@ export const SCHLEIMI_ITEMS: readonly SchleimiCatalogItem[] = [
   item("eyes", "gewoehnlich", "shy", "Schüchtern", 350),
   item("eyes", "gewoehnlich", "sleepy", "Müde", 360),
   item("eyes", "gewoehnlich", "panic", "Panik-Augen", 370),
+  item("eyes", "gewoehnlich", "uwu", "UwU-Augen", 372),
+  item("eyes", "gewoehnlich", "side", "Seitenblick", 374),
+  item("eyes", "gewoehnlich", "bored", "Null Bock", 376),
   item("eyes", "selten", "sparkle", "Glitzerblick", 380),
   item("eyes", "selten", "hearts", "Herzchenblick", 390),
   item("eyes", "selten", "cool", "Sonnenbrille", 400),
+  item("eyes", "selten", "starry", "Sternenaugen", 402),
+  item("eyes", "selten", "teary", "Glubschtränen", 404),
+  item("eyes", "selten", "grumpy", "Grummelblick", 406),
   item("eyes", "legendaer", "glitch", "Glitch-Augen", 410),
+  item("eyes", "legendaer", "laser", "Laserblick", 420),
+  item("eyes", "legendaer", "galaxy", "Galaxie-Augen", 430),
 
   item("mouth", "gewoehnlich", "grin", "Grinser", 510),
   item("mouth", "gewoehnlich", "smile", "Lächeln", 520),
@@ -231,21 +252,35 @@ export const SCHLEIMI_ITEMS: readonly SchleimiCatalogItem[] = [
   item("mouth", "gewoehnlich", "shy", "Piepsmund", 540),
   item("mouth", "gewoehnlich", "wavy", "Wellenmund", 550),
   item("mouth", "gewoehnlich", "panic", "Schreckmund", 560),
+  item("mouth", "gewoehnlich", "cat", "Katzenmund", 562),
+  item("mouth", "gewoehnlich", "meh", "Meh-Mund", 564),
   item("mouth", "selten", "smirk", "Cooler Smirk", 570),
   item("mouth", "selten", "kiss", "Kussmund", 580),
   item("mouth", "selten", "tongue", "Frechzunge", 590),
+  item("mouth", "selten", "fangs", "Vampirzähnchen", 592),
+  item("mouth", "selten", "braces", "Zahnspange", 594),
+  item("mouth", "selten", "drool", "Sabbermund", 596),
   item("mouth", "legendaer", "rainbow", "Regenbogen-Grinser", 600),
   item("mouth", "legendaer", "glitch", "Glitch-Mund", 610),
+  item("mouth", "legendaer", "gold_grill", "Gold-Grill", 620),
+  item("mouth", "legendaer", "flame", "Feueratem", 630),
 
   item("background", "gewoehnlich", "cream", "Cremewölkchen", 710),
   item("background", "gewoehnlich", "mint", "Mintwiese", 720),
   item("background", "gewoehnlich", "sky", "Himmelchen", 730),
   item("background", "gewoehnlich", "lilac", "Lavendel", 740),
+  item("background", "gewoehnlich", "peach", "Pfirsichwolke", 742),
+  item("background", "gewoehnlich", "grid", "Karopapier", 744),
   item("background", "selten", "sunset", "Sonnenuntergang", 750),
   item("background", "selten", "bubbles", "Blasenbad", 760),
   item("background", "selten", "stars", "Sternenhimmel", 770),
+  item("background", "selten", "rain", "Regenschauer", 772),
+  item("background", "selten", "confetti", "Konfettiregen", 774),
+  item("background", "selten", "pixel", "Pixelwelt", 776),
   item("background", "legendaer", "gold", "Goldrausch", 780),
   item("background", "legendaer", "holo", "Holo-Traum", 790),
+  item("background", "legendaer", "galaxy", "Galaxien-Nebel", 800),
+  item("background", "legendaer", "disco", "Disco-Fieber", 810),
 ];
 
 /**

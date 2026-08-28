@@ -1,10 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
-import {
-  modeEmoji,
-  type PlayableMode,
-} from "@/lib/game-store";
+import { type PlayableMode } from "@/lib/game-store";
 import { useI18n } from "@/lib/i18n-context";
 import styles from "./match-play-foundation.module.css";
 
@@ -72,8 +69,6 @@ export function MatchStatusHeader({
           : mode === "order_it"
             ? t.lobby.modeOrder
             : "");
-  const resolvedModeIcon = modeIcon ?? (mode ? modeEmoji(mode) : null);
-
   return (
     <header
       className={[styles.statusHeader, className].filter(Boolean).join(" ")}
@@ -97,8 +92,8 @@ export function MatchStatusHeader({
             className={styles.modePill}
             style={mode ? MODE_STYLES[mode] : undefined}
           >
-            {resolvedModeIcon ? (
-              <span aria-hidden="true">{resolvedModeIcon}</span>
+            {modeIcon ? (
+              <span aria-hidden="true">{modeIcon}</span>
             ) : null}
             <span className={styles.modeLabel}>{resolvedModeLabel}</span>
           </span>

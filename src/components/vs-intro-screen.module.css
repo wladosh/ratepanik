@@ -1,0 +1,284 @@
+.root {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  overflow: hidden;
+  width: 100%;
+  min-height: 100%;
+  padding: 16px 16px 28px;
+  text-align: center;
+  background: var(--rp-nb-peach);
+  padding-top: max(env(safe-area-inset-top, 0px), var(--ps-notch-inset), 16px);
+}
+
+.fx {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.spark {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--rp-nb-black);
+  transform: rotate(45deg);
+}
+
+.spark:nth-child(1) {
+  top: 14%;
+  left: 12%;
+  background: var(--rp-nb-yellow);
+}
+
+.spark:nth-child(2) {
+  top: 18%;
+  right: 14%;
+  background: var(--rp-nb-lilac);
+}
+
+.spark:nth-child(3) {
+  top: 38%;
+  left: 6%;
+  background: var(--rp-nb-mint);
+}
+
+.spark:nth-child(4) {
+  top: 42%;
+  right: 8%;
+  background: var(--rp-nb-sky);
+}
+
+.spark:nth-child(5) {
+  bottom: 22%;
+  left: 18%;
+  background: var(--rp-nb-pink);
+}
+
+.spark:nth-child(6) {
+  bottom: 18%;
+  right: 16%;
+  background: var(--rp-nb-yellow);
+}
+
+.speedLine {
+  position: absolute;
+  left: -10%;
+  height: 8px;
+  width: 120%;
+  border: 2px solid var(--rp-nb-black);
+  background: var(--rp-nb-yellow);
+  opacity: 0.35;
+  transform: rotate(-11deg);
+}
+
+.speedLine:nth-child(7) {
+  top: 28%;
+  background: var(--rp-nb-lilac);
+  transform: rotate(8deg);
+}
+
+.speedLine:nth-child(8) {
+  top: 58%;
+  background: var(--rp-nb-mint);
+  transform: rotate(-7deg);
+}
+
+.stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  max-width: 380px;
+  flex-direction: column;
+  align-items: center;
+}
+
+.kicker {
+  margin: 0 0 10px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rp-nb-black);
+  background: var(--rp-nb-yellow);
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius-sm);
+  box-shadow: var(--rp-nb-shadow-sm);
+}
+
+.stamp {
+  margin: 0;
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: -0.06em;
+  color: var(--rp-nb-white);
+  text-shadow:
+    3px 3px 0 var(--rp-nb-black),
+    -2px 2px 0 var(--rp-nb-black),
+    2px -2px 0 var(--rp-nb-black);
+  transform: rotate(-8deg);
+  user-select: none;
+}
+
+.stampBanner {
+  margin-bottom: 18px;
+  font-size: clamp(64px, 22vw, 92px);
+}
+
+.stampGutter {
+  align-self: center;
+  margin: 0 2px 28px;
+  font-size: clamp(36px, 12vw, 52px);
+}
+
+.crew {
+  display: flex;
+  width: 100%;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.crewFaceoff {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: end;
+  gap: 0 4px;
+}
+
+.crewRoster {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.fighter {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mascotWrap {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transform-origin: 50% 100%;
+}
+
+.mascotWrap > :last-child {
+  position: relative;
+  z-index: 1;
+}
+
+.floor {
+  position: absolute;
+  right: 8%;
+  bottom: 6px;
+  left: 8%;
+  height: 10px;
+  border: 2px solid var(--rp-nb-black);
+  border-radius: 999px;
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow-sm);
+  opacity: 0.9;
+}
+
+.footSpark {
+  position: absolute;
+  bottom: 10px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--rp-nb-black);
+  background: var(--rp-nb-yellow);
+  transform: rotate(45deg);
+}
+
+.footSparkLeft {
+  left: 4px;
+  background: var(--rp-nb-pink);
+}
+
+.footSparkRight {
+  right: 4px;
+  background: var(--rp-nb-sky);
+}
+
+.plate {
+  margin-top: 8px;
+  max-width: 118px;
+}
+
+.plateInner {
+  padding: 5px 8px 4px;
+  border: var(--rp-nb-border);
+  border-radius: var(--rp-nb-radius);
+  background: var(--rp-nb-white);
+  box-shadow: var(--rp-nb-shadow-sm);
+  transform: rotate(-3deg);
+}
+
+.fighter:nth-child(even) .plateInner {
+  transform: rotate(3deg);
+}
+
+.crewFaceoff .fighter:last-child .plateInner {
+  transform: rotate(4deg);
+}
+
+.name {
+  display: block;
+  overflow: hidden;
+  max-width: 102px;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--rp-nb-black);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 22px;
+  margin-top: 3px;
+}
+
+.role {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--rp-nb-text-secondary);
+}
+
+.youBadge {
+  padding: 2px 7px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--rp-nb-peach);
+  border: 2px solid var(--rp-nb-black);
+  border-radius: var(--rp-nb-radius-sm);
+  box-shadow: var(--rp-nb-shadow-sm);
+}
+
+.empty {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--rp-nb-text-secondary);
+}

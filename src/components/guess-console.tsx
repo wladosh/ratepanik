@@ -91,7 +91,6 @@ export function GuessConsole({
           inputMode="decimal"
           enterKeyHint="done"
           autoComplete="off"
-          autoFocus
           spellCheck={false}
           value={value}
           placeholder="Zahl eingeben"

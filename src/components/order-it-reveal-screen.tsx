@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { PlayerSchleimi } from "@/components/player-schleimi";
+import { ModeArt } from "@/components/rp-art";
 import { useGame } from "@/lib/game-context";
 import type { OrderItPayload } from "@/lib/content";
 import { calculateOrderItPoints } from "@/lib/game-store";
@@ -42,8 +43,8 @@ export function OrderItRevealScreen() {
       }}
     >
       <div className="w-full max-w-sm">
-        <div className="mb-3 text-center">
-          <span className="text-5xl">{"\u{2195}\u{FE0F}"}</span>
+        <div className="mb-3 flex justify-center">
+          <ModeArt mode="order_it" size={96} priority />
         </div>
 
         <div

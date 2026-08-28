@@ -49,8 +49,7 @@ describe("allScoresTied", () => {
 describe("placeGlyph", () => {
   it("gives both tied leaders the first-place mark", () => {
     const ranks = competitionRanks([0, 0]);
-    expect(ranks.map((rank) => placeGlyph(rank, "crown"))).toEqual(["👑", "👑"]);
-    expect(ranks.map((rank) => placeGlyph(rank))).toEqual(["🥇", "🥇"]);
+    expect(ranks.map((rank) => placeGlyph(rank))).toEqual(["1", "1"]);
   });
 });
 

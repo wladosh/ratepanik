@@ -1,5 +1,7 @@
 # Phase C MVP — Schleimi Lootbox Shop
 
+> **⚠️ Partially superseded (2026-08-28, Schleimi 2.0):** slots are now `shape` · `body_tint` · `eyes` · `mouth` · `background`; `face`/`hat`/`extra` were retired (faces decomposed into eyes+mouth, hat/extra refunded as HC) via `supabase/migrations/20260829_021_schleimi_v2_svg.sql`. Crates: `lootbox_basic` · `lootbox_form` · `lootbox_gesicht` · `lootbox_hintergrund`. Economy mechanics below (pricing, duplicates, RPC flow) still apply.
+
 > Design spec for Phase C. Implementation: `supabase/migrations/20260823_016_phase_c_lootbox.sql` + Shop/Customize UI.
 
 **Stand:** 2026-08-23 (design)

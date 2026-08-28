@@ -49,20 +49,25 @@
 .statusLeading,
 .statusTrailing {
   display: flex;
-  min-width: 0;
   align-items: center;
   gap: 8px;
 }
 
 .statusLeading {
+  flex: none;
   padding-left: 44px;
+}
+
+.statusTrailing {
+  min-width: 0;
+  flex: 1;
+  justify-content: flex-end;
 }
 
 .statusPill,
 .modePill {
   display: inline-flex;
   height: 32px;
-  min-width: 0;
   align-items: center;
   gap: 6px;
   border: var(--rp-nb-border);
@@ -72,7 +77,8 @@
 }
 
 .statusPill {
-  padding: 0 16px;
+  flex-shrink: 0;
+  padding: 0 12px;
   color: var(--rp-nb-text-secondary);
   background: var(--rp-nb-white);
   font-size: 14px;
@@ -85,6 +91,7 @@
 }
 
 .modePill {
+  min-width: 0;
   max-width: 12.5rem;
   padding: 0 12px;
   color: var(--mode-color, var(--rp-nb-purple-deep));
@@ -100,6 +107,13 @@
   white-space: nowrap;
 }
 
+.modeIcon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
 .questionStage {
   position: relative;
   min-height: 142px;
@@ -112,7 +126,7 @@
 }
 
 .questionStageWithArtwork {
-  padding-right: 116px;
+  padding-right: 78px;
 }
 
 .questionStageWithTimer {
@@ -140,6 +154,8 @@
 }
 
 .questionTitle {
+  position: relative;
+  z-index: 1;
   color: var(--rp-nb-text);
   font-family: var(--font-display, var(--font-sans));
   font-size: 19px;
@@ -150,21 +166,23 @@
 }
 
 .questionSupporting {
+  position: relative;
+  z-index: 1;
   margin-top: 12px;
 }
 
 .artwork {
   position: absolute;
-  right: -20px;
-  bottom: -16px;
+  right: -12px;
+  bottom: -14px;
+  z-index: 0;
   display: flex;
-  width: 126px;
-  height: 126px;
+  width: 120px;
+  height: 120px;
   align-items: center;
   justify-content: center;
-  border-radius: 0;
-  background: var(--artwork-background, var(--rp-nb-lilac));
-  border: 2px solid var(--rp-nb-black);
+  background: none;
+  border: none;
   pointer-events: none;
 }
 

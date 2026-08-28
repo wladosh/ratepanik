@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n-context";
 import { useCosmetics } from "@/lib/use-cosmetics";
 import {
   COSMETIC_SLOTS,
+  RARITY_SOFT,
   type CosmeticSlot,
 } from "@/lib/schleimi-catalog";
 import { CosmeticTileArt, SchleimiPreview } from "@/components/schleimi-preview";
@@ -23,13 +24,24 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const ownedInSlot = useMemo(
+  const itemsInSlot = useMemo(
     () =>
       catalog
-        .filter((item) => item.slot === slot && owned.has(item.id))
+        .filter((item) => item.slot === slot)
         .sort((a, b) => a.sort_order - b.sort_order),
-    [catalog, owned, slot],
+    [catalog, slot],
   );
+
+  /** owned/total per slot for the collection counters on the chips. */
+  const slotProgress = useMemo(() => {
+    const progress = {} as Record<CosmeticSlot, { owned: number; total: number }>;
+    for (const id of COSMETIC_SLOTS) progress[id] = { owned: 0, total: 0 };
+    for (const item of catalog) {
+      progress[item.slot].total += 1;
+      if (owned.has(item.id)) progress[item.slot].owned += 1;
+    }
+    return progress;
+  }, [catalog, owned]);
 
   const canUnequip = slot === "background";
 
@@ -94,18 +106,22 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
                   : id === "mouth"
                     ? t.cosmetics.slotMouth
                     : t.cosmetics.slotBackground;
+          const progress = slotProgress[id];
           return (
             <button
               key={id}
               type="button"
               onClick={() => setSlot(id)}
-              className="nb-btn h-10 text-[10px]"
+              className="nb-btn flex h-12 flex-col items-center justify-center gap-0 text-[10px] leading-tight"
               style={{
                 background: active ? "var(--rp-nb-purple)" : "var(--rp-nb-white)",
                 color: active ? "#fff" : "var(--rp-nb-black)",
               }}
             >
-              {label}
+              <span>{label}</span>
+              <span className="text-[9px] font-bold opacity-70">
+                {progress.owned}/{progress.total}
+              </span>
             </button>
           );
         })}
@@ -140,7 +156,33 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
               </span>
             </button>
           )}
-          {ownedInSlot.map((item) => {
+          {itemsInSlot.map((item) => {
+            if (!owned.has(item.id)) {
+              return (
+                <div key={item.id} className="flex flex-col items-center gap-1.5" style={{ padding: 4 }}>
+                  <span
+                    className="nb-card flex items-center justify-center text-3xl font-extrabold"
+                    style={{
+                      width: 72,
+                      height: 72,
+                      background: RARITY_SOFT[item.rarity],
+                      color: "var(--rp-text-secondary)",
+                      opacity: 0.75,
+                    }}
+                    aria-label={`${item.name_de} (gesperrt)`}
+                  >
+                    ?
+                  </span>
+                  <RarityBadge rarity={item.rarity} compact />
+                  <span
+                    className="text-center text-[10px] font-bold leading-tight"
+                    style={{ color: "var(--rp-text-secondary)" }}
+                  >
+                    ???
+                  </span>
+                </div>
+              );
+            }
             const equipped = loadout[slot] === item.id;
             return (
               <button

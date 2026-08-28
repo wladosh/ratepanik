@@ -122,7 +122,7 @@ export function Game() {
   const isMatchPhase = MATCH_PHASES.includes(game.phase);
 
   return (
-    <div className="relative flex flex-1 flex-col">
+    <div className="relative flex min-h-full flex-1 flex-col">
       {(() => {
         switch (game.phase) {
           case "home":

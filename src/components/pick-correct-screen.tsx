@@ -15,7 +15,6 @@ import { isPickCorrectPayload } from "@/lib/shuffle";
 import { MatchPlayShell } from "./match-play-shell";
 import { MatchStatusHeader } from "./match-status-header";
 import { QuestionStage } from "./question-stage";
-import { TimerPill } from "./timer-pill";
 import { QuestionTimerBar } from "./question-timer-bar";
 import styles from "./pick-correct-screen.module.css";
 
@@ -87,8 +86,6 @@ export function PickCorrectScreen() {
 
   const blockNum = (game.room?.current_block_index ?? 0) + 1;
   const totalBlocks = game.room?.total_blocks ?? 5;
-  const roundNum = (game.currentBlock?.current_round ?? 0) + 1;
-  const roundsTotal = game.currentBlock?.rounds_total ?? 1;
   const showQuestionTimer =
     !roundOver &&
     game.questionDeadlineMs != null &&
@@ -140,20 +137,7 @@ export function PickCorrectScreen() {
       <MatchStatusHeader
         current={blockNum}
         total={totalBlocks}
-        mode="pick_correct"
         questionLabel="Block"
-        modeLabel={
-          roundsTotal > 1 ? `Passend ${roundNum}/${roundsTotal}` : undefined
-        }
-        timer={
-          showQuestionTimer ? (
-            <TimerPill
-              timerSeconds={game.questionTimerMs! / 1000}
-              deadlineMs={game.questionDeadlineMs}
-              hideWhenExpired
-            />
-          ) : undefined
-        }
         trailing={
           <div className={styles.headerStats}>
             <div

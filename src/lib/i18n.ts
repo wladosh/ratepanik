@@ -180,8 +180,8 @@ const de = {
     loading: "Laden…",
   },
   match: {
-    vsKicker: "Auftritt",
-    vsTitle: "Die Runde",
+    vsKicker: "Es geht los",
+    vsTitle: "Versus",
     vsYou: "Das bist du",
     vsHost: "Host",
   },
@@ -561,8 +561,8 @@ const en: StringTree<typeof de> = {
     loading: "Loading…",
   },
   match: {
-    vsKicker: "Showtime",
-    vsTitle: "The round",
+    vsKicker: "Let's go",
+    vsTitle: "Versus",
     vsYou: "That's you",
     vsHost: "Host",
   },

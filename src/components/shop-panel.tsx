@@ -42,7 +42,6 @@ function CrateCard({
   const isDeal = deal.boxId === def.id;
   const effectivePrice = isDeal ? deal.dealPrice : def.price_hc;
   const canAfford = balance >= effectivePrice;
-  const isHero = def.id === LOOTBOX_BASIC_ID;
   const artClosed = def.art_closed ?? lootboxView?.art_closed ?? "/rp/schleimi/lootbox_closed.png";
 
   const name = locale === "de" ? def.name_de : def.name_en;
@@ -50,7 +49,7 @@ function CrateCard({
 
   return (
     <article
-      className="nb-card relative flex flex-col items-center px-4 py-5 overflow-hidden"
+      className="nb-card relative flex h-full flex-col items-center px-4 py-5 overflow-hidden"
       style={{
         border: isDeal ? `3px solid ${def.accent}` : undefined,
       }}
@@ -68,12 +67,12 @@ function CrateCard({
       <img
         src={imgFailed ? LOOT_BOX_RARE_128 : artClosed}
         alt=""
-        width={isHero ? 128 : 96}
-        height={isHero ? 128 : 96}
+        width={128}
+        height={128}
         className="object-contain"
         style={{
-          width: isHero ? 128 : 96,
-          height: isHero ? 128 : 96,
+          width: 128,
+          height: 128,
           filter: "drop-shadow(3px 3px 0 rgba(0,0,0,0.2))",
         }}
         onError={() => setImgFailed(true)}
@@ -89,45 +88,47 @@ function CrateCard({
         {subtitle}
       </p>
 
-      <div className="mt-2 flex items-center gap-1.5">
-        {isDeal ? (
-          <>
-            <span
-              className="text-xs font-bold line-through"
-              style={{ color: "var(--rp-nb-text-secondary)" }}
-            >
-              {def.price_hc}
-            </span>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={HIRNCOIN_ICON_20} alt="" width={16} height={16} className="w-4 h-4" />
-            <span className="text-sm font-black" style={{ color: def.accent }}>
-              {deal.dealPrice}
-            </span>
-          </>
-        ) : (
-          <>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={HIRNCOIN_ICON_20} alt="" width={16} height={16} className="w-4 h-4" />
-            <span className="text-sm font-black" style={{ color: "var(--rp-nb-text)" }}>
-              {def.price_hc}
-            </span>
-          </>
-        )}
-      </div>
+      <div className="mt-auto flex w-full flex-col items-center">
+        <div className="mt-2 flex items-center gap-1.5">
+          {isDeal ? (
+            <>
+              <span
+                className="text-xs font-bold line-through"
+                style={{ color: "var(--rp-nb-text-secondary)" }}
+              >
+                {def.price_hc}
+              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={HIRNCOIN_ICON_20} alt="" width={16} height={16} className="w-4 h-4" />
+              <span className="text-sm font-black" style={{ color: def.accent }}>
+                {deal.dealPrice}
+              </span>
+            </>
+          ) : (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={HIRNCOIN_ICON_20} alt="" width={16} height={16} className="w-4 h-4" />
+              <span className="text-sm font-black" style={{ color: "var(--rp-nb-text)" }}>
+                {def.price_hc}
+              </span>
+            </>
+          )}
+        </div>
 
-      <button
-        type="button"
-        onClick={() => onOpen(def.id, isDeal)}
-        disabled={busy || !canAfford}
-        className="nb-btn mt-3 h-10 w-full text-xs text-white"
-        style={{ background: canAfford ? def.accent : "var(--rp-nb-text-secondary)" }}
-      >
-        {busy
-          ? t.cosmetics.opening
-          : canAfford
-            ? t.cosmetics.open
-            : t.cosmetics.notEnoughShort}
-      </button>
+        <button
+          type="button"
+          onClick={() => onOpen(def.id, isDeal)}
+          disabled={busy || !canAfford}
+          className="nb-btn mt-3 h-10 w-full text-xs text-white"
+          style={{ background: canAfford ? def.accent : "var(--rp-nb-text-secondary)" }}
+        >
+          {busy
+            ? t.cosmetics.opening
+            : canAfford
+              ? t.cosmetics.open
+              : t.cosmetics.notEnoughShort}
+        </button>
+      </div>
     </article>
   );
 }

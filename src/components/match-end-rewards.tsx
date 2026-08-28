@@ -8,16 +8,17 @@ import { useGSAP } from "@gsap/react";
 import { useGame } from "@/lib/game-context";
 import { PlayerSchleimi } from "@/components/player-schleimi";
 import { PlayerNameRow } from "@/components/player-name-row";
+import { PlaceBadge } from "@/components/rp-art";
 import { useAuth } from "@/lib/auth-context";
 import { useI18n } from "@/lib/i18n-context";
 import { xpProgressInLevel } from "@/lib/progression";
 import { GuestAccountUpsell } from "@/components/guest-account-upsell";
-import { allScoresTied, competitionRanks, placeGlyph } from "@/lib/match-ui";
+import { allScoresTied, competitionRanks } from "@/lib/match-ui";
 import {
   HIRNCOIN_ICON_48,
   XP_BADGE_48,
   LEVELUP_FX_128,
-  TROPHY_GOLD_512,
+  TROPHY_ART,
   CONFETTI_SHEET_512,
 } from "@/lib/rp-assets";
 import type { MatchRewardResult } from "@/lib/match-rewards";
@@ -223,7 +224,7 @@ function FinalHero({
         >
           {winner ? (
             <Image
-              src={TROPHY_GOLD_512}
+              src={TROPHY_ART}
               alt="Goldener Siegerpokal"
               width={106}
               height={106}
@@ -350,17 +351,7 @@ function BriefScoreboard({ onContinue }: { onContinue: () => void }) {
                     : "var(--rp-nb-shadow-sm)",
               }}
             >
-              <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center text-sm font-black"
-                style={{
-                  background: (ranks[i] ?? i + 1) === 1 ? "var(--rp-nb-yellow)" : "var(--rp-nb-lilac)",
-                  color: "var(--rp-nb-black)",
-                  borderRadius: "var(--rp-nb-radius)",
-                  border: "var(--rp-nb-border)",
-                }}
-              >
-                {placeGlyph(ranks[i] ?? i + 1)}
-              </span>
+              <PlaceBadge rank={ranks[i] ?? i + 1} size={36} />
               <PlayerSchleimi playerId={player.id} size={36} />
               <PlayerNameRow
                 className="flex-1 text-left"
@@ -673,17 +664,7 @@ function GuestEndScreen() {
                     : "var(--rp-nb-shadow-sm)",
               }}
             >
-              <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center text-sm font-black"
-                style={{
-                  background: (ranks[i] ?? i + 1) === 1 ? "var(--rp-nb-yellow)" : "var(--rp-nb-lilac)",
-                  color: "var(--rp-nb-black)",
-                  borderRadius: "var(--rp-nb-radius)",
-                  border: "var(--rp-nb-border)",
-                }}
-              >
-                {placeGlyph(ranks[i] ?? i + 1)}
-              </span>
+              <PlaceBadge rank={ranks[i] ?? i + 1} size={36} />
               <PlayerSchleimi playerId={player.id} size={36} />
               <PlayerNameRow
                 className="flex-1 text-left"
@@ -752,7 +733,7 @@ function RewardsCard({ rewards, previousXp, previousLevel }: MatchEndRewardsProp
         <div className="text-center mb-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={TROPHY_GOLD_512}
+            src={TROPHY_ART}
             alt="Pokal"
             width={80}
             height={80}

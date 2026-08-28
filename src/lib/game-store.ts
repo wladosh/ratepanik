@@ -33,21 +33,6 @@ export function modeLabelDe(mode: string | undefined | null): string {
   }
 }
 
-export function modeEmoji(mode: string | undefined | null): string {
-  switch (mode) {
-    case "number_guess":
-      return "\u{1F522}";
-    case "pick_correct":
-      return "\u{1F0CF}";
-    case "find_lie":
-      return "\u{1F925}";
-    case "order_it":
-      return "\u{2195}\u{FE0F}";
-    default:
-      return "";
-  }
-}
-
 /** First-place number_guess points. Each worse unique distance gets half, last group 0. */
 export const NUMBER_GUESS_FIRST_POINTS = 400;
 
@@ -157,7 +142,7 @@ export function scoreNumberGuessAnswers<
   });
 }
 
-/** Contribution-based scoring for pick_correct (§9.2) */
+/** Contribution-based scoring for pick_correct (§9.2). 250 per correct card; 2-tap cap makes 500 the practical max. */
 export function calculatePickCorrectPoints(
   correctFound: number,
   totalCorrect: number = 4

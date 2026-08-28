@@ -58,30 +58,30 @@ describe("layersFromLoadoutRows", () => {
 });
 
 describe("vsIntroDurationMs", () => {
-  it("returns 1400 for 1 player", () => {
-    expect(vsIntroDurationMs(1)).toBe(1400);
+  it("returns 4200 for 1 player", () => {
+    expect(vsIntroDurationMs(1)).toBe(4200);
   });
 
-  it("returns 1620 for 2 players", () => {
-    expect(vsIntroDurationMs(2)).toBe(1620);
+  it("returns 4750 for 2 players", () => {
+    expect(vsIntroDurationMs(2)).toBe(4750);
   });
 
-  it("returns 1840 for 3 players", () => {
-    expect(vsIntroDurationMs(3)).toBe(1840);
+  it("returns 5300 for 3 players", () => {
+    expect(vsIntroDurationMs(3)).toBe(5300);
   });
 
-  it("returns 2060 for 4 players", () => {
-    expect(vsIntroDurationMs(4)).toBe(2060);
+  it("returns 5850 for 4 players", () => {
+    expect(vsIntroDurationMs(4)).toBe(5850);
   });
 
-  it("clamps at 2500 for large lobbies", () => {
-    expect(vsIntroDurationMs(10)).toBe(2500);
-    expect(vsIntroDurationMs(100)).toBe(2500);
+  it("clamps at 6400 for large lobbies", () => {
+    expect(vsIntroDurationMs(10)).toBe(6400);
+    expect(vsIntroDurationMs(100)).toBe(6400);
   });
 
   it("treats zero/negative as 1 player", () => {
-    expect(vsIntroDurationMs(0)).toBe(1400);
-    expect(vsIntroDurationMs(-3)).toBe(1400);
+    expect(vsIntroDurationMs(0)).toBe(4200);
+    expect(vsIntroDurationMs(-3)).toBe(4200);
   });
 });
 

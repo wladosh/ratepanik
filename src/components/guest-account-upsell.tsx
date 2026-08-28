@@ -11,7 +11,7 @@ import {
   LOOT_BOX_LEGENDARY_256,
   XP_BADGE_48,
   HIRNCOIN_ICON_48,
-  TROPHY_GOLD_512,
+  TROPHY_ART,
   avatarSrc,
 } from "@/lib/rp-assets";
 import styles from "./guest-account-upsell.module.css";
@@ -106,7 +106,7 @@ export function GuestAccountUpsell({
             {mascotId ? <PlayerSchleimi playerId={mascotId} size={104} /> : null}
             {won ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={TROPHY_GOLD_512} alt="" className={styles.trophy} width={44} height={44} />
+              <img src={TROPHY_ART} alt="" className={styles.trophy} width={44} height={44} />
             ) : null}
           </div>
           <p className={styles.kicker}>

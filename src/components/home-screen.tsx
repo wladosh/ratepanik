@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { generateGuestName } from "@/lib/guest-name";
 import { xpProgressInLevel } from "@/lib/progression";
-import { HIRNCOIN_ICON_20, XP_BADGE_16 } from "@/lib/rp-assets";
+import { HIRNCOIN_ICON_20, XP_BADGE_16, BADGE_STREAK_3_48 } from "@/lib/rp-assets";
 import { HomePanel, type HomePanelId } from "@/components/home-panels";
 import { SchleimiPreview } from "@/components/schleimi-preview";
 import { useCosmetics } from "@/lib/use-cosmetics";
@@ -55,10 +55,16 @@ function StreakCard({
         border: "var(--rp-nb-border)",
         boxShadow: "var(--rp-nb-shadow)",
       }}
+      aria-label={t.home.streakAria}
     >
-      <span className="text-2xl" role="img" aria-label={t.home.streakAria}>
-        🔥
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={BADGE_STREAK_3_48}
+        alt=""
+        width={36}
+        height={36}
+        className="h-9 w-9 object-contain"
+      />
       <div className="flex-1">
         <h4 className="text-sm font-extrabold text-[var(--rp-nb-black)]">{t.home.streakTitle}</h4>
         <p className="text-[10px] font-semibold text-[var(--rp-text-secondary)]">{copy}</p>

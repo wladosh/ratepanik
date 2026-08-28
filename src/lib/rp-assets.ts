@@ -21,9 +21,6 @@ export const XP_BADGE_48 = "/rp/rp_badge_xp_48.png";
 export const LEVELUP_FX_64 = "/rp/rp_fx_levelup_64.png";
 export const LEVELUP_FX_128 = "/rp/rp_fx_levelup_64@2x.png";
 
-// ── Trophy ──────────────────────────────────────────────────────────
-export const TROPHY_GOLD_512 = "/rp/rp_trophy_gold_512.png";
-
 // ── Home dashboard feature art ─────────────────────────────────────
 export const HOME_CREATE_ROOM_256 = "/rp/rp_home_create_room_256.png";
 export const RANK_BADGE_GOLD_128 = "/rp/rp_badge_rank_1_128@2x.png";
@@ -40,6 +37,31 @@ export const MODE_NUMBER_GUESS_256 = "/rp/rp_mode_number_guess_256.png";
 export const MODE_PICK_CORRECT_256 = "/rp/rp_mode_pick_correct_256.png";
 export const MODE_FIND_LIE_256 = "/rp/rp_mode_find_lie_256.png";
 
+export const MODE_ART_256 = {
+  number_guess: MODE_NUMBER_GUESS_256,
+  pick_correct: MODE_PICK_CORRECT_256,
+  find_lie: MODE_FIND_LIE_256,
+  order_it: MODE_ORDER_IT_256,
+} as const;
+
+export type ModeArtId = keyof typeof MODE_ART_256;
+
+export function modeArtSrc(mode: string | null | undefined): string | null {
+  if (!mode) return null;
+  return MODE_ART_256[mode as ModeArtId] ?? null;
+}
+
+export const RANK_BADGE_32 = {
+  1: "/rp/rp_badge_rank_1_32@2x.png",
+  2: "/rp/rp_badge_rank_2_32@2x.png",
+  3: "/rp/rp_badge_rank_3_32@2x.png",
+} as const;
+
+export function rankBadgeSrc(rank: number): string | null {
+  if (rank === 1 || rank === 2 || rank === 3) return RANK_BADGE_32[rank];
+  return null;
+}
+
 // ── Theme category art ──────────────────────────────────────────────
 export const THEME_SLUGS = [
   "gaming",
@@ -50,6 +72,8 @@ export const THEME_SLUGS = [
   "film-serie",
   "reise-orte",
   "alltag-peinlich",
+  "tiere",
+  "essen-trinken",
 ] as const;
 
 export type ThemeSlug = (typeof THEME_SLUGS)[number];
@@ -63,25 +87,12 @@ export const THEME_ART_256: Record<ThemeSlug, string> = {
   "film-serie": "/rp/rp_theme_film_serie_256.png",
   "reise-orte": "/rp/rp_theme_reise_orte_256.png",
   "alltag-peinlich": "/rp/rp_theme_alltag_peinlich_256.png",
-};
-
-export const THEME_EMOJI: Record<ThemeSlug, string> = {
-  gaming: "🎮",
-  geschichte: "📜",
-  "wissenschaft-natur": "🔬",
-  sport: "⚽",
-  musik: "🎵",
-  "film-serie": "🎬",
-  "reise-orte": "🌍",
-  "alltag-peinlich": "😅",
+  tiere: "/rp/rp_theme_tiere_256.png",
+  "essen-trinken": "/rp/rp_theme_essen_trinken_256.png",
 };
 
 export function themeArtSrc(slug: string): string | null {
   return THEME_ART_256[slug as ThemeSlug] ?? null;
-}
-
-export function themeEmoji(slug: string): string {
-  return THEME_EMOJI[slug as ThemeSlug] ?? "❓";
 }
 
 // ── Confetti FX ─────────────────────────────────────────────────────
@@ -112,6 +123,7 @@ export const AVATAR_BG: Record<AvatarId, string> = {
 // ── Achievement Badges ───────────────────────────────────────────────
 export const BADGE_FIRST_WIN_48 = "/rp/rp_badge_first_win_48@2x.png";
 export const BADGE_FIRST_WIN_128 = "/rp/rp_badge_first_win_128@2x.png";
+export const TROPHY_ART = BADGE_FIRST_WIN_128;
 
 export const BADGE_FIRST_ROOM_48 = "/rp/rp_badge_first_room_48@2x.png";
 export const BADGE_FIRST_ROOM_128 = "/rp/rp_badge_first_room_128@2x.png";

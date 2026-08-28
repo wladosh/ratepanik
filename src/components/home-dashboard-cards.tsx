@@ -11,7 +11,7 @@ import {
   HOME_CREATE_ROOM_256,
   ICON_FRIENDS_SLIMES_128,
   ICON_STATS_CLIPBOARD_128,
-  TROPHY_GOLD_512,
+  TROPHY_ART,
 } from "@/lib/rp-assets";
 import { LOOTBOX_CLOSED_PATH } from "@/lib/schleimi-catalog";
 import styles from "./home-dashboard-cards.module.css";
@@ -69,10 +69,10 @@ function ChampionCard({ onCreate }: { onCreate: () => void }) {
       <div className={styles.trophyScene} data-feature-asset aria-hidden="true">
         <span className={styles.trophyShadow} />
         <Image
-          src={TROPHY_GOLD_512}
+          src={TROPHY_ART}
           alt=""
-          width={126}
-          height={126}
+          width={104}
+          height={104}
           className={styles.trophy}
           priority
         />
@@ -268,7 +268,7 @@ function IconRow({
         className={`${styles.iconItem} ${styles.iconAchievements}`}
         onClick={() => onOpenPanel("achievements")}
       >
-        <Image src={TROPHY_GOLD_512} alt="" width={48} height={48} className={styles.iconArt} aria-hidden="true" />
+        <Image src={TROPHY_ART} alt="" width={64} height={64} className={styles.iconArt} aria-hidden="true" />
         <span className={styles.iconLabel}>{t.home.achievements}</span>
         {achievementsMeta && <span className={styles.iconMeta}>{achievementsMeta}</span>}
       </button>

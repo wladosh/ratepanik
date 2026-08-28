@@ -1,5 +1,6 @@
 "use client";
 
+import { TROPHY_ART } from "@/lib/rp-assets";
 import { useI18n } from "@/lib/i18n-context";
 import { useRef, type CSSProperties } from "react";
 import Image from "next/image";
@@ -211,10 +212,10 @@ export function LandingHero() {
           <span className={styles.trophyFloat} data-trophy-float>
             <span className={styles.trophyReact} data-trophy-react>
               <Image
-                src="/rp/rp_trophy_gold_512.png"
+                src={TROPHY_ART}
                 alt=""
-                width={122}
-                height={122}
+                width={128}
+                height={128}
                 priority
                 className={styles.trophy}
               />

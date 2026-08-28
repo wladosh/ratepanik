@@ -60,10 +60,8 @@ export function allScoresTied(scores: number[]): boolean {
   return scores.length > 1 && scores.every((score) => score === scores[0]);
 }
 
-export function placeGlyph(rank: number, style: "crown" | "medal" = "medal"): string {
-  if (rank === 1) return style === "crown" ? "👑" : "🥇";
-  if (rank === 2) return "🥈";
-  if (rank === 3) return "🥉";
+/** Numeric place label. Rank 1–3 art lives in `PlaceBadge`. */
+export function placeGlyph(rank: number): string {
   return String(rank);
 }
 

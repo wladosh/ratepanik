@@ -19,6 +19,7 @@ import {
   weightSum,
 } from "./lootbox-economy";
 import { dailyDealBoxId, dailyDealPrice, getDailyDeal } from "./daily-deal";
+import { BACKGROUNDS, EYES, MOUTHS, PALETTES, SHAPES } from "./schleimi-parts";
 
 describe("lootbox drop weights", () => {
   it("locks MVP bounds 70 / 24 / 6", () => {
@@ -82,9 +83,9 @@ describe("lootbox debit + grant", () => {
     ).toEqual({ ok: false, error: "Nicht genug Hirncoins" });
   });
 
-  it("handles slot crate pricing at 240 HC", () => {
+  it("handles slot crate pricing at 150 HC", () => {
     expect(
-      applyLootboxOpen({ balance: 240, alreadyOwned: false, rarity: "selten", price: LOOTBOX_SLOT_PRICE_HC }),
+      applyLootboxOpen({ balance: 150, alreadyOwned: false, rarity: "selten", price: LOOTBOX_SLOT_PRICE_HC }),
     ).toEqual({
       ok: true,
       duplicate: false,
@@ -93,7 +94,7 @@ describe("lootbox debit + grant", () => {
       nextBalance: 0,
     });
     expect(
-      applyLootboxOpen({ balance: 239, alreadyOwned: false, rarity: "selten", price: LOOTBOX_SLOT_PRICE_HC }),
+      applyLootboxOpen({ balance: 149, alreadyOwned: false, rarity: "selten", price: LOOTBOX_SLOT_PRICE_HC }),
     ).toEqual({ ok: false, error: "Nicht genug Hirncoins" });
   });
 
@@ -111,31 +112,43 @@ describe("lootbox debit + grant", () => {
     });
 
     const slotDealPrice = dailyDealPrice(LOOTBOX_SLOT_PRICE_HC);
-    expect(slotDealPrice).toBe(168);
+    expect(slotDealPrice).toBe(105);
   });
 });
 
 describe("schleimi catalog seed", () => {
-  it("has 50 cosmetics and starter ids", () => {
-    expect(SCHLEIMI_ITEMS).toHaveLength(50);
-    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "gewoehnlich")).toHaveLength(27);
-    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "selten")).toHaveLength(15);
-    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "legendaer")).toHaveLength(8);
+  it("has 85 cosmetics and starter ids", () => {
+    expect(SCHLEIMI_ITEMS).toHaveLength(85);
+    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "gewoehnlich")).toHaveLength(38);
+    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "selten")).toHaveLength(29);
+    expect(SCHLEIMI_ITEMS.filter((item) => item.rarity === "legendaer")).toHaveLength(18);
     expect(SCHLEIMI_ITEMS.some((item) => item.id === STARTER_TINT_ID)).toBe(true);
     for (const starter of STARTER_IDS) {
       expect(SCHLEIMI_ITEMS.some((item) => item.id === starter)).toBe(true);
     }
   });
 
-  it("keeps the SQL migration in sync with catalog ids", () => {
-    const sql = readFileSync(
-      resolve("supabase/migrations/20260829_021_schleimi_v2_svg.sql"),
-      "utf8",
-    );
+  it("keeps the SQL migrations in sync with catalog ids", () => {
+    const sql =
+      readFileSync(resolve("supabase/migrations/20260829_021_schleimi_v2_svg.sql"), "utf8") +
+      readFileSync(resolve("supabase/migrations/20260829_022_schleimi_more_parts.sql"), "utf8");
     for (const item of SCHLEIMI_ITEMS) {
       expect(sql).toContain(`'${item.id}'`);
     }
     expect(sql).toContain("set_config('ratepanik.grant_economy'");
+  });
+
+  it("has an SVG part definition for every catalog item", () => {
+    const partsBySlot = {
+      shape: SHAPES,
+      body_tint: PALETTES,
+      eyes: EYES,
+      mouth: MOUTHS,
+      background: BACKGROUNDS,
+    } as const;
+    for (const item of SCHLEIMI_ITEMS) {
+      expect(partsBySlot[item.slot][item.id], `missing SVG part for ${item.id}`).toBeDefined();
+    }
   });
 
   it("legacy face map decomposes every face into owned catalog parts", () => {
@@ -162,7 +175,7 @@ describe("lootbox catalog defs", () => {
   it("slot crates filter to their slots", () => {
     const form = LOOTBOX_DEFS.find((d) => d.id === "lootbox_form")!;
     expect(form.allowed_slots).toEqual(["shape"]);
-    expect(form.price_hc).toBe(240);
+    expect(form.price_hc).toBe(150);
 
     const gesicht = LOOTBOX_DEFS.find((d) => d.id === "lootbox_gesicht")!;
     expect(gesicht.allowed_slots).toEqual(["eyes", "mouth"]);
@@ -183,10 +196,9 @@ describe("lootbox catalog defs", () => {
   });
 
   it("new crate SQL migration seeds match TS defs", () => {
-    const sql = readFileSync(
-      resolve("supabase/migrations/20260829_021_schleimi_v2_svg.sql"),
-      "utf8",
-    );
+    const sql =
+      readFileSync(resolve("supabase/migrations/20260829_021_schleimi_v2_svg.sql"), "utf8") +
+      readFileSync(resolve("supabase/migrations/20260829_023_slot_crate_price_150.sql"), "utf8");
     for (const def of LOOTBOX_DEFS) {
       if (def.id === "lootbox_basic") continue;
       expect(sql).toContain(`'${def.id}'`);
@@ -234,6 +246,7 @@ describe("daily deal", () => {
 
   it("computes deal price as ceil(base * 0.7)", () => {
     expect(dailyDealPrice(100)).toBe(70);
+    expect(dailyDealPrice(150)).toBe(105);
     expect(dailyDealPrice(240)).toBe(168);
   });
 

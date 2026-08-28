@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { PlayerSchleimi } from "@/components/player-schleimi";
+import { ModeArt } from "@/components/rp-art";
 import { useGame } from "@/lib/game-context";
 import type { FindLiePayload } from "@/lib/content";
 import { calculateFindLiePoints } from "@/lib/game-store";
@@ -44,8 +45,8 @@ export function FindLieRevealScreen() {
       }}
     >
       <div className="w-full max-w-sm">
-        <div className="mb-3 text-center">
-          <span className="text-5xl">{"\u{1F925}"}</span>
+        <div className="mb-3 flex justify-center">
+          <ModeArt mode="find_lie" size={96} priority />
         </div>
 
         <div

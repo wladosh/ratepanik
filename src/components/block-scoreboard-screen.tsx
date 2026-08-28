@@ -2,9 +2,11 @@
 
 import { PlayerSchleimi } from "@/components/player-schleimi";
 import { PlayerNameRow } from "@/components/player-name-row";
+import { ModeArt, PlaceBadge } from "@/components/rp-art";
 import { useGame } from "@/lib/game-context";
-import { modeEmoji, modeLabelDe } from "@/lib/game-store";
-import { SCOREBOARD_LEAD_COPY, competitionRanks, placeGlyph, scoreboardLeadKind } from "@/lib/match-ui";
+import { modeLabelDe } from "@/lib/game-store";
+import { SCOREBOARD_LEAD_COPY, competitionRanks, scoreboardLeadKind } from "@/lib/match-ui";
+import { TROPHY_ART } from "@/lib/rp-assets";
 import { useI18n } from "@/lib/i18n-context";
 
 export function BlockScoreboardScreen() {
@@ -56,7 +58,12 @@ export function BlockScoreboardScreen() {
             className="nb-card inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold"
             style={{ background: "var(--rp-nb-white)", color: "var(--rp-nb-text-secondary)" }}
           >
-            {mixedModes ? "✦" : modeEmoji(game.currentBlock?.mode)} {modeLabel}
+            {mixedModes ? (
+              <span aria-hidden="true">✦</span>
+            ) : (
+              <ModeArt mode={game.currentBlock?.mode} size={22} />
+            )}{" "}
+            {modeLabel}
           </span>
           <div
             className="flex items-center gap-1.5"
@@ -117,7 +124,7 @@ export function BlockScoreboardScreen() {
                     }}
                     aria-hidden="true"
                   >
-                    👑
+                    <PlaceBadge rank={1} size={28} />
                   </span>
                 ) : null}
               </div>
@@ -176,23 +183,21 @@ export function BlockScoreboardScreen() {
                     : "var(--rp-nb-border-color)",
               }}
             >
-              <span
-                className="flex h-9 w-9 shrink-0 items-center justify-center text-sm font-black"
-                style={{
-                  borderRadius: "var(--rp-nb-radius-sm)",
-                  border: "2px solid var(--rp-nb-border-color)",
-                  background:
-                    leadKind === "open" || rank !== 1
-                      ? "var(--rp-nb-white)"
-                      : "var(--rp-nb-yellow)",
-                  color:
-                    leadKind === "open" || rank !== 1
-                      ? "var(--rp-nb-text-secondary)"
-                      : "var(--rp-nb-text)",
-                }}
-              >
-                {leadKind === "open" ? "=" : placeGlyph(rank, "crown")}
-              </span>
+              {leadKind === "open" ? (
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center text-sm font-black"
+                  style={{
+                    borderRadius: "var(--rp-nb-radius-sm)",
+                    border: "2px solid var(--rp-nb-border-color)",
+                    background: "var(--rp-nb-white)",
+                    color: "var(--rp-nb-text-secondary)",
+                  }}
+                >
+                  =
+                </span>
+              ) : (
+                <PlaceBadge rank={rank} size={36} />
+              )}
               <PlayerSchleimi playerId={player.id} size={36} />
               <PlayerNameRow
                 className="flex-1"
@@ -221,7 +226,15 @@ export function BlockScoreboardScreen() {
               background: "var(--rp-nb-peach)",
             }}
           >
-            {isLastBlock ? "Endergebnis anzeigen 🏆" : "Nächster Block →"}
+            {isLastBlock ? (
+              <span className="inline-flex items-center justify-center gap-2">
+                Endergebnis anzeigen
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={TROPHY_ART} alt="" width={22} height={22} className="h-[22px] w-[22px] object-contain" />
+              </span>
+            ) : (
+              "Nächster Block →"
+            )}
           </button>
         ) : (
           <div

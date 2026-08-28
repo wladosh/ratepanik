@@ -1,5 +1,7 @@
 # Schleimi UX — PhoneShell
 
+> **⚠️ Partially superseded (2026-08-28, Schleimi 2.0):** slots are now `shape` · `body_tint` · `eyes` · `mouth` · `background` (only `background` unequippable), rendered as parametric SVG — see [`SCHLEIMI_ASSETS.md`](SCHLEIMI_ASSETS.md). The MANIFEST/PNG references and the `face`/`hat`/`extra` slot table below are historical.
+
 > Visual + copy spec only. Economy lives in [`docs/PHASE_C_SHOP.md`](PHASE_C_SHOP.md) and `open_lootbox`. **Do not roll rarity on the client.**
 > Frame: **390×844** (desktop PhoneShell). Mobile: same layout, full bleed.
 > Tone: peinlich-lustig, kurz, DE. No gore, no real-person jokes.
