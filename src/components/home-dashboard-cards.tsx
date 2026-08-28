@@ -295,7 +295,7 @@ function ShopHero({ onOpenPanel }: { onOpenPanel: (panel: HomePanelId) => void }
         <span>{t.home.shopMeta}</span>
       </span>
       <span className={styles.shopHeroAsset} data-feature-asset aria-hidden="true">
-        <Image src={LOOTBOX_CLOSED_PATH} alt="" width={110} height={110} style={{ objectFit: "contain" }} unoptimized />
+        <Image src={LOOTBOX_CLOSED_PATH} alt="" width={140} height={140} style={{ objectFit: "contain" }} unoptimized />
       </span>
       <ArrowMark />
     </button>

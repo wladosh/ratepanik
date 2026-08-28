@@ -102,9 +102,9 @@ export function ShopPanel({
             <img
               src={boxFailed ? LOOT_BOX_RARE_128 : lootbox.art_closed}
               alt=""
-              width={160}
-              height={160}
-              className="h-40 w-40 object-contain"
+              width={240}
+              height={240}
+              className="h-60 w-60 object-contain"
               style={{ filter: "drop-shadow(3px 3px 0 rgba(0,0,0,0.2))" }}
               onError={() => setBoxFailed(true)}
             />
