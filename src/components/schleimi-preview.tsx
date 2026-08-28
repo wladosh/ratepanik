@@ -105,7 +105,7 @@ export function SchleimiPreview({
 
   return (
     <div
-      className="relative shrink-0 overflow-hidden"
+      className="relative shrink-0 overflow-visible"
       style={{ width: size, height: size }}
       aria-label={label ?? "Schleimi"}
     >
@@ -134,7 +134,6 @@ export function SchleimiPreview({
           <LayerImage
             src={extra.asset_path}
             size={size}
-           
             fallback={
               <ExtraPlaceholder color={RARITY_COLOR[extra.rarity]} size={size} />
             }
@@ -146,7 +145,6 @@ export function SchleimiPreview({
           <LayerImage
             src={hat.asset_path}
             size={size}
-           
             fallback={<HatPlaceholder color={RARITY_COLOR[hat.rarity]} size={size} />}
           />
         </div>
@@ -154,6 +152,12 @@ export function SchleimiPreview({
     </div>
   );
 }
+
+const TILE_ZOOM: Record<Exclude<CosmeticSlot, "body_tint">, { scale: number; y: string }> = {
+  hat: { scale: 2.2, y: "30%" },
+  face: { scale: 1.6, y: "-5%" },
+  extra: { scale: 1.8, y: "0%" },
+};
 
 export function CosmeticTileArt({
   item,
@@ -174,6 +178,9 @@ export function CosmeticTileArt({
       <ExtraPlaceholder color={fill} size={size} />
     );
 
+  const isOverlay = item.slot !== "body_tint";
+  const zoom = isOverlay ? TILE_ZOOM[item.slot as Exclude<CosmeticSlot, "body_tint">] : null;
+
   return (
     <div
       className="relative overflow-hidden flex items-center justify-center"
@@ -186,7 +193,16 @@ export function CosmeticTileArt({
         boxShadow: "3px 3px 0 var(--rp-nb-black)",
       }}
     >
-      <LayerImage src={item.asset_path} size={size} fallback={fallback} />
+      {zoom ? (
+        <div
+          className="absolute inset-0"
+          style={{ transform: `scale(${zoom.scale}) translateY(${zoom.y})` }}
+        >
+          <LayerImage src={item.asset_path} size={size} fallback={fallback} />
+        </div>
+      ) : (
+        <LayerImage src={item.asset_path} size={size} fallback={fallback} />
+      )}
     </div>
   );
 }

@@ -77,7 +77,7 @@ export function SchleimiCustomizePanel({ onBack }: { onBack: () => void }) {
 
   return (
     <PanelShell title={t.cosmetics.customize} onBack={onBack}>
-      <div className="flex flex-col items-center pb-4">
+      <div className="flex flex-col items-center pb-4 pt-3">
         <SchleimiPreview layers={equippedItems} size={168} label="Schleimi" />
       </div>
 
