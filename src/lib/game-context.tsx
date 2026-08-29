@@ -561,6 +561,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   currentPromptRef.current = currentPrompt;
   promptsRef.current = prompts;
   isHostRef.current = isHost;
+  roomRef.current = room;
 
   // Canonical shared deadline — every client computes the same value from the
   // same DB-synced started_at timestamp.  No independent local clocks.
@@ -609,9 +610,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   useEffect(() => {
     roomCodeRef.current = room?.code ?? joinCode ?? null;
   }, [room?.code, joinCode]);
-  useEffect(() => {
-    roomRef.current = room;
-  }, [room]);
+  // roomRef is kept in sync above (synchronous assignment during render)
 
   // Toast errors during a live match expire. Join/create failures stay until retry.
   useEffect(() => {
@@ -2049,11 +2048,15 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   };
 
   const updateRoomSettings = async (patch: Partial<RoomSettings>) => {
-    if (!room || !isHost || room.status !== "lobby") return;
+    const currentRoom = roomRef.current;
+    if (!currentRoom || !isHostRef.current || currentRoom.status !== "lobby") return;
     const next = clampRoomSettings(
-      { ...parseRoomSettings(room.settings), ...patch },
+      { ...parseRoomSettings(currentRoom.settings), ...patch },
       players.length,
     );
+    const optimistic: DbRoom = { ...currentRoom, settings: next, total_blocks: next.blocks };
+    roomRef.current = optimistic;
+    setRoom(optimistic);
     const { error: err } = await supabase
       .from("rooms")
       .update({
@@ -2061,7 +2064,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         total_blocks: next.blocks,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", room.id);
+      .eq("id", currentRoom.id);
     if (err) {
       const m = err.message;
       if (/only_host_can_change_settings/i.test(m)) {
@@ -2073,7 +2076,6 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       }
       return;
     }
-    setRoom({ ...room, settings: next, total_blocks: next.blocks });
   };
 
   const updateDisplayName = async (newName: string): Promise<string | null> => {

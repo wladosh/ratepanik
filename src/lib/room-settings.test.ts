@@ -6,7 +6,10 @@ import {
   parseRoomSettings,
   parseTimerSeconds,
   roundsForMode,
+  settingsSummaryChips,
+  type RoomSettings,
 } from "./room-settings";
+import { messages } from "./i18n";
 
 describe("parseTimerSeconds", () => {
   it("keeps the new calm scale", () => {
@@ -75,5 +78,58 @@ describe("roundsForMode", () => {
     expect(roundsForMode("pick_correct", 3)).toBe(3);
     expect(roundsForMode("find_lie", 2)).toBe(2);
     expect(roundsForMode("order_it", 4)).toBe(4);
+  });
+});
+
+describe("settingsSummaryChips", () => {
+  const t = messages.de;
+
+  function chipsFor(overrides: Partial<RoomSettings>) {
+    return settingsSummaryChips(
+      { ...DEFAULT_ROOM_SETTINGS, ...overrides },
+      {},
+      t,
+    );
+  }
+
+  it("shows chipAllModes when modeFilter is 'all'", () => {
+    const chips = chipsFor({ modeFilter: "all" });
+    expect(chips).toContain(t.lobby.chipAllModes);
+  });
+
+  it("shows chipModeGuess when modeFilter is 'number_guess'", () => {
+    const chips = chipsFor({ modeFilter: "number_guess" });
+    expect(chips).toContain(t.lobby.chipModeGuess);
+    expect(chips).not.toContain(t.lobby.chipAllModes);
+  });
+
+  it("shows chipModePick when modeFilter is 'pick_correct'", () => {
+    const chips = chipsFor({ modeFilter: "pick_correct" });
+    expect(chips).toContain(t.lobby.chipModePick);
+    expect(chips).not.toContain(t.lobby.chipAllModes);
+  });
+
+  it("shows chipModeLie when modeFilter is 'find_lie'", () => {
+    const chips = chipsFor({ modeFilter: "find_lie" });
+    expect(chips).toContain(t.lobby.chipModeLie);
+    expect(chips).not.toContain(t.lobby.chipAllModes);
+  });
+
+  it("shows chipModeOrder when modeFilter is 'order_it'", () => {
+    const chips = chipsFor({ modeFilter: "order_it" });
+    expect(chips).toContain(t.lobby.chipModeOrder);
+    expect(chips).not.toContain(t.lobby.chipAllModes);
+  });
+
+  it("reflects non-default difficulty", () => {
+    const chips = chipsFor({ difficulty: "schwer" });
+    expect(chips).toContain(t.lobby.diffHard);
+    expect(chips).not.toContain(t.lobby.diffMix);
+  });
+
+  it("reflects non-default theme mix", () => {
+    const chips = chipsFor({ themeMix: "manual" });
+    expect(chips).toContain(t.lobby.chipThemesManual);
+    expect(chips).not.toContain(t.lobby.chipThemesRandom);
   });
 });
