@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { emptyPromptPoolReason, fetchActiveThemes, type Theme } from "@/lib/content";
 import {
-  DEFAULT_ROOM_SETTINGS,
   GAME_LENGTH_PRESETS,
   TIMER_SECONDS_OPTIONS,
   applyGameLength,
@@ -19,19 +18,6 @@ import {
 } from "@/lib/room-settings";
 import { useI18n } from "@/lib/i18n-context";
 import lengthStyles from "./lobby-settings.module.css";
-
-function StandardMark({ on }: { on: boolean }) {
-  const { t } = useI18n();
-  if (!on) return null;
-  return (
-    <span
-      className="nb-kicker"
-      style={{ fontSize: 9 }}
-    >
-      {t.lobby.standard}
-    </span>
-  );
-}
 
 function Segmented<T extends string | number>({
   value,
@@ -78,21 +64,18 @@ function ToggleRow({
   checked,
   disabled,
   onChange,
-  standard,
 }: {
   label: string;
   hint?: string;
   checked: boolean;
   disabled?: boolean;
   onChange: (next: boolean) => void;
-  standard?: boolean;
 }) {
   return (
     <div className="flex items-center gap-3 min-h-11">
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold" style={{ color: "var(--rp-text)" }}>
           {label}
-          {standard ? <StandardMark on /> : null}
         </p>
         {hint && (
           <p className="text-[10px] leading-tight" style={{ color: "var(--rp-text-secondary)" }}>
@@ -244,7 +227,6 @@ export function LobbySettingsPanel({
         <div>
           <p className="text-sm font-bold mb-1.5 flex items-center gap-1.5 flex-wrap" style={{ color: "var(--rp-text)" }}>
             {t.lobby.themeMix}
-            <StandardMark on={settings.themeMix === DEFAULT_ROOM_SETTINGS.themeMix} />
           </p>
           <Segmented<ThemeMix>
             value={settings.themeMix}
@@ -297,7 +279,6 @@ export function LobbySettingsPanel({
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
             {t.lobby.modes}
-            <StandardMark on={settings.modeFilter === DEFAULT_ROOM_SETTINGS.modeFilter} />
           </p>
           <Segmented<ModeFilter>
             value={settings.modeFilter}
@@ -315,7 +296,6 @@ export function LobbySettingsPanel({
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
             {t.lobby.difficulty}
-            <StandardMark on={settings.difficulty === DEFAULT_ROOM_SETTINGS.difficulty} />
           </p>
           <Segmented<DifficultyFilter>
             value={settings.difficulty}
@@ -418,7 +398,6 @@ export function LobbySettingsPanel({
         <div>
           <p className="text-sm font-bold mb-1.5" style={{ color: "var(--rp-text)" }}>
             {t.lobby.maxPlayers}
-            <StandardMark on={settings.maxPlayers === DEFAULT_ROOM_SETTINGS.maxPlayers} />
           </p>
           <Segmented<MaxPlayers>
             value={settings.maxPlayers}
@@ -434,14 +413,12 @@ export function LobbySettingsPanel({
           label={t.lobby.guestsAllowed}
           hint={t.lobby.guestsHint}
           checked={settings.allowGuests}
-          standard={settings.allowGuests === DEFAULT_ROOM_SETTINGS.allowGuests}
           onChange={(allowGuests) => onChange({ allowGuests })}
         />
         <ToggleRow
           label={t.lobby.autoStart}
           hint={t.lobby.autoStartHint}
           checked={settings.autoStart}
-          standard={settings.autoStart === DEFAULT_ROOM_SETTINGS.autoStart}
           onChange={(autoStart) => onChange({ autoStart })}
         />
       </Section>
