@@ -92,6 +92,20 @@ import {
   playerHasPicksRemaining,
 } from "./pick-correct";
 import { isPickCorrectPayload, shufflePickCorrectPayload } from "./shuffle";
+import {
+  buildInitialFinaleState,
+  buildClientView,
+  resolveStep,
+  isFinaleOver,
+  finaleSurvivor,
+  FINALE_STEP_TIMER_MS,
+  FINALE_ROULETTE_DURATION_MS,
+  FINALE_ROULETTE_THEME_COUNT,
+  type FinaleState,
+  type FinaleClientView,
+  type FinaleChain,
+  type FinaleStep,
+} from "./finale-survival";
 
 export type GamePhase =
   | "home"
@@ -110,6 +124,11 @@ export type GamePhase =
   | "order_it_reveal"
   | "pick_correct"
   | "block_scoreboard"
+  | "finale_roulette"
+  | "finale_step"
+  | "finale_step_waiting"
+  | "finale_reveal"
+  | "finale_finished"
   | "final";
 
 interface GameContextValue {
@@ -153,6 +172,9 @@ interface GameContextValue {
   roomSettings: RoomSettings;
   updateRoomSettings: (patch: Partial<RoomSettings>) => Promise<void>;
 
+  // Finale survival state
+  finaleView: FinaleClientView | null;
+
   // Actions
   createRoom: (hostName: string, hostUserId: string) => Promise<string | null>;
   joinRoom: (code: string, displayName: string) => Promise<string | null>;
@@ -165,6 +187,9 @@ interface GameContextValue {
   tapCard: (cardIndex: number) => Promise<void>;
   advanceFromReveal: () => Promise<void>;
   advanceFromBlockScore: () => Promise<void>;
+  submitFinalePick: (side: "left" | "right") => Promise<void>;
+  advanceFinaleFromRoulette: () => Promise<void>;
+  advanceFinaleFromReveal: () => Promise<void>;
   resetGame: () => Promise<void>;
   goHome: () => void;
   updateDisplayName: (newName: string) => Promise<string | null>;
@@ -434,13 +459,41 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     [room?.settings],
   );
 
+  const finaleState = (room?.finale_state as FinaleState | null | undefined) ?? null;
+
+  const finaleView: FinaleClientView | null = useMemo(() => {
+    if (!finaleState || !myPlayerId) return null;
+    return buildClientView(finaleState, myPlayerId);
+  }, [finaleState, myPlayerId]);
+
   const phase: GamePhase = useMemo(() => {
     if (!room) {
       if (restoring || Boolean(joinCode)) return "playing_loading";
       return "home";
     }
     if (room.status === "lobby") return "lobby";
-    if (room.status === "finished") return "final";
+    if (room.status === "finished") {
+      // Check if we're in a finale flow
+      if (finaleState) {
+        switch (finaleState.phase) {
+          case "roulette":
+          case "roulette_done":
+            return "finale_roulette";
+          case "step": {
+            const stepData = finaleState.steps[finaleState.currentStep];
+            const myPick = stepData?.picks[myPlayerId ?? ""];
+            const isEliminated = finaleState.eliminatedPlayerIds.includes(myPlayerId ?? "");
+            if (isEliminated || myPick) return "finale_step_waiting";
+            return "finale_step";
+          }
+          case "reveal":
+            return "finale_reveal";
+          case "finished":
+            return "finale_finished";
+        }
+      }
+      return "final";
+    }
 
     if (isVsIntroActive(nowMs, readVsIntroUntil(room.settings))) return "vs_intro";
 
@@ -499,7 +552,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
 
     return "playing_loading";
-  }, [room, currentBlock, playMode, roundAnswers, players.length, myPlayerId, restoring, revealHoldActive, roundTimedOut, nowMs, joinCode]);
+  }, [room, currentBlock, playMode, roundAnswers, players.length, myPlayerId, restoring, revealHoldActive, roundTimedOut, nowMs, joinCode, finaleState]);
 
   currentBlockRef.current = currentBlock;
   phaseRef.current = phase;
@@ -1848,13 +1901,102 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     }
   };
 
-  const advanceFromBlockScore = async () => {
+  const startFinale = async () => {
     if (!room || !isHost) return;
 
-    const nextBlockIndex = room.current_block_index + 1;
+    try {
+      // Fetch 4 random active themes for the roulette
+      const { data: themeRows } = await supabase
+        .from("themes")
+        .select("id, slug, name_de")
+        .eq("active", true);
 
-    if (nextBlockIndex >= room.total_blocks) {
-      // Match finished
+      const activeThemes = (themeRows ?? []) as { id: string; slug: string; name_de: string }[];
+      if (activeThemes.length === 0) {
+        setError("Keine Themen für das Finale verfügbar.");
+        return;
+      }
+
+      const shuffledThemes = [...activeThemes].sort(() => Math.random() - 0.5);
+      const rouletteThemes = shuffledThemes.slice(0, FINALE_ROULETTE_THEME_COUNT);
+      const winnerIdx = Math.floor(Math.random() * rouletteThemes.length);
+      const winnerThemeId = rouletteThemes[winnerIdx].id;
+
+      // Fetch chains for the winning theme
+      const { data: chainRows } = await supabase
+        .from("finale_chains")
+        .select("id, theme_id, slug, name_de")
+        .eq("theme_id", winnerThemeId)
+        .eq("active", true);
+
+      let chain: FinaleChain | null = null;
+      let chains = (chainRows ?? []) as FinaleChain[];
+
+      if (chains.length === 0) {
+        // Fallback: pick any active chain
+        const { data: fallbackChains } = await supabase
+          .from("finale_chains")
+          .select("id, theme_id, slug, name_de")
+          .eq("active", true);
+        chains = (fallbackChains ?? []) as FinaleChain[];
+      }
+
+      if (chains.length === 0) {
+        // No chains at all — skip finale, go straight to final
+        await supabase
+          .from("rooms")
+          .update({
+            status: "finished" as const,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", room.id);
+        return;
+      }
+
+      chain = chains[Math.floor(Math.random() * chains.length)];
+
+      // Fetch steps for the chain
+      const { data: stepRows } = await supabase
+        .from("finale_steps")
+        .select("id, chain_id, step_order, prompt, correct, wrong_a, wrong_b")
+        .eq("chain_id", chain.id)
+        .order("step_order");
+
+      const steps = (stepRows ?? []) as FinaleStep[];
+      if (steps.length === 0) {
+        await supabase
+          .from("rooms")
+          .update({
+            status: "finished" as const,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", room.id);
+        return;
+      }
+
+      const playerIds = players.map((p) => p.id);
+
+      const initialState = buildInitialFinaleState({
+        rouletteThemeIds: rouletteThemes.map((t) => t.id),
+        winnerThemeIndex: winnerIdx,
+        chain,
+        steps,
+        playerIds,
+      });
+
+      initialState.rouletteStartedAt = new Date().toISOString();
+
+      await supabase
+        .from("rooms")
+        .update({
+          status: "finished" as const,
+          finale_state: initialState as unknown as Record<string, unknown>,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", room.id);
+    } catch (err) {
+      console.error("startFinale error:", err);
+      // Fallback: finish without finale
       await supabase
         .from("rooms")
         .update({
@@ -1862,6 +2004,17 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
           updated_at: new Date().toISOString(),
         })
         .eq("id", room.id);
+    }
+  };
+
+  const advanceFromBlockScore = async () => {
+    if (!room || !isHost) return;
+
+    const nextBlockIndex = room.current_block_index + 1;
+
+    if (nextBlockIndex >= room.total_blocks) {
+      // Last block → start the Finale Survival mode
+      await startFinale();
       return;
     }
 
@@ -1974,6 +2127,164 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     return null;
   };
 
+  // ── Finale actions ──────────────────────────────────────────
+
+  const submitFinalePick = async (side: "left" | "right") => {
+    if (!room || !myPlayerId || !finaleState) return;
+    if (finaleState.phase !== "step") return;
+    if (finaleState.eliminatedPlayerIds.includes(myPlayerId)) return;
+    const step = finaleState.steps[finaleState.currentStep];
+    if (!step || step.picks[myPlayerId]) return;
+
+    const updatedSteps = [...finaleState.steps];
+    updatedSteps[finaleState.currentStep] = {
+      ...step,
+      picks: { ...step.picks, [myPlayerId]: side },
+    };
+
+    const updated: FinaleState = { ...finaleState, steps: updatedSteps };
+
+    await supabase
+      .from("rooms")
+      .update({
+        finale_state: updated as unknown as Record<string, unknown>,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", room.id);
+  };
+
+  const advanceFinaleFromRoulette = async () => {
+    if (!room || !isHost || !finaleState) return;
+    if (finaleState.phase !== "roulette" && finaleState.phase !== "roulette_done") return;
+
+    const updated: FinaleState = { ...finaleState, phase: "step" };
+
+    await supabase
+      .from("rooms")
+      .update({
+        finale_state: updated as unknown as Record<string, unknown>,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", room.id);
+  };
+
+  const advanceFinaleFromReveal = async () => {
+    if (!room || !isHost || !finaleState) return;
+    if (finaleState.phase !== "reveal") return;
+
+    const nextStepIdx = finaleState.currentStep + 1;
+    const over = isFinaleOver(finaleState.livingPlayerIds, nextStepIdx, finaleState.steps.length);
+
+    if (over) {
+      const survivor = finaleSurvivor(finaleState.livingPlayerIds);
+      const updated: FinaleState = {
+        ...finaleState,
+        phase: "finished",
+        currentStep: nextStepIdx,
+        survivorId: survivor,
+      };
+
+      await supabase
+        .from("rooms")
+        .update({
+          finale_state: updated as unknown as Record<string, unknown>,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", room.id);
+    } else {
+      const updated: FinaleState = {
+        ...finaleState,
+        phase: "step",
+        currentStep: nextStepIdx,
+      };
+
+      await supabase
+        .from("rooms")
+        .update({
+          finale_state: updated as unknown as Record<string, unknown>,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", room.id);
+    }
+  };
+
+  // Host auto-reveals finale step when all living players have answered or timer expires
+  useEffect(() => {
+    if (!isHost || !room || !finaleState || finaleState.phase !== "step") return;
+
+    const step = finaleState.steps[finaleState.currentStep];
+    if (!step) return;
+
+    const livingCount = finaleState.livingPlayerIds.length;
+    const answeredCount = finaleState.livingPlayerIds.filter(
+      (id) => step.picks[id] != null,
+    ).length;
+
+    const allAnswered = answeredCount >= livingCount;
+
+    const doReveal = async () => {
+      const result = resolveStep(
+        finaleState.livingPlayerIds,
+        step.picks,
+        step.correctSide,
+      );
+
+      const updatedSteps = [...finaleState.steps];
+      updatedSteps[finaleState.currentStep] = {
+        ...step,
+        revealed: true,
+        eliminatedThisStep: result.eliminated,
+      };
+
+      const updated: FinaleState = {
+        ...finaleState,
+        phase: "reveal",
+        steps: updatedSteps,
+        livingPlayerIds: result.survivors,
+        eliminatedPlayerIds: [
+          ...finaleState.eliminatedPlayerIds,
+          ...result.eliminated,
+        ],
+      };
+
+      await supabase
+        .from("rooms")
+        .update({
+          finale_state: updated as unknown as Record<string, unknown>,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", room.id);
+    };
+
+    if (allAnswered) {
+      // Brief delay so the last player sees their pick lock in
+      const timer = setTimeout(() => void doReveal(), 500);
+      return () => clearTimeout(timer);
+    }
+
+    // Timer-based reveal
+    const timer = setTimeout(() => void doReveal(), FINALE_STEP_TIMER_MS);
+    return () => clearTimeout(timer);
+  }, [isHost, room?.id, finaleState, supabase]);
+
+  // Auto-advance from roulette after the animation duration
+  useEffect(() => {
+    if (!isHost || !finaleState || finaleState.phase !== "roulette") return;
+    if (!finaleState.rouletteStartedAt) return;
+
+    const elapsed = Date.now() - new Date(finaleState.rouletteStartedAt).getTime();
+    const remaining = FINALE_ROULETTE_DURATION_MS + 1500 - elapsed;
+
+    if (remaining <= 0) {
+      void advanceFinaleFromRoulette();
+      return;
+    }
+
+    const timer = setTimeout(() => void advanceFinaleFromRoulette(), remaining);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHost, finaleState?.phase, finaleState?.rouletteStartedAt]);
+
   const resetGame = async () => {
     if (!room) return;
 
@@ -1993,6 +2304,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         theme_vote_active: false,
         current_question_index: 0,
         question_ids: [],
+        finale_state: null,
         updated_at: new Date().toISOString(),
       })
       .eq("id", room.id);
@@ -2163,6 +2475,10 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     tapCard,
     advanceFromReveal,
     advanceFromBlockScore,
+    submitFinalePick,
+    advanceFinaleFromRoulette,
+    advanceFinaleFromReveal,
+    finaleView,
     resetGame,
     goHome,
     updateDisplayName,

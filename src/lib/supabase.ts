@@ -17,6 +17,7 @@ export interface DbRoom {
   host_user_id: string | null;
   theme_vote_active: boolean;
   settings?: RoomSettings | Record<string, unknown> | null;
+  finale_state?: import("./finale-survival").FinaleState | null;
   created_at: string;
   updated_at: string;
 }
