@@ -2078,6 +2078,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
   const updateDisplayName = async (newName: string): Promise<string | null> => {
     if (!room || !myPlayerId) return t.game.renameFailed;
+    if (!isGuest) return t.game.renameLockedRegistered;
     const trimmed = newName.trim();
     if (!trimmed) return t.game.renameEmpty;
     if (trimmed.length < 3) return t.game.renameTooShort;

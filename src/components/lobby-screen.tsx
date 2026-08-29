@@ -9,6 +9,7 @@ import { emptyPromptPoolReason } from "@/lib/content";
 import { copyJoinLink, shareOrCopyJoinLink } from "@/lib/join-link";
 import { interpolate } from "@/lib/i18n";
 import { useI18n } from "@/lib/i18n-context";
+import { useAuth } from "@/lib/auth-context";
 import { LobbyJoinQrButton } from "@/components/lobby-join-qr";
 
 function CrownIcon({ className }: { className?: string }) {
@@ -240,10 +241,12 @@ function KickConfirmSheet({
 export function LobbyScreen() {
   const game = useGame();
   const { t } = useI18n();
+  const { isGuest } = useAuth();
   const [copied, setCopied] = useState(false);
   const [shareToast, setShareToast] = useState<string | null>(null);
   const [renameOpen, setRenameOpen] = useState(false);
   const [kickTarget, setKickTarget] = useState<{ id: string; name: string } | null>(null);
+  const canRename = isGuest;
 
   const playersSorted = [...game.players].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
@@ -396,17 +399,26 @@ export function LobbyScreen() {
               >
                 <PlayerSchleimi playerId={player.id} size={48} label={player.display_name} />
                 {isMe ? (
-                  <button
-                    className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold text-left active:opacity-70 transition-opacity"
-                    style={{ color: "var(--rp-nb-text)" }}
-                    onClick={() => setRenameOpen(true)}
-                  >
-                    <span className="min-w-0 truncate">{player.display_name}</span>
-                    <PencilIcon className="w-3.5 h-3.5 shrink-0 opacity-50" />
-                    <span className="shrink-0 text-xs font-black uppercase" style={{ color: "var(--rp-nb-text-secondary)" }}>
-                      {t.game.youBadge}
+                  canRename ? (
+                    <button
+                      className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold text-left active:opacity-70 transition-opacity"
+                      style={{ color: "var(--rp-nb-text)" }}
+                      onClick={() => setRenameOpen(true)}
+                    >
+                      <span className="min-w-0 truncate">{player.display_name}</span>
+                      <PencilIcon className="w-3.5 h-3.5 shrink-0 opacity-50" />
+                      <span className="shrink-0 text-xs font-black uppercase" style={{ color: "var(--rp-nb-text-secondary)" }}>
+                        {t.game.youBadge}
+                      </span>
+                    </button>
+                  ) : (
+                    <span className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold" style={{ color: "var(--rp-nb-text)" }}>
+                      <span className="min-w-0 truncate">{player.display_name}</span>
+                      <span className="shrink-0 text-xs font-black uppercase" style={{ color: "var(--rp-nb-text-secondary)" }}>
+                        {t.game.youBadge}
+                      </span>
                     </span>
-                  </button>
+                  )
                 ) : (
                   <span className="flex min-w-0 flex-1 items-center gap-1.5 text-base font-bold" style={{ color: "var(--rp-nb-text)" }}>
                     <span className="min-w-0 truncate">{player.display_name}</span>
@@ -500,7 +512,7 @@ export function LobbyScreen() {
         )}
       </div>
 
-      {renameOpen && (
+      {renameOpen && canRename && (
         <RenameSheet
           currentName={
             game.players.find((p) => p.id === game.myPlayerId)?.display_name ?? ""
