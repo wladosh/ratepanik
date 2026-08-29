@@ -21,6 +21,10 @@ import { PickCorrectScreen } from "./pick-correct-screen";
 import { BlockScoreboardScreen } from "./block-scoreboard-screen";
 import { FinalScreen } from "./final-screen";
 import { VsIntroScreen } from "./vs-intro-screen";
+import { FinaleRouletteScreen } from "./finale-roulette-screen";
+import { FinaleStepScreen } from "./finale-step-screen";
+import { FinaleRevealScreen } from "./finale-reveal-screen";
+import { FinaleFinishedScreen } from "./finale-finished-screen";
 
 const MATCH_PHASES: GamePhase[] = [
   "vs_intro",
@@ -36,6 +40,11 @@ const MATCH_PHASES: GamePhase[] = [
   "order_it_reveal",
   "pick_correct",
   "block_scoreboard",
+  "finale_roulette",
+  "finale_step",
+  "finale_step_waiting",
+  "finale_reveal",
+  "finale_finished",
 ];
 
 function LeaveMatchDialog({
@@ -175,6 +184,15 @@ export function Game() {
             return <PickCorrectScreen />;
           case "block_scoreboard":
             return <BlockScoreboardScreen />;
+          case "finale_roulette":
+            return <FinaleRouletteScreen />;
+          case "finale_step":
+          case "finale_step_waiting":
+            return <FinaleStepScreen />;
+          case "finale_reveal":
+            return <FinaleRevealScreen />;
+          case "finale_finished":
+            return <FinaleFinishedScreen />;
           case "final":
             return <FinalScreen />;
           default:
