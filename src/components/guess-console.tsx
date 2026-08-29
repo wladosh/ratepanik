@@ -18,7 +18,6 @@ export interface GuessConsoleProps {
   onSubmit: (value: number) => void | Promise<void>;
 }
 
-const FORMAT_HELP = "Große Zahlen bekommen automatisch Punkte: 10.000.000";
 const INVALID_GUESS = "Gib eine gültige Zahl ein, zum Beispiel 12,5 oder 10.000.";
 
 export function GuessConsole({
@@ -30,7 +29,6 @@ export function GuessConsole({
   onSubmit,
 }: GuessConsoleProps) {
   const inputId = useId();
-  const helpId = useId();
   const errorId = useId();
   const unitId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -40,7 +38,6 @@ export function GuessConsole({
   const invalid = showValidation && value.trim() !== "" && parsedGuess === null;
   const visibleError = submissionError ?? (invalid ? INVALID_GUESS : null);
   const describedBy = [
-    helpId,
     unit ? unitId : null,
     visibleError ? errorId : null,
   ]
@@ -95,7 +92,7 @@ export function GuessConsole({
           value={value}
           placeholder="Zahl eingeben"
           aria-invalid={visibleError ? "true" : "false"}
-          aria-describedby={describedBy}
+          aria-describedby={describedBy || undefined}
           onChange={(event) => {
             const next = formatGermanGroupedInput(event.target.value);
             const contentBefore = countContentChars(
@@ -120,22 +117,15 @@ export function GuessConsole({
         ) : null}
       </div>
 
-      <div
-        className={[
-          styles.message,
-          visibleError ? styles.error : null,
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      >
-        {visibleError ? (
+      {visibleError ? (
+        <div
+          className={[styles.message, styles.error].filter(Boolean).join(" ")}
+        >
           <span id={errorId} role="alert">
             {visibleError}
           </span>
-        ) : (
-          <span id={helpId}>{FORMAT_HELP}</span>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       <button
         className={styles.submit}
