@@ -1,13 +1,21 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useGame } from "@/lib/game-context";
 import { MatchPlayShell } from "./match-play-shell";
 import { PlayerSchleimi } from "./player-schleimi";
 import { PlayerNameRow } from "./player-name-row";
+import {
+  FINALE_SURVIVOR_BONUS,
+  FINALE_STEP_SURVIVE_BONUS,
+} from "@/lib/finale-survival";
+
+const AUTO_ADVANCE_MS = 4500;
 
 export function FinaleFinishedScreen() {
   const game = useGame();
   const view = game.finaleView;
+  const advancedRef = useRef(false);
 
   const survivorId = view?.survivorId;
   const survivor = game.players.find((p) => p.id === survivorId);
@@ -16,11 +24,29 @@ export function FinaleFinishedScreen() {
   const multipleSurvivors = (view?.livingPlayerIds.length ?? 0) > 1;
   const noSurvivor = !survivorId && !multipleSurvivors;
 
+  const stepsRevealed = view?.pastSteps.length ?? 0;
+
   const playerName = (playerId: string) =>
     game.players.find((p) => p.id === playerId)?.display_name ?? "?";
 
+  useEffect(() => {
+    if (!game.isHost || advancedRef.current) return;
+    const timer = setTimeout(() => {
+      advancedRef.current = true;
+      void game.advanceFromFinale();
+    }, AUTO_ADVANCE_MS);
+    return () => clearTimeout(timer);
+  }, [game]);
+
+  const handleContinue = () => {
+    if (!game.isHost) return;
+    if (advancedRef.current) return;
+    advancedRef.current = true;
+    void game.advanceFromFinale();
+  };
+
   return (
-    <MatchPlayShell ariaLabel="Finale – Ergebnis">
+    <MatchPlayShell ariaLabel="Finale – Bonuspunkte">
       <div
         className="flex flex-1 flex-col items-center justify-center px-4 pb-6"
         style={{ paddingTop: "max(env(safe-area-inset-top, 0px), var(--ps-notch-inset))" }}
@@ -34,7 +60,6 @@ export function FinaleFinishedScreen() {
           </span>
         </div>
 
-        {/* Single survivor = winner */}
         {survivor && (
           <div
             className="nb-card-lg w-full max-w-sm p-6 text-center mb-6 animate-fade-in"
@@ -48,22 +73,19 @@ export function FinaleFinishedScreen() {
                 <PlayerSchleimi playerId={survivor.id} size={72} />
               </span>
             </div>
-            <p className="text-3xl mb-2">🏆</p>
+            <p className="text-3xl mb-2">⚡</p>
             <h1 className="nb-heading text-[26px] mb-1">
-              {iAmSurvivor ? "Du hast überlebt!" : `${survivor.display_name} gewinnt!`}
+              {iAmSurvivor ? "Du hast überlebt!" : `${survivor.display_name} überlebt!`}
             </h1>
             <p
               className="text-sm font-bold"
               style={{ color: "var(--rp-nb-text-secondary)" }}
             >
-              {iAmSurvivor
-                ? "Letzter Überlebender — Champion des Finales!"
-                : `${survivor.display_name} ist der letzte Überlebende.`}
+              +{FINALE_SURVIVOR_BONUS + stepsRevealed * FINALE_STEP_SURVIVE_BONUS} Bonuspunkte
             </p>
           </div>
         )}
 
-        {/* Multiple survivors (all steps exhausted) */}
         {multipleSurvivors && (
           <div
             className="nb-card-lg w-full max-w-sm p-6 text-center mb-6 animate-fade-in"
@@ -71,10 +93,10 @@ export function FinaleFinishedScreen() {
           >
             <p className="text-3xl mb-2">🎉</p>
             <h1 className="nb-heading text-[26px] mb-1 text-white">
-              Unentschieden!
+              Alle haben überlebt!
             </h1>
             <p className="text-sm font-bold text-white" style={{ opacity: 0.9 }}>
-              {view!.livingPlayerIds.length} Spieler haben alle Schritte überlebt.
+              {view!.livingPlayerIds.length} Spieler erhalten Bonuspunkte.
             </p>
             <div className="flex justify-center gap-2 mt-3">
               {view!.livingPlayerIds.map((pid) => (
@@ -89,7 +111,6 @@ export function FinaleFinishedScreen() {
           </div>
         )}
 
-        {/* No survivor (shouldn't happen due to sudden death, but handle) */}
         {noSurvivor && (
           <div
             className="nb-card-lg w-full max-w-sm p-6 text-center mb-6 animate-fade-in"
@@ -101,12 +122,11 @@ export function FinaleFinishedScreen() {
               className="text-sm font-bold"
               style={{ color: "var(--rp-nb-text-secondary)" }}
             >
-              Keiner hat es geschafft. Nächstes Mal!
+              Keiner hat es geschafft. Keine Bonuspunkte.
             </p>
           </div>
         )}
 
-        {/* Eliminated players list */}
         {view && view.eliminatedPlayerIds.length > 0 && (
           <div className="w-full max-w-sm mb-5">
             <h3
@@ -137,53 +157,20 @@ export function FinaleFinishedScreen() {
           </div>
         )}
 
-        {/* Past steps summary */}
-        {view && view.pastSteps.length > 0 && (
-          <div className="w-full max-w-sm mb-5">
-            <h3
-              className="text-[10px] font-black uppercase tracking-wider mb-2 px-1"
-              style={{ color: "var(--rp-nb-text-secondary)" }}
-            >
-              Rückblick
-            </h3>
-            <div className="space-y-2">
-              {view.pastSteps.map((ps, i) => (
-                <div
-                  key={i}
-                  className="nb-card px-3 py-2"
-                  style={{ background: "var(--rp-nb-white)" }}
-                >
-                  <p className="text-xs font-bold" style={{ color: "var(--rp-nb-text)" }}>
-                    {i + 1}. {ps.prompt}
-                  </p>
-                  <p
-                    className="text-[10px] font-bold mt-0.5"
-                    style={{ color: "var(--rp-nb-green)" }}
-                  >
-                    ✓ {ps.correctSide === "left" ? ps.optionLeft : ps.optionRight}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        <p
+          className="text-xs font-bold mb-4"
+          style={{ color: "var(--rp-nb-text-secondary)" }}
+        >
+          Weiter zum Endstand…
+        </p>
 
-        {/* Continue to final scoreboard */}
-        {game.isHost ? (
+        {game.isHost && (
           <button
-            onClick={() => void game.goHome()}
+            onClick={handleContinue}
             className="nb-btn h-[52px] w-full max-w-sm text-[15px] text-white"
             style={{ background: "var(--rp-nb-peach)" }}
           >
-            Zurück zur Lobby
-          </button>
-        ) : (
-          <button
-            onClick={() => void game.goHome()}
-            className="nb-btn h-[52px] w-full max-w-sm text-[15px] text-white"
-            style={{ background: "var(--rp-nb-peach)" }}
-          >
-            Fertig
+            Zum Endstand →
           </button>
         )}
       </div>

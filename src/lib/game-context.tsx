@@ -98,6 +98,7 @@ import {
   resolveStep,
   isFinaleOver,
   finaleSurvivor,
+  calculateFinaleBonuses,
   FINALE_STEP_TIMER_MS,
   FINALE_ROULETTE_DURATION_MS,
   FINALE_ROULETTE_THEME_COUNT,
@@ -190,6 +191,7 @@ interface GameContextValue {
   submitFinalePick: (side: "left" | "right") => Promise<void>;
   advanceFinaleFromRoulette: () => Promise<void>;
   advanceFinaleFromReveal: () => Promise<void>;
+  advanceFromFinale: () => Promise<void>;
   resetGame: () => Promise<void>;
   goHome: () => void;
   updateDisplayName: (newName: string) => Promise<string | null>;
@@ -2177,17 +2179,32 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
 
     if (over) {
       const survivor = finaleSurvivor(finaleState.livingPlayerIds);
-      const updated: FinaleState = {
+      const finishedState: FinaleState = {
         ...finaleState,
         phase: "finished",
         currentStep: nextStepIdx,
         survivorId: survivor,
       };
 
+      const bonuses = calculateFinaleBonuses(finishedState);
+      for (const player of players) {
+        const bonus = bonuses.get(player.id) ?? 0;
+        if (bonus <= 0) continue;
+        const { data: latest } = await supabase
+          .from("players")
+          .select("score")
+          .eq("id", player.id)
+          .single();
+        await supabase
+          .from("players")
+          .update({ score: (latest?.score ?? player.score) + bonus })
+          .eq("id", player.id);
+      }
+
       await supabase
         .from("rooms")
         .update({
-          finale_state: updated as unknown as Record<string, unknown>,
+          finale_state: finishedState as unknown as Record<string, unknown>,
           updated_at: new Date().toISOString(),
         })
         .eq("id", room.id);
@@ -2284,6 +2301,19 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHost, finaleState?.phase, finaleState?.rouletteStartedAt]);
+
+  const advanceFromFinale = async () => {
+    if (!room || !isHost || !finaleState) return;
+    if (finaleState.phase !== "finished") return;
+
+    await supabase
+      .from("rooms")
+      .update({
+        finale_state: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", room.id);
+  };
 
   const resetGame = async () => {
     if (!room) return;
@@ -2478,6 +2508,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     submitFinalePick,
     advanceFinaleFromRoulette,
     advanceFinaleFromReveal,
+    advanceFromFinale,
     finaleView,
     resetGame,
     goHome,
