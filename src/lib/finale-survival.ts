@@ -15,6 +15,12 @@ export const FINALE_ROULETTE_DURATION_MS = 3_000;
 /** Number of theme options shown in the roulette. */
 export const FINALE_ROULETTE_THEME_COUNT = 4;
 
+/** Bonus points awarded to the sole finale survivor. */
+export const FINALE_SURVIVOR_BONUS = 500;
+
+/** Smaller per-step bonus for each step a player survives. */
+export const FINALE_STEP_SURVIVE_BONUS = 50;
+
 // ── Types ──────────────────────────────────────────────────────
 
 export interface FinaleChain {
@@ -202,6 +208,43 @@ export function buildInitialFinaleState(opts: {
     survivorId: null,
     rouletteStartedAt: null,
   };
+}
+
+// ── Bonus point calculation ────────────────────────────────────
+
+/**
+ * Calculate finale bonus points for each player.
+ * - The sole survivor gets FINALE_SURVIVOR_BONUS.
+ * - Every player earns FINALE_STEP_SURVIVE_BONUS for each step they survived
+ *   (i.e. steps before they were eliminated, or all steps if they survived).
+ * Returns a map of playerId → bonus points.
+ */
+export function calculateFinaleBonuses(state: FinaleState): Map<string, number> {
+  const bonuses = new Map<string, number>();
+
+  const allPlayerIds = [
+    ...state.livingPlayerIds,
+    ...state.eliminatedPlayerIds,
+  ];
+
+  for (const pid of allPlayerIds) {
+    let stepsAlive = 0;
+    for (const step of state.steps) {
+      if (!step.revealed) break;
+      if (step.eliminatedThisStep.includes(pid)) break;
+      stepsAlive++;
+    }
+    bonuses.set(pid, stepsAlive * FINALE_STEP_SURVIVE_BONUS);
+  }
+
+  if (state.survivorId) {
+    bonuses.set(
+      state.survivorId,
+      (bonuses.get(state.survivorId) ?? 0) + FINALE_SURVIVOR_BONUS,
+    );
+  }
+
+  return bonuses;
 }
 
 // ── Sanitized view for clients ─────────────────────────────────

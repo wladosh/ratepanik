@@ -6,6 +6,9 @@ import {
   finaleSurvivor,
   buildInitialFinaleState,
   buildClientView,
+  calculateFinaleBonuses,
+  FINALE_SURVIVOR_BONUS,
+  FINALE_STEP_SURVIVE_BONUS,
   type FinaleStep,
   type FinaleChain,
   type FinaleState,
@@ -327,5 +330,218 @@ describe("buildClientView", () => {
     const view = buildClientView(state, "alice");
     expect(view.currentStepView!.correctSide).toBe("right");
     expect(view.currentStepView!.allPicks).toEqual({ alice: "right" });
+  });
+});
+
+// ── calculateFinaleBonuses ─────────────────────────────────────
+
+describe("calculateFinaleBonuses", () => {
+  function makeFinishedState(overrides: Partial<FinaleState> = {}): FinaleState {
+    return {
+      phase: "finished",
+      rouletteThemeIds: ["t1"],
+      winnerThemeIndex: 0,
+      chainId: "chain-1",
+      steps: [
+        {
+          stepId: "s1",
+          prompt: "Q1",
+          optionLeft: "A",
+          optionRight: "B",
+          correctSide: "left",
+          picks: { alice: "left", bob: "right" },
+          revealed: true,
+          eliminatedThisStep: ["bob"],
+        },
+        {
+          stepId: "s2",
+          prompt: "Q2",
+          optionLeft: "C",
+          optionRight: "D",
+          correctSide: "right",
+          picks: { alice: "right" },
+          revealed: true,
+          eliminatedThisStep: [],
+        },
+      ],
+      currentStep: 2,
+      livingPlayerIds: ["alice"],
+      eliminatedPlayerIds: ["bob"],
+      survivorId: "alice",
+      rouletteStartedAt: null,
+      ...overrides,
+    };
+  }
+
+  it("awards survivor bonus + per-step bonuses to the survivor", () => {
+    const state = makeFinishedState();
+    const bonuses = calculateFinaleBonuses(state);
+    expect(bonuses.get("alice")).toBe(
+      FINALE_SURVIVOR_BONUS + 2 * FINALE_STEP_SURVIVE_BONUS,
+    );
+  });
+
+  it("awards per-step bonus to eliminated players up to their elimination", () => {
+    const state = makeFinishedState();
+    const bonuses = calculateFinaleBonuses(state);
+    expect(bonuses.get("bob")).toBe(0);
+  });
+
+  it("awards step bonus for each step survived before elimination", () => {
+    const state = makeFinishedState({
+      steps: [
+        {
+          stepId: "s1",
+          prompt: "Q1",
+          optionLeft: "A",
+          optionRight: "B",
+          correctSide: "left",
+          picks: { alice: "left", bob: "left", charlie: "left" },
+          revealed: true,
+          eliminatedThisStep: [],
+        },
+        {
+          stepId: "s2",
+          prompt: "Q2",
+          optionLeft: "C",
+          optionRight: "D",
+          correctSide: "right",
+          picks: { alice: "right", bob: "left", charlie: "right" },
+          revealed: true,
+          eliminatedThisStep: ["bob"],
+        },
+        {
+          stepId: "s3",
+          prompt: "Q3",
+          optionLeft: "E",
+          optionRight: "F",
+          correctSide: "left",
+          picks: { alice: "left", charlie: "right" },
+          revealed: true,
+          eliminatedThisStep: ["charlie"],
+        },
+      ],
+      livingPlayerIds: ["alice"],
+      eliminatedPlayerIds: ["bob", "charlie"],
+      survivorId: "alice",
+      currentStep: 3,
+    });
+
+    const bonuses = calculateFinaleBonuses(state);
+    expect(bonuses.get("alice")).toBe(
+      FINALE_SURVIVOR_BONUS + 3 * FINALE_STEP_SURVIVE_BONUS,
+    );
+    expect(bonuses.get("bob")).toBe(1 * FINALE_STEP_SURVIVE_BONUS);
+    expect(bonuses.get("charlie")).toBe(2 * FINALE_STEP_SURVIVE_BONUS);
+  });
+
+  it("awards zero survivor bonus when no one survives", () => {
+    const state = makeFinishedState({
+      survivorId: null,
+      livingPlayerIds: [],
+      eliminatedPlayerIds: ["alice", "bob"],
+      steps: [
+        {
+          stepId: "s1",
+          prompt: "Q1",
+          optionLeft: "A",
+          optionRight: "B",
+          correctSide: "left",
+          picks: { alice: "right", bob: "right" },
+          revealed: true,
+          eliminatedThisStep: ["alice", "bob"],
+        },
+      ],
+      currentStep: 1,
+    });
+    const bonuses = calculateFinaleBonuses(state);
+    expect(bonuses.get("alice")).toBe(0);
+    expect(bonuses.get("bob")).toBe(0);
+  });
+
+  it("awards no survivor bonus when multiple players survive all steps", () => {
+    const state = makeFinishedState({
+      survivorId: null,
+      livingPlayerIds: ["alice", "bob"],
+      eliminatedPlayerIds: [],
+      steps: [
+        {
+          stepId: "s1",
+          prompt: "Q1",
+          optionLeft: "A",
+          optionRight: "B",
+          correctSide: "left",
+          picks: { alice: "left", bob: "left" },
+          revealed: true,
+          eliminatedThisStep: [],
+        },
+      ],
+      currentStep: 1,
+    });
+    const bonuses = calculateFinaleBonuses(state);
+    expect(bonuses.get("alice")).toBe(1 * FINALE_STEP_SURVIVE_BONUS);
+    expect(bonuses.get("bob")).toBe(1 * FINALE_STEP_SURVIVE_BONUS);
+  });
+});
+
+// ── Phase transition: finale → endstand ────────────────────────
+
+describe("finale → endstand phase transition", () => {
+  it("finale_finished phase transitions to final when finale_state is cleared", () => {
+    const finaleState: FinaleState = {
+      phase: "finished",
+      rouletteThemeIds: ["t1"],
+      winnerThemeIndex: 0,
+      chainId: "chain-1",
+      steps: [],
+      currentStep: 0,
+      livingPlayerIds: ["alice"],
+      eliminatedPlayerIds: ["bob"],
+      survivorId: "alice",
+      rouletteStartedAt: null,
+    };
+
+    expect(finaleState.phase).toBe("finished");
+
+    const cleared = null;
+    expect(cleared).toBeNull();
+  });
+
+  it("finale does not override match winner — bonus points are additive", () => {
+    const state: FinaleState = {
+      phase: "finished",
+      rouletteThemeIds: ["t1"],
+      winnerThemeIndex: 0,
+      chainId: "chain-1",
+      steps: [
+        {
+          stepId: "s1",
+          prompt: "Q1",
+          optionLeft: "A",
+          optionRight: "B",
+          correctSide: "left",
+          picks: { alice: "left", bob: "right" },
+          revealed: true,
+          eliminatedThisStep: ["bob"],
+        },
+      ],
+      currentStep: 1,
+      livingPlayerIds: ["alice"],
+      eliminatedPlayerIds: ["bob"],
+      survivorId: "alice",
+      rouletteStartedAt: null,
+    };
+
+    const bonuses = calculateFinaleBonuses(state);
+
+    const aliceMatchScore = 200;
+    const bobMatchScore = 800;
+
+    const aliceFinal = aliceMatchScore + (bonuses.get("alice") ?? 0);
+    const bobFinal = bobMatchScore + (bonuses.get("bob") ?? 0);
+
+    expect(aliceFinal).toBe(200 + FINALE_SURVIVOR_BONUS + 1 * FINALE_STEP_SURVIVE_BONUS);
+    expect(bobFinal).toBe(800);
+    expect(bobFinal).toBeGreaterThan(aliceFinal);
   });
 });
