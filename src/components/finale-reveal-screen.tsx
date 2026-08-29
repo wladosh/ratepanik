@@ -16,6 +16,8 @@ export function FinaleRevealScreen() {
   const correctSide = step.correctSide;
   const isMyCorrect = myPick != null && myPick === correctSide;
   const isEliminated = view.eliminatedPlayerIds.includes(game.myPlayerId ?? "");
+  const wasEliminatedThisStep = step.eliminatedThisStep.includes(game.myPlayerId ?? "");
+  const isSuddenDeath = step.eliminatedThisStep.length === 0 && !isMyCorrect && myPick != null;
 
   const playerName = (playerId: string) =>
     game.players.find((p) => p.id === playerId)?.display_name ?? "?";
@@ -112,13 +114,23 @@ export function FinaleRevealScreen() {
           <div
             className="nb-card-lg w-full max-w-sm p-4 text-center mb-5 animate-fade-in"
             style={{
-              background: isMyCorrect ? "var(--rp-nb-green)" : "var(--rp-nb-red)",
-              color: "white",
+              background: wasEliminatedThisStep
+                ? "var(--rp-nb-red)"
+                : isSuddenDeath
+                  ? "var(--rp-nb-yellow)"
+                  : "var(--rp-nb-green)",
+              color: wasEliminatedThisStep || isSuddenDeath ? "white" : "white",
             }}
           >
-            <p className="text-2xl mb-1">{isMyCorrect ? "🎉" : "💀"}</p>
+            <p className="text-2xl mb-1">
+              {wasEliminatedThisStep ? "💀" : isSuddenDeath ? "⚡" : "🎉"}
+            </p>
             <p className="font-black text-lg">
-              {isMyCorrect ? "Du überlebst!" : "Ausgeschieden!"}
+              {wasEliminatedThisStep
+                ? "Ausgeschieden!"
+                : isSuddenDeath
+                  ? "Sudden Death — alle falsch, keiner fliegt!"
+                  : "Du überlebst!"}
             </p>
           </div>
         )}
