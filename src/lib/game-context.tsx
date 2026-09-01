@@ -650,7 +650,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         { event: "*", schema: "public", table: "rooms", filter: `id=eq.${roomId}` },
         (payload) => {
           if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
-            setRoom(payload.new as DbRoom);
+            const updated = payload.new as DbRoom;
+            setRoom(updated);
+            if (updated.status !== "lobby") {
+              void refetchRoomStateRef.current?.(roomId);
+            }
           }
         }
       )
@@ -823,27 +827,35 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   // Catch-up on foreground, bfcache restore, and network recovery.
   // ALWAYS refetch when the tab becomes visible — silent desync (channel
   // reports "joined" but missed postgres_changes) is the primary failure mode.
+  // Debounced so rapid-fire events (visibility+focus+online) don't stampede.
   useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
     function catchUp() {
-      const currentRoom = roomRef.current;
-      if (!currentRoom) return;
+      if (debounceTimer) return;
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
 
-      setNowMs(Date.now());
+        const currentRoom = roomRef.current;
+        if (!currentRoom) return;
 
-      const channel = channelRef.current;
-      const needsReconnect =
-        !channel ||
-        (channel.state !== "joined" && channel.state !== "joining");
+        setNowMs(Date.now());
 
-      if (needsReconnect || disconnected) {
-        if (channel) {
-          supabase.removeChannel(channel);
-          channelRef.current = null;
+        const channel = channelRef.current;
+        const needsReconnect =
+          !channel ||
+          (channel.state !== "joined" && channel.state !== "joining");
+
+        if (needsReconnect || disconnected) {
+          if (channel) {
+            supabase.removeChannel(channel);
+            channelRef.current = null;
+          }
+          subscribeRef.current?.(currentRoom.id);
         }
-        subscribeRef.current?.(currentRoom.id);
-      }
 
-      void refetchRoomState(currentRoom.id);
+        void refetchRoomState(currentRoom.id);
+      }, 300);
     }
 
     function handleVisibility() {
@@ -855,50 +867,47 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       if (e.persisted) catchUp();
     }
 
-    function handleOnline() {
-      catchUp();
-    }
-
     document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("pageshow", handlePageShow);
-    window.addEventListener("online", handleOnline);
+    window.addEventListener("online", catchUp);
     window.addEventListener("focus", catchUp);
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("pageshow", handlePageShow);
-      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("online", catchUp);
       window.removeEventListener("focus", catchUp);
     };
   }, [supabase, disconnected, refetchRoomState]);
 
   // Soft poll: safety net for phones that never fire a clean disconnect.
-  // Polls refetchRoomState on a calm interval while in an active match.
+  // Polls refetchRoomState on a calm interval while a room is active.
   useEffect(() => {
-    if (!room || room.status !== "playing") return;
+    if (!room) return;
 
-    const POLL_MS = 4000;
+    const POLL_MS = 10_000;
     const id = window.setInterval(() => {
       if (document.visibilityState !== "visible") return;
       const r = roomRef.current;
-      if (!r || r.status !== "playing") return;
+      if (!r) return;
       void refetchRoomState(r.id);
     }, POLL_MS);
 
     return () => window.clearInterval(id);
-  }, [room?.id, room?.status, refetchRoomState]);
+  }, [room?.id, refetchRoomState]);
 
   // Stale-sync watchdog: if no successful sync has happened in a while,
   // flip disconnected to true so the UI can surface it.
   useEffect(() => {
-    if (!room || room.status !== "playing") return;
-    const STALE_THRESHOLD_MS = 15_000;
+    if (!room) return;
+    const STALE_THRESHOLD_MS = 20_000;
     const id = window.setInterval(() => {
       if (Date.now() - lastSyncMsRef.current > STALE_THRESHOLD_MS) {
         setDisconnected(true);
       }
     }, 5000);
     return () => window.clearInterval(id);
-  }, [room?.id, room?.status]);
+  }, [room?.id]);
 
   // --- load prompts when block theme is selected ---
 
