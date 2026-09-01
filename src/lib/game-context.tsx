@@ -264,7 +264,7 @@ async function awardPickCorrectAndAdvance(
 
   const nextRound = block.current_round + 1;
   if (nextRound < block.rounds_total) {
-    await supabase
+    const { data } = await supabase
       .from("match_blocks")
       .update({
         current_round: nextRound,
@@ -274,18 +274,23 @@ async function awardPickCorrectAndAdvance(
           : {}),
       })
       .eq("id", block.id)
-      .eq("is_complete", false);
-    return;
+      .eq("is_complete", false)
+      .select()
+      .single();
+    return data as DbMatchBlock | null;
   }
 
-  await supabase
+  const { data } = await supabase
     .from("match_blocks")
     .update({
       is_complete: true,
       finished_at: new Date().toISOString(),
     })
     .eq("id", block.id)
-    .eq("is_complete", false);
+    .eq("is_complete", false)
+    .select()
+    .single();
+  return data as DbMatchBlock | null;
 }
 
 export function GameProvider({ children, joinCode }: { children: ReactNode; joinCode?: string }) {
@@ -330,6 +335,8 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   const startGameRef = useRef<() => Promise<void>>(async () => {});
   const voluntaryLeaveRef = useRef(false);
   const [disconnected, setDisconnected] = useState(false);
+  const reconnectingRef = useRef(false);
+  const lastSyncMsRef = useRef(Date.now());
   const myPlayerIdRef = useRef<string | null>(null);
   const roomCodeRef = useRef<string | null>(null);
   const roomRef = useRef<DbRoom | null>(null);
@@ -579,7 +586,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   useEffect(() => {
     if (room?.status !== "playing") return;
     const until = readVsIntroUntil(room.settings);
-    if (until == null || Date.now() >= until) return;
+    if (until == null) return;
+    if (Date.now() >= until) {
+      setNowMs(Date.now());
+      return;
+    }
     const id = window.setInterval(() => {
       const next = Date.now();
       setNowMs(next);
@@ -639,7 +650,11 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         { event: "*", schema: "public", table: "rooms", filter: `id=eq.${roomId}` },
         (payload) => {
           if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
-            setRoom(payload.new as DbRoom);
+            const updated = payload.new as DbRoom;
+            setRoom(updated);
+            if (updated.status !== "lobby") {
+              void refetchRoomStateRef.current?.(roomId);
+            }
           }
         }
       )
@@ -754,15 +769,22 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       .subscribe((status, err) => {
         if (status === "SUBSCRIBED") {
           setDisconnected(false);
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+          reconnectingRef.current = false;
+          void refetchRoomStateRef.current?.(roomId);
+        } else if (
+          status === "CHANNEL_ERROR" ||
+          status === "TIMED_OUT" ||
+          status === "CLOSED"
+        ) {
           setDisconnected(true);
           console.warn("Realtime subscription issue:", status, err);
+          if (reconnectingRef.current) return;
+          reconnectingRef.current = true;
           setTimeout(() => {
             if (channelRef.current) {
               supabase.removeChannel(channelRef.current);
             }
             subscribeRef.current?.(roomId);
-            void refetchRoomStateRef.current?.(roomId);
           }, 2000);
         }
       });
@@ -794,37 +816,98 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     if (blocksData) setBlocks(blocksData);
     if (turnsData) setTurns(turnsData);
     setDisconnected(false);
+    lastSyncMsRef.current = Date.now();
+    setNowMs(Date.now());
   }, [supabase]);
 
   useEffect(() => {
     refetchRoomStateRef.current = refetchRoomState;
   }, [refetchRoomState]);
 
-  // Hidden-tab timers are throttled, so reconnect when the tab is foregrounded.
+  // Catch-up on foreground, bfcache restore, and network recovery.
+  // ALWAYS refetch when the tab becomes visible — silent desync (channel
+  // reports "joined" but missed postgres_changes) is the primary failure mode.
+  // Debounced so rapid-fire events (visibility+focus+online) don't stampede.
   useEffect(() => {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    function catchUp() {
+      if (debounceTimer) return;
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+
+        const currentRoom = roomRef.current;
+        if (!currentRoom) return;
+
+        setNowMs(Date.now());
+
+        const channel = channelRef.current;
+        const needsReconnect =
+          !channel ||
+          (channel.state !== "joined" && channel.state !== "joining");
+
+        if (needsReconnect || disconnected) {
+          if (channel) {
+            supabase.removeChannel(channel);
+            channelRef.current = null;
+          }
+          subscribeRef.current?.(currentRoom.id);
+        }
+
+        void refetchRoomState(currentRoom.id);
+      }, 300);
+    }
+
     function handleVisibility() {
       if (document.visibilityState !== "visible") return;
-      const currentRoom = roomRef.current;
-      if (!currentRoom) return;
+      catchUp();
+    }
 
-      const channel = channelRef.current;
-      const needsReconnect =
-        !channel ||
-        (channel.state !== "joined" && channel.state !== "joining");
-
-      if (!needsReconnect && !disconnected) return;
-
-      if (channel) {
-        supabase.removeChannel(channel);
-        channelRef.current = null;
-      }
-      subscribeRef.current?.(currentRoom.id);
-      void refetchRoomState(currentRoom.id);
+    function handlePageShow(e: PageTransitionEvent) {
+      if (e.persisted) catchUp();
     }
 
     document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
+    window.addEventListener("pageshow", handlePageShow);
+    window.addEventListener("online", catchUp);
+    window.addEventListener("focus", catchUp);
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("pageshow", handlePageShow);
+      window.removeEventListener("online", catchUp);
+      window.removeEventListener("focus", catchUp);
+    };
   }, [supabase, disconnected, refetchRoomState]);
+
+  // Soft poll: safety net for phones that never fire a clean disconnect.
+  // Polls refetchRoomState on a calm interval while actively playing.
+  useEffect(() => {
+    if (!room || room.status !== "playing") return;
+
+    const POLL_MS = 4000;
+    const id = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      const r = roomRef.current;
+      if (!r || r.status !== "playing") return;
+      void refetchRoomState(r.id);
+    }, POLL_MS);
+
+    return () => window.clearInterval(id);
+  }, [room?.id, room?.status, refetchRoomState]);
+
+  // Stale-sync watchdog: if no successful sync has happened in a while,
+  // flip disconnected to true so the UI can surface it.
+  useEffect(() => {
+    if (!room || room.status !== "playing") return;
+    const STALE_THRESHOLD_MS = 15_000;
+    const id = window.setInterval(() => {
+      if (Date.now() - lastSyncMsRef.current > STALE_THRESHOLD_MS) {
+        setDisconnected(true);
+      }
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [room?.id, room?.status]);
 
   // --- load prompts when block theme is selected ---
 
@@ -941,7 +1024,13 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       players,
       blockTurns,
       nextPlay,
-    );
+    ).then((updatedBlock) => {
+      if (updatedBlock) {
+        setBlocks((prev) =>
+          prev.map((b) => (b.id === updatedBlock.id ? updatedBlock : b)),
+        );
+      }
+    });
   }, [isHost, currentBlock, playMode, pickRoundComplete, blockTurns, players, prompts, room, roomSettings, revealHoldActive, supabase]);
 
   const scoreSimultaneousQuizRound = async (
@@ -1067,7 +1156,13 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         currentPlayers,
         thisRound,
         nextPlay,
-      );
+      ).then((updatedBlock) => {
+        if (updatedBlock) {
+          setBlocks((prev) =>
+            prev.map((b) => (b.id === updatedBlock.id ? updatedBlock : b)),
+          );
+        }
+      });
     }
   };
 
@@ -1533,7 +1628,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       .update({ score: 0 })
       .eq("room_id", room.id);
 
-    const { error: upErr } = await supabase
+    const { data: updatedRoom, error: upErr } = await supabase
       .from("rooms")
       .update({
         status: "playing" as const,
@@ -1545,13 +1640,17 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         settings: stampVsIntroUntil(room.settings, players.length),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", room.id);
+      .eq("id", room.id)
+      .select()
+      .single();
 
     if (upErr) {
       setError(t.game.roundStartFailed);
       return;
     }
 
+    if (updatedRoom) setRoom(updatedRoom);
+    setNowMs(Date.now());
     setAllAnswers([]);
     setTurns([]);
     lastStateKeyRef.current = themeVote ? "0:true" : "0:false";
@@ -1850,7 +1949,7 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
     const nextRound = currentBlock.current_round + 1;
     if (nextRound < currentBlock.rounds_total) {
       const nextPrompt = prompts[nextRound];
-      await supabase
+      const { data: updatedBlock } = await supabase
         .from("match_blocks")
         .update({
           current_round: nextRound,
@@ -1865,7 +1964,14 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
               }
             : {}),
         })
-        .eq("id", currentBlock.id);
+        .eq("id", currentBlock.id)
+        .select()
+        .single();
+      if (updatedBlock) {
+        setBlocks((prev) =>
+          prev.map((b) => (b.id === updatedBlock.id ? updatedBlock : b)),
+        );
+      }
     } else {
       for (const player of players) {
         const prior = allBlockAnswers
@@ -1888,13 +1994,20 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
         );
       }
 
-      await supabase
+      const { data: completedBlock } = await supabase
         .from("match_blocks")
         .update({
           is_complete: true,
           finished_at: new Date().toISOString(),
         })
-        .eq("id", currentBlock.id);
+        .eq("id", currentBlock.id)
+        .select()
+        .single();
+      if (completedBlock) {
+        setBlocks((prev) =>
+          prev.map((b) => (b.id === completedBlock.id ? completedBlock : b)),
+        );
+      }
     }
     } finally {
       hostActionLockRef.current = false;
