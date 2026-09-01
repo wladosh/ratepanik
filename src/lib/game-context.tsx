@@ -881,33 +881,33 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
   }, [supabase, disconnected, refetchRoomState]);
 
   // Soft poll: safety net for phones that never fire a clean disconnect.
-  // Polls refetchRoomState on a calm interval while a room is active.
+  // Polls refetchRoomState on a calm interval while actively playing.
   useEffect(() => {
-    if (!room) return;
+    if (!room || room.status !== "playing") return;
 
-    const POLL_MS = 10_000;
+    const POLL_MS = 4000;
     const id = window.setInterval(() => {
       if (document.visibilityState !== "visible") return;
       const r = roomRef.current;
-      if (!r) return;
+      if (!r || r.status !== "playing") return;
       void refetchRoomState(r.id);
     }, POLL_MS);
 
     return () => window.clearInterval(id);
-  }, [room?.id, refetchRoomState]);
+  }, [room?.id, room?.status, refetchRoomState]);
 
   // Stale-sync watchdog: if no successful sync has happened in a while,
   // flip disconnected to true so the UI can surface it.
   useEffect(() => {
-    if (!room) return;
-    const STALE_THRESHOLD_MS = 20_000;
+    if (!room || room.status !== "playing") return;
+    const STALE_THRESHOLD_MS = 15_000;
     const id = window.setInterval(() => {
       if (Date.now() - lastSyncMsRef.current > STALE_THRESHOLD_MS) {
         setDisconnected(true);
       }
     }, 5000);
     return () => window.clearInterval(id);
-  }, [room?.id]);
+  }, [room?.id, room?.status]);
 
   // --- load prompts when block theme is selected ---
 
