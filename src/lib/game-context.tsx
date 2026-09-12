@@ -2210,7 +2210,12 @@ export function GameProvider({ children, joinCode }: { children: ReactNode; join
       .from("players")
       .update({ display_name: trimmed })
       .eq("id", myPlayerId);
-    if (err) return t.game.renameFailed;
+    if (err) {
+      if (/registered_users_cannot_rename/i.test(err.message)) {
+        return t.game.renameLockedRegistered;
+      }
+      return t.game.renameFailed;
+    }
 
     setPlayers((prev) =>
       prev.map((p) => (p.id === myPlayerId ? { ...p, display_name: trimmed } : p)),
